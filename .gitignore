@@ -6,7 +6,11 @@
 !manuscript/manuscript.Rmd
 !manuscript/manuscript.Rproj
 !manuscript/manu_refs.bib
+
 !metadata/*
 !metadata/figures/*
 !metadata/raw_data/*
 !metadata/made_data/*
+
+!targeted/*
+!targeted/made_data/longdata.csv
