@@ -1,0 +1,1294 @@
+---
+title: "Metadata control"
+author: "William Kumler"
+date: "5/5/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+
+library(tidyverse)
+library(cmap4r)
+cmap_api <- "6acd63a0-4c63-11ea-aa09-71d9d763e28d"
+set_authorization(cmap_key = cmap_api)
+library(fuzzyjoin)
+library(ggmap)
+register_google("AIzaSyBVNJV0Myoy3M50IBBDIjXZhUyU8Mnagvs")
+library(ggrepel)
+library(gridExtra)  # For grid.arrange
+library(data.table) # For fast indexing of seaflow data
+library(RaMS)       # For MS file timestamps
+library(scales)     # For "muted" function
+library(readxl)     # For "readxl"
+
+scope_uname <- "scope"
+scope_pw <- "SCOPE2014"
+
+if(!dir.exists("raw_data")){
+  dir.create("raw_data")
+}
+if(!dir.exists("made_data")){
+  dir.create("made_data")
+}
+if(!dir.exists("figures")){
+  dir.create("figures")
+}
+
+options(pillar.sigfig = 7)
+```
+
+```{r functions}
+toDecDeg <- function(deg, min, dir){
+  num <- deg+min/60
+  if(dir%in%c("S", "W")){
+    num*-1
+  } else {
+    num
+  }
+}
+```
+
+## CTD data (cruise, station, time, lat, lon, cast, SLA, DCM depth)
+
+Cruise is manually entered, station/time/lat/lon/cast come from the SCOPE website cruise
+summaries, SLA is pulled down from CMAP, and DCM depth was manually found by looking
+at the cruise logbook.
+
+Also now includes data from .gof files for exact depth
+
+```{r station_metadata}
+# DCMs are entered manually ----
+if(!file.exists("raw_data/all_DCMs.csv")){
+  falkor_DCMs <- data.frame(
+    station=c(62, 64, 77, 80),
+    cast=1,
+    DCM_depth=c(98, 115, 125, 120)
+  )
+  transect_DCMs <- data.frame(
+    station = c(4:13, 13, 14),
+    cast=c(1,1,3,1,1,2,2,2,1,2,3,2),
+    DCM_depth=c(100, 122, 119, 133, 122, 110, 110, 110, 103, 112, 112, 105)
+  )
+  center_DCMs <- data.frame(
+    station = paste0("L", c(1,1,2,2)),
+    cast=c(32, 33, 1, 2),
+    DCM_depth=c(108, 104, 123, 123)
+  )
+  all_DCMs <- rbind(falkor_DCMs, transect_DCMs, center_DCMs)
+
+  write.csv(all_DCMs, "raw_data/all_DCMs.csv", row.names = FALSE)
+}
+
+
+# SCOPE CTD data consists of station, cast, time, max_depth, bottles, lat, and lon ----
+getScopeCTD <- function(url){
+  col_names <- c("station", "cast", "month", "day", "year", "time", 
+               "lat_deg", "lat_min", "lat_dir", 
+                "lon_deg", "lon_min", "lon_dir", "max_depth", "bottles")
+  read_table(url, skip = 3, col_names = col_names, col_types = cols(
+    station = col_character(),
+    cast = col_double(),
+    month = col_character(),
+    day = col_character(),
+    year = col_double(),
+    time = col_time(format = ""),
+    lat_deg = col_double(),
+    lat_min = col_double(),
+    lat_dir = col_character(),
+    lon_deg = col_double(),
+    lon_min = col_double(),
+    lon_dir = col_character(),
+    max_depth = col_double(),
+    bottles = col_double())) %>%
+    mutate(time=strptime(paste(month, day, year, time), format = "%b %d %Y %X")) %>%
+    select(-month, -day, -year) %>%
+    mutate(lat=mapply(toDecDeg, lat_deg, lat_min, lat_dir)) %>%
+    mutate(lon=mapply(toDecDeg, lon_deg, lon_min, lon_dir)) %>%
+    select(-matches("^lon_|^lat_"))
+}
+
+if(!file.exists("raw_data/falkor_SCOPEweb_ctd_summary.csv")){
+  # Data source: scope.soest.hawaii.edu/collaborators/datainventory/Data/SCOPEcore/FK_CTDsummary_current.txt
+  falkor_SCOPEweb_ctd_summary_url <- paste0("http://", scope_uname, ":", scope_pw,
+                "@scope.soest.hawaii.edu/collaborators/datainventory/Data/",
+                "SCOPEcore/FK_CTDsummary_current.txt")
+  falkor_SCOPEweb_ctd_summary <- getScopeCTD(falkor_SCOPEweb_ctd_summary_url)
+  falkor_SCOPEweb_ctd_summary <- filter(falkor_SCOPEweb_ctd_summary, time > "2018-03-23 04:01:51")
+  write.csv(falkor_SCOPEweb_ctd_summary, 
+            file = "raw_data/falkor_SCOPEweb_ctd_summary.csv", 
+            row.names = FALSE)
+}
+if(!file.exists("raw_data/meso_SCOPEweb_ctd_summary.csv")){
+  # Data url source: scope.soest.hawaii.edu/collaborators/datainventory/Data/SCOPEcore/MS_CTDsummary_current.txt
+  meso_SCOPEweb_ctd_summary_url <- paste0("http://", scope_uname, ":", scope_pw,
+                                 "@scope.soest.hawaii.edu/collaborators/datainventory/Data",
+                                 "/SCOPEcore/MS_CTDsummary_current.txt")
+  meso_SCOPEweb_ctd_summary <- getScopeCTD(meso_SCOPEweb_ctd_summary_url)
+  write.csv(meso_SCOPEweb_ctd_summary, 
+            file = "raw_data/meso_SCOPEweb_ctd_summary.csv", 
+            row.names = FALSE)
+}
+
+
+
+# SLA data is pulled down from CMAP for Falkor, FTP for meso ----
+# SLA units are meters
+if(!file.exists("raw_data/falkor_SLA.csv")){
+  falkor_cruisename = "SCOPE_Falkor2"
+  falkor_cruise_data <- get_cruise_by_name(falkor_cruisename)
+  falkor_CMAP_SLA <- get_spacetime(tableName = 'tblAltimetry_REP',
+                     varName = 'sla',
+                     dt1=as.character(falkor_cruise_data$Start_Time),
+                     dt2=as.character(falkor_cruise_data$End_Time),
+                     lat1=falkor_cruise_data$Lat_Min,
+                     lat2=falkor_cruise_data$Lat_Max,
+                     lon1=falkor_cruise_data$Lon_Min,
+                     lon2=falkor_cruise_data$Lon_Max)
+
+  falkor_ctddata <- read.csv("raw_data/falkor_SCOPEweb_ctd_summary.csv")
+  falkor_SLA <- falkor_ctddata %>%
+    mutate(time=as.POSIXct(time)) %>%
+    group_by(station) %>%
+    summarize(lat=median(lat), lon=median(lon), time=median(time)) %>%
+    difference_left_join(falkor_CMAP_SLA, max_dist = 0.125, by=c("lat", "lon")) %>%
+    filter(as.Date(time.x)==as.Date(time.y)) %>%
+    select(station, sla)
+  
+  write.csv(falkor_SLA, file="raw_data/falkor_SLA.csv", row.names = FALSE)
+}
+if(!file.exists("raw_data/meso_SLA.csv")){
+  meso_SLA <- "http://scope.soest.hawaii.edu/data/mesoscope/km1709_CtdSla.txt" %>%
+    read.table(skip = 1, col.names = c("station", "cast", "sla")) %>%
+    mutate(sla=sla/100)
+  write.csv(meso_SLA, file = "raw_data/meso_SLA.csv", row.names = FALSE)
+}
+
+
+# Combine and write out ----
+falkor_SLA <- read.csv("raw_data/falkor_SLA.csv") %>%
+  mutate(station=as.character(station)) %>%
+  mutate(cast=1)
+meso_SLA <- read.csv("raw_data/meso_SLA.csv")
+dcm_depths <- read.csv("raw_data/all_DCMs.csv")
+falkor_ctddata <- read.csv("raw_data/falkor_SCOPEweb_ctd_summary.csv")
+meso_ctddata <- read.csv("raw_data/meso_SCOPEweb_ctd_summary.csv")
+
+station_metadata <- meso_ctddata %>%
+  mutate(cruise=ifelse(startsWith(station, "L")|station==15, "MC", "MT")) %>%
+  rbind(falkor_ctddata %>% mutate(cruise="FK")) %>%
+  left_join(dcm_depths, by=c("station", "cast")) %>%
+  left_join(rbind(meso_SLA, falkor_SLA), by=c("station", "cast")) %>%
+  filter(!(cruise=="FK" & station < 28)) %>%
+  select(cruise, station, cast, time, lat, lon, DCM_depth, sla) %>%
+  mutate(time=as.POSIXct(time, tz = "UTC")) %>% 
+  mutate(local_hour=as.numeric(format(time, tz="HST", format = "%H")))
+
+write.csv(station_metadata, file = "made_data/station_metadata.csv", row.names = FALSE)
+```
+
+```{r all_core and bottle_depth_data}
+# Core Water Column Data from .gof file on the internet
+if(!file.exists("raw_data/falkor_core.txt")){
+  fk_meta <- "http://scope.soest.hawaii.edu/FTP/scope/water/fk180310.gof"
+  download.file(fk_meta, destfile = "raw_data/falkor_core.txt")
+}
+if(!file.exists("raw_data/mesoscope_core.txt")){
+  meso_meta <- "http://scope.soest.hawaii.edu/FTP/scope/water/mesoscope.gof"
+  download.file(meso_meta, destfile = "raw_data/mesoscope_core.txt")
+}
+meso_core <- read_table("raw_data/mesoscope_core.txt", skip = 4, 
+                        col_names = FALSE) %>%
+  set_names(c("station", "cast", "rosette", "lat", "lon", "pressure", "temp",
+              "sal", "ctd_oxy", "ctd_chl", "theta", "sigma", "oxy_um", "dic", "alk", "ph",
+              "po4_um", "no23_um", "sio4_um", "LLN", "LLP", "PC", "PN", "PP",
+              "PSi", "chl_ug", "phaeo_ug", "het_abund", 
+              "pro_abund", "syn_abund", "euk_abund",
+              "q1", "q2", "q3", "q4")) %>%
+  mutate(across(everything(), function(x)ifelse(x==-9, NA, x))) %>%
+  mutate(cruise=case_when(
+    station <= 14 ~ "MT",
+    station %in% 15:17 ~ "MC",
+    TRUE ~ "Unknown"
+  )) %>%
+  mutate(station=case_when(
+    station <= 15 ~ as.character(station),
+    station == 16 ~ "L1",
+    station == 17 ~ "L2"
+  )) %>%
+  select(cruise, station, cast, rosette, pressure, 
+         temp, sal, theta, dic, alk, ph, oxy_um, ends_with("abund"))
+fk_core <- read_table("raw_data/falkor_core.txt", skip = 4, 
+                        col_names = FALSE) %>%
+  set_names(c("station", "cast", "rosette", "lat", "lon", "pressure", "temp",
+              "sal", "ctd_oxy", "ctd_chl", "theta", "sigma", "oxy_um", "dic", "alk", "ph",
+              "po4_um", "no23_um", "sio4_um", "LLN", "LLP", "PC", "PN", "PP",
+              "PSi", "chl_ug", "phaeo_ug", "het_abund", 
+              "pro_abund", "syn_abund", "euk_abund",
+              "q1", "q2", "q3", "q4")) %>%
+  mutate(across(everything(), function(x)ifelse(x==-9, NA, x))) %>%
+  mutate(cruise="FK") %>%
+  filter(station>28) %>%
+  mutate(station=as.character(station)) %>%
+  select(cruise, station, cast, rosette, pressure, 
+         temp, sal, theta, dic, alk, ph, oxy_um, ends_with("abund"))
+all_core <- bind_rows(fk_core, meso_core)
+write.csv(all_core, "made_data/all_core.csv", row.names = FALSE)
+
+bottle_depth_data <- all_core %>%
+  distinct(cruise, station, cast, rosette, pressure)
+write.csv(bottle_depth_data, "made_data/bottle_depth_data.csv", row.names = FALSE)
+```
+
+```{r plot station_metadata}
+station_metadata <- read_csv("made_data/station_metadata.csv", show_col_types = FALSE)
+stations_summarized <- station_metadata %>%
+  group_by(cruise, station, cast) %>%
+  summarize(lat=median(lat), lon=median(lon), time=median(time), sla=mean(sla)) %>%
+  arrange(time)
+
+station_labels <- stations_summarized %>%
+  filter(station%in%c(seq(1, 15, 2), "L1", "L2", 62, 64, 77, 80)) %>%
+  filter(cast==1)
+
+gm <- get_map(location = c(-158, 24), zoom = 6)
+map_gp <- ggmap(ggmap = gm) +
+  geom_point(aes(x=lon, y=lat), size=4, color="#FFFFFFAA", data = station_metadata) +
+  geom_path(aes(x=lon, y=lat), data = station_metadata) +
+  geom_point(aes(x=lon, y=lat, color=sla), data = station_metadata) +
+  geom_label_repel(aes(x=lon, y=lat, label=station), color="steelblue", 
+                   data = station_labels, min.segment.length = 0) +
+  scale_color_gradient2(low = muted("blue"), high = muted("red"), mid = "grey80") +
+  facet_wrap(~factor(cruise, levels = c("MT", "MC", "FK"), 
+                     labels = c("Eddy transect", "Eddy center", "Falkor")), 
+             scales = "free_x", nrow=1) +
+  theme(legend.position = "none") +
+  coord_cartesian(xlim = c(-162, -155), ylim=c(21, 28))
+
+sla_ts_gp <- station_metadata %>%
+  ggplot() +
+  geom_point(aes(x=time, y=sla, color=sla)) +
+  scale_color_gradient2(low = muted("blue"), high = muted("red"), mid = "grey80") +
+  facet_wrap(~factor(cruise, levels = c("MT", "MC", "FK"), 
+                     labels = c("Eddy transect", "Eddy center", "Falkor")), 
+             scales = "free_x", nrow=1) +
+  theme_bw() +
+  theme(legend.position = c(0.5, 0.55), axis.title.x = element_blank())
+station_metadata_map <- grid.arrange(map_gp, sla_ts_gp)
+ggsave(plot = station_metadata_map, filename = "station_metadata_map.png", 
+       path = "figures", device = "png", width = 8, height = 6, dpi = 144, 
+       type = "cairo")
+```
+
+
+## Other bottle data (cruise, station, cast, depth, PC, PN, PO4, N+N, DON, DOP, ATP, chl)
+
+This data is mostly available on the SCOPE website via Excel files
+
+```{r raw data download}
+if(!file.exists("raw_data/Karl_FK_PCPN_WC_current.xlsx")){
+  # Data source: http://scope.soest.hawaii.edu/collaborators/datainventory/Data/Karl/Karl_FK_Nutrients_Final.xlsx
+  falkor_CN_url <- paste0("http://", scope_uname, ":", scope_pw,
+                "@scope.soest.hawaii.edu/collaborators/datainventory/",
+                "Data/Karl/Karl_FK_PCPN_WC_current.xlsx")
+  download.file(falkor_CN_url, destfile = "raw_data/Karl_FK_PCPN_WC_current.xlsx", mode = "wb")
+}
+if(!file.exists("raw_data/Karl_FK_Nutrients_Final.xlsx")){
+  # Data source: http://scope.soest.hawaii.edu/collaborators/datainventory/Data/Karl/Karl_FK_Nutrients_Final.xlsx
+  falkor_nutrient_url <- paste0("http://", scope_uname, ":", scope_pw,
+                "@scope.soest.hawaii.edu/collaborators/datainventory/Data/",
+                "Karl/Karl_FK_Nutrients_Final.xlsx")
+  download.file(falkor_nutrient_url, destfile = "raw_data/Karl_FK_Nutrients_Final.xlsx", mode = "wb")
+}
+if(!file.exists("raw_data/2017MS_CoreData_current.xls")){
+  # Data source: http://scope.soest.hawaii.edu/collaborators/datainventory/Data/SCOPEcore/2017MS_CoreData_current.xls
+  transect_pcpn_url <- paste0("http://", scope_uname, ":", scope_pw,
+                "@scope.soest.hawaii.edu/collaborators/datainventory/Data/",
+                "SCOPEcore/2017MS_CoreData_current.xls")
+  download.file(transect_pcpn_url, destfile = "raw_data/2017MS_CoreData_current.xls", mode = "wb")
+}
+if(!file.exists("raw_data/Karl_MS_Nutrient_Summary_KB.xlsx")){
+  # Data source: http://scope.soest.hawaii.edu/collaborators/datainventory/Data/Karl/Karl_MS_Nutrient_Summary_KB.xlsx
+  transect_nutrient_url <- paste0("http://", scope_uname, ":", scope_pw,
+                "@scope.soest.hawaii.edu/collaborators/datainventory/Data/Karl/",
+                "Karl_MS_Nutrient_Summary_KB.xlsx")
+  download.file(transect_nutrient_url, destfile = "raw_data/Karl_MS_Nutrient_Summary_KB.xlsx", mode = "wb")
+}
+if(!file.exists("raw_data/Karl_MS_pATP.xlsx")){
+  # Data source: http://scope.soest.hawaii.edu/collaborators/datainventory/Data/Karl/Karl_MS_pATP.xlsx
+  atp_transect_url <- paste0("http://", scope_uname, ":", scope_pw,
+         "@scope.soest.hawaii.edu/collaborators/datainventory/",
+         "Data/Karl/Karl_MS_pATP.xlsx")
+  download.file(atp_transect_url, destfile = "raw_data/Karl_MS_pATP.xlsx", mode = "wb")
+}
+```
+
+```{r all_pcn}
+fk_pcn <- "raw_data/Karl_FK_PCPN_WC_current.xlsx" %>%
+  read_excel(skip=1) %>%
+  slice(-1:-2) %>% 
+  filter(is.na(Comments)) %>%
+  mutate(station=as.numeric(str_extract(Name, "(?<=FK-)\\d+"))) %>%
+  filter(station>=28) %>%
+  mutate(rosette=as.numeric(str_extract(Name, "\\d+$"))) %>%
+  mutate(cruise="FK", cast=1) %>%
+  select(cruise, station, cast, rosette, abs_depth=`Depth (m)`, 
+         PC_um=`C value (µmol/L)`, PN_um=`N value (µmol/L)`)
+meso_pcn <- "raw_data/2017MS_CoreData_current.xls" %>%
+  read_excel(skip = 1, sheet = "PCPN") %>%
+  slice(-1) %>%
+  select(abs_depth=depth_sample, station, PC_um=particulate_carbon, 
+         PN_um=particulate_nitrogen, cast=cast_num, rosette=rosette_position) %>%
+  mutate(across(everything(), as.numeric)) %>%
+  mutate(cruise=case_when(
+    station <= 14 ~ "MT",
+    station %in% 15:17 ~ "MC",
+    TRUE ~ "Unknown"
+  )) %>%
+  mutate(station=case_when(
+    station <= 15 ~ as.character(station),
+    station %in% 16 ~ "L1",
+    station == 17 ~ "L2"
+  ))
+all_pcn <- rbind(meso_pcn, fk_pcn)
+write.csv(all_pcn, "made_data/all_pcn.csv", row.names = FALSE)
+```
+
+```{r plot all_pcn}
+pc_gp <- all_pcn %>%
+  mutate(cruise=factor(cruise, levels = c("MT", "MC", "FK"), 
+                   labels = c("Eddy transect", "Eddy center", "Falkor"))) %>%
+  mutate(station=factor(station, levels=unique(station))) %>%
+  ggplot(aes(x=PC_um, y=abs_depth, color=station, group=interaction(station, cast))) +
+  geom_path() +
+  geom_point() +
+  facet_wrap(~cruise, scales="free_x") +
+  ggtitle("Particulate carbon") +
+  scale_y_reverse(name="Depth")  +
+  xlim(0, NA) +
+  theme(axis.title.x = element_blank(), legend.position = "bottom") +
+  guides(color=guide_legend(nrow=2,byrow=TRUE, title = "Station"))
+pn_gp <- all_pcn %>%
+  mutate(cruise=factor(cruise, levels = c("MT", "MC", "FK"), 
+                   labels = c("Eddy transect", "Eddy center", "Falkor"))) %>%
+  mutate(station=factor(station, levels=unique(station))) %>%
+  ggplot(aes(x=PN_um, y=abs_depth, color=station, group=interaction(station, cast))) +
+  geom_path() +
+  geom_point() +
+  facet_wrap(~cruise, scales="free_x") +
+  ggtitle("Particulate nitrogen") +
+  scale_y_reverse(name="Depth")  +
+  xlim(0, NA) +
+  theme(axis.title.x = element_blank(), legend.position = "none")
+all_pcn_plot <- grid.arrange(
+  pc_gp, pn_gp, layout_matrix=matrix(c(1,1,1,1,2,2,2), ncol = 1)
+)
+ggsave(plot = all_pcn_plot, filename = "all_pcn_plot.png", 
+       path = "figures", device = "png", width = 8, height = 6, dpi = 144, 
+       type = "cairo")
+```
+
+```{r all_nuts}
+fk_nuts <- "raw_data/Karl_FK_Nutrients_Final.xlsx" %>%
+  read_excel(skip = 3) %>%
+  select(abs_depth=`Depth`, sample=`Sample ID`, po4_um=`µM PO4`, no23_um=`µM N+N`) %>%
+  filter(!is.na(abs_depth)) %>%
+  filter(!abs_depth=="Depth") %>%
+  mutate(rosette=as.numeric(str_extract(sample, "\\d+$"))) %>% 
+  mutate(sample=ifelse(startsWith(sample, "FK"), sample, NA)) %>%
+  fill(sample) %>%
+  mutate(station=str_extract(sample, "(?<=FK 180310[- ])\\d+")) %>%
+  mutate(across(c(abs_depth, po4_um, no23_um, station), as.numeric)) %>%
+  filter(station>=28) %>%
+  mutate(station=as.character(station)) %>%
+  select(-sample) %>%
+  mutate(cast=1, cruise="FK")
+transect_profile_sheet <- "raw_data/Karl_MS_Nutrient_Summary_KB.xlsx" %>%
+  read_excel(range = "KM1709 Transect, L1,L2 profiles!A4:N180") %>%
+  slice(-1:-2) %>%
+  mutate(sd=as.numeric(sd))
+highres_sheet <- "raw_data/Karl_MS_Nutrient_Summary_KB.xlsx" %>%
+  read_excel(range = "KM1709 High res nuts!A4:P53") %>%
+  slice(-1:-2)
+diel_sheet <- "raw_data/Karl_MS_Nutrient_Summary_KB.xlsx" %>%
+  read_excel(range = "KM1709 Diel nuts!A4:O76") %>%
+  slice(-1:-3)
+meso_nuts <- bind_rows(transect_profile_sheet, highres_sheet, diel_sheet) %>% 
+  select(abs_depth=Depth, station=Station, cast=Cast, rosette=Niskin,
+         no23_um=`N+N`, LLN, DON_um=DON, TDN, 
+         po4_um=`SRP`, LLP, DOP_um=DOP, TDP,
+         si_um=`Si`) %>%
+  mutate(no23_um=ifelse(no23_um=="BLD"|no23_um=="NA"|is.na(no23_um), LLN, no23_um)) %>%
+  mutate(po4_um=ifelse(po4_um=="BLD"|po4_um=="NA"|is.na(po4_um), LLP, po4_um)) %>%
+  mutate(across(-station, as.numeric)) %>%
+  arrange(station, abs_depth, cast) %>%
+  filter(!is.na(abs_depth)) %>%
+  mutate(cruise=case_when(
+    station %in% as.character(1:14) ~ "MT",
+    station %in% c(15, "L1", "L2") ~ "MC",
+    TRUE ~ "Unknown"
+  )) %>%
+  mutate(no23_um=ifelse(is.na(no23_um) & cruise=="MC", 0, no23_um)) %>%
+  # Fixing a few rosette numbers per Benedetto conversation
+  mutate(rosette=case_when(
+    station=="13"&rosette==200~3,
+    station=="13"&rosette==250~2,
+    station=="13"&rosette==500~1,
+    station=="14"&rosette==200~4,
+    station=="14"&rosette==250~3,
+    station=="14"&rosette==500~2,
+    TRUE~rosette
+  ))
+all_nuts <- bind_rows(meso_nuts, fk_nuts) %>%
+  left_join(station_metadata) %>%
+  arrange(time) %>%
+  select(cruise, station, cast, rosette, abs_depth, no23_um, po4_um, 
+         DON_um, DOP_um, si_um) %>%
+  mutate(station=factor(station, levels=unique(station)))
+write.csv(all_nuts, "made_data/all_nuts.csv", row.names = FALSE)
+```
+
+```{r plot all_nuts}
+refactored_nuts <- all_nuts %>%
+  mutate(cruise=factor(cruise, levels = c("MT", "MC", "FK"), 
+         labels = c("Eddy transect", "Eddy center", "Falkor")))
+
+refactored_nuts %>%
+  filter(is.na(no23_um))
+
+no23_gp <- refactored_nuts %>%
+  ggplot(aes(x=no23_um, y=abs_depth, color=station, group=interaction(station, cast))) +
+  geom_path() +
+  geom_point() +
+  facet_wrap(~cruise, scales="free_x") +
+  ggtitle("Nitrate + nitrite") +
+  scale_y_reverse(name="Depth")  +
+  xlim(0, NA) +
+  theme(axis.title.x = element_blank(), legend.position = "none")
+po4_gp <- refactored_nuts %>%
+  ggplot(aes(x=po4_um, y=abs_depth, color=station, group=interaction(station, cast))) +
+  geom_path() +
+  geom_point() +
+  facet_wrap(~cruise, scales="free_x") +
+  ggtitle("Phosphate") +
+  scale_y_reverse(name="Depth")  +
+  xlim(0, NA) +
+  theme(axis.title.x = element_blank(), legend.position = "none")
+DON_gp <- refactored_nuts %>%
+  ggplot(aes(x=DON_um, y=abs_depth, color=station, group=interaction(station, cast))) +
+  geom_path() +
+  geom_point() +
+  facet_wrap(~cruise, scales="free_x") +
+  ggtitle("Dissolved organic nitrogen") +
+  scale_y_reverse(name="Depth")  +
+  xlim(0, NA) +
+  theme(axis.title.x = element_blank(), legend.position = "none")
+DOP_gp <- refactored_nuts %>%
+  ggplot(aes(x=DOP_um, y=abs_depth, color=station, group=interaction(station, cast))) +
+  geom_path() +
+  geom_point() +
+  facet_wrap(~cruise, scales="free_x") +
+  ggtitle("Dissolved organic phosphorus") +
+  scale_y_reverse(name="Depth")  +
+  xlim(0, NA) +
+  theme(axis.title.x = element_blank(), legend.position = "none") +
+  guides(color=guide_legend(nrow=2,byrow=TRUE, title = "Station"))
+si_gp <- refactored_nuts %>%
+  ggplot(aes(x=si_um, y=abs_depth, color=station, group=interaction(station, cast))) +
+  geom_path() +
+  geom_point() +
+  facet_wrap(~cruise, scales="free_x") +
+  ggtitle("Silica") +
+  scale_y_reverse(name="Depth")  +
+  xlim(0, NA) +
+  theme(axis.title.x = element_blank(), legend.position = "bottom") +
+  guides(color=guide_legend(nrow=2,byrow=TRUE, title = "Station"))
+all_nuts_plot <- grid.arrange(
+  no23_gp, po4_gp, DON_gp, DOP_gp, si_gp,
+  layout_matrix=matrix(rep(1:5, c(3,3,3,3,5)), ncol = 1)
+)
+ggsave(plot = all_nuts_plot, filename = "all_nuts_plot.png", 
+       path = "figures", device = "png", width = 6, height = 8, dpi = 144, 
+       type = "cairo")
+```
+
+```{r meso_chl}
+meso_chl <- "raw_data/2017MS_CoreData_current.xls" %>%
+  read_excel(skip = 1, sheet = "Chl_Pheo") %>%
+  slice(-1) %>%
+  mutate(filter_min=as.numeric(filter_min)) %>%
+  filter(filter_min>0.5) %>%
+  select(abs_depth=depth_sample, station, chl_ug=fluorometric_chlorophyll_a, 
+         phaeo_ug=total_phaeopigment, cast=cast_num, rosette=rosette_position) %>%
+  mutate(across(everything(), as.numeric)) %>%
+  mutate(station=case_when(
+    station <= 15 ~ as.character(station),
+    station == 16 ~ "L1",
+    station == 17 ~ "L2"
+  )) %>%
+  mutate(cruise=case_when(
+    station %in% as.character(1:14) ~ "MT",
+    station %in% c(15, "L1", "L2") ~ "MC",
+    TRUE ~ "Unknown"
+  )) %>%
+  # Removing one data point because it's negative
+  filter(chl_ug>0) %>%
+  # Removing one data point because it doesn't have an associated surface value
+  filter(!(station=="L1" & cast==19)) %>%
+  # Fixing one nonsense rosette number using all_core to find the rosette fired at 15m for S11C2
+  mutate(rosette=ifelse(rosette==33, 23, rosette)) %>%
+  select(-abs_depth)
+
+# Deciding to replace the now-missing value with average of nearby stations 
+# instead bc interpolation sux
+s14_chl_surf_row <- meso_chl %>% 
+  filter(station%in%c("12", "14")) %>%
+  left_join(bottle_depth_data) %>%
+  filter(pressure<30) %>%
+  summarise(station="13", cast=2, rosette=23, cruise="MT", 
+            chl_ug=round(mean(chl_ug), 5), phaeo_ug=round(mean(phaeo_ug), 5))
+meso_chl <- bind_rows(meso_chl, s14_chl_surf_row)
+
+write.csv(meso_chl, "made_data/meso_chl.csv", row.names = FALSE)
+```
+
+```{r plot meso_chl}
+station_metadata %>%
+  right_join(meso_chl) %>% 
+  left_join(bottle_depth_data) %>%
+  arrange(time) %>%
+  mutate(station=factor(station, levels = unique(station))) %>%
+  ggplot(aes(x=chl_ug, y=pressure, color=station, group=interaction(station, cast))) + 
+  geom_point() + 
+  geom_path() + 
+  scale_y_reverse() +
+  theme_bw() +
+  theme(legend.position = "left") +
+  facet_wrap(~cruise,nrow = 1)
+ggsave(filename = "meso_chl_plot.png", path = "figures", device = "png", 
+       width = 8, height = 6, dpi = 144, type = "cairo")
+```
+
+```{r beam_core from Benedetto}
+if(!file.exists("raw_data/MESO-SCOPE_BeamAttenuation_forWill.csv")){
+  stop("Go download the beam data from email, search 'beam attenuation'")
+}
+beam_dat <- read.csv("raw_data/MESO-SCOPE_BeamAttenuation_forWill.csv", 
+                    skip = 3, header = FALSE)
+beam_station_cast <- paste0(beam_dat[1,], " ", beam_dat[2,])
+beam_dat <- beam_dat[3:nrow(beam_dat),]
+colnames(beam_dat) <- beam_station_cast
+beam_dat[] <- sapply(beam_dat, as.numeric)
+beam_long <- beam_dat %>%
+  pivot_longer(cols = 2:ncol(beam_dat), values_to = "beam_atten") %>%
+  filter(!is.na(beam_atten)) %>%
+  separate(name, into = c("station", "cast"), sep = " ") %>%
+  rename(pressure=`NaN NaN`) %>%
+  mutate(cast=as.numeric(cast))
+
+beam_core <- all_core %>%
+  group_by(station, cast) %>%
+  group_split() %>% #`[[`(1) -> core_subset
+  map_dfr(function(core_subset){
+    beam_subset <- beam_long %>%
+      filter(station==unique(core_subset$station), cast==unique(core_subset$cast))
+    if(nrow(beam_subset)==0)return(NULL)
+    approxout <- with(beam_subset, approx(pressure, beam_atten, core_subset$pressure))
+    core_subset %>%
+      select(cruise, station, cast, rosette, pressure) %>%
+      left_join(set_names(as.data.frame(approxout), c("pressure", "beam_atten")), 
+                by="pressure")
+  })
+write.csv(beam_core, "made_data/beam_core.csv", row.names = FALSE)
+```
+
+```{r plot beam_core and beam_long}
+beam_long %>%
+  filter(station%in%c("L1", "L2")) %>%
+  filter(beam_atten < 0.1) %>%
+  ggplot(aes(x=beam_atten, y=pressure, group=cast, color=beam_atten)) +
+  geom_path() +
+  facet_wrap(~station) +
+  scale_color_viridis_c() +
+  scale_y_reverse()
+last_plot() +
+  geom_point(data=beam_core %>% filter(station%in%c("L1", "L2")), size=1.5)
+```
+
+```{r light_core from Benedetto}
+if(!file.exists("raw_data/MESO-SCOPE_DailyPAR_forWill.csv")){
+  stop("Go download the light data from email, search 'beam attenuation'")
+}
+if(!file.exists("raw_data/MESO-SCOPE_PercentPAR_forWill.csv")){
+  stop("Go download the light data from email, search 'beam attenuation'")
+}
+PAR_dat <- read.csv("raw_data/MESO-SCOPE_DailyPAR_forWill.csv", 
+                    skip = 5, header = FALSE)
+PAR_month_day <- paste0(PAR_dat[1,], " ", PAR_dat[2,])
+PAR_month_day_pseudocast <- paste(PAR_month_day, c(1, rep(1:2, 6)))
+PAR_dat <- PAR_dat[3:nrow(PAR_dat),]
+colnames(PAR_dat) <- PAR_month_day_pseudocast
+PAR_dat[] <- sapply(PAR_dat, as.numeric)
+PAR_long <- PAR_dat %>%
+  pivot_longer(cols = 2:ncol(PAR_dat), values_to = "PAR") %>%
+  filter(!is.na(PAR)) %>%
+  separate(name, into = c("month", "day", "pseudocast"), sep = " ") %>%
+  rename(pressure=`NaN NaN 1`) %>%
+  mutate(station=ifelse(as.numeric(day)>8, "L1", "L2")) %>%
+  group_by(station, pressure) %>%
+  summarise(PAR=mean(PAR))
+
+PAR_perc_dat <- read.csv("raw_data/MESO-SCOPE_PercentPAR_forWill.csv", 
+                    skip = 5, header = FALSE)
+PAR_perc_month_day <- paste0(PAR_perc_dat[1,], " ", PAR_perc_dat[2,])
+PAR_perc_month_day_pseudocast <- paste(PAR_perc_month_day, c(1, rep(1:2, 6)))
+PAR_perc_dat <- PAR_perc_dat[3:nrow(PAR_perc_dat),]
+colnames(PAR_perc_dat) <- PAR_perc_month_day_pseudocast
+PAR_perc_dat[] <- sapply(PAR_perc_dat, as.numeric)
+PAR_perc_long <- PAR_perc_dat %>%
+  pivot_longer(cols = 2:ncol(PAR_perc_dat), values_to = "PAR_perc") %>%
+  filter(!is.na(PAR_perc)) %>%
+  separate(name, into = c("month", "day", "pseudocast"), sep = " ") %>%
+  rename(pressure=`NaN NaN 1`) %>%
+  mutate(station=ifelse(as.numeric(day)>8, "L1", "L2")) %>%
+  group_by(station, pressure) %>%
+  summarise(PAR_perc=mean(PAR_perc))
+
+PAR_long <- PAR_long %>%
+  full_join(PAR_perc_long, by=c("station", "pressure"))
+
+light_core <- all_core %>%
+  filter(station%in%c("L1", "L2")) %>%
+  group_by(station) %>%
+  group_split() %>% #`[[`(1) -> core_subset
+  map_dfr(function(core_subset){
+    PAR_subset <- PAR_long %>%
+      filter(station==unique(core_subset$station))
+    PARout <- with(PAR_subset, approx(pressure, PAR, core_subset$pressure))
+    percout <- with(PAR_subset, approx(pressure, PAR_perc, core_subset$pressure))
+    core_subset %>%
+      select(cruise, station, cast, rosette, pressure) %>%
+      left_join(data.frame(pressure=PARout$x, PAR=PARout$y, PAR_perc=percout$y), 
+                by="pressure")
+  })
+light_core %>%
+  ggplot() +
+  geom_point(aes(x=PAR_perc, y=pressure, color=station)) +
+  facet_wrap(~station) +
+  scale_y_reverse()
+write.csv(light_core, "made_data/light_core.csv", row.names = FALSE)
+```
+
+```{r pcn outlier removal (requires beam_core)}
+# Remove two outlier samples because Eric thinks the values are suspicious
+# filter(!(station%in%c("10", "11") & abs_depth==15))
+# Advance prediction is that they will be far off the beam_atten:PC line
+# Plan: replace existing PC values with those from a regression
+# on the non-weird PC values for that given SLA
+
+pcn_init <- all_pcn %>%
+  left_join(bottle_depth_data) %>%
+  filter(cruise=="MT") %>% #filter(station=="4") -> station_subset
+  group_by(station) %>%
+  group_split() %>%
+  map_dfr(function(station_subset){
+    beam_subset <- beam_core %>%
+      filter(station==unique(station_subset$station)) %>%
+      distinct(pressure, beam_atten)
+    approx(beam_subset$pressure, beam_subset$beam_atten, station_subset$pressure) %>%
+      as.data.frame() %>%
+      setNames(c("pressure", "beam_atten")) %>%
+      left_join(station_subset, by="pressure")
+  }) %>%
+  group_by(temp=station%in%c("10", "11") & abs_depth==15) %>%
+  group_split()
+
+beam_pc_model <- lm(PC_um~beam_atten, data = pcn_init[[1]])
+pcn_init[[2]]$PC_um <- predict(beam_pc_model, pcn_init[[2]])
+
+# Plot it to double-check outputs
+plot(PC_um~beam_atten, data = pcn_init[[1]])
+abline(beam_pc_model)
+legend("topleft", legend = paste("R^2 =", round(summary(beam_pc_model)$r.squared, 2)))
+points(pcn_init[[2]]$beam_atten, predict(beam_pc_model, pcn_init[[2]]), col="red")
+
+all_pcn <- bind_rows(pcn_init) %>%
+  select(-temp, -beam_atten, -pressure) %>%
+  bind_rows(all_pcn %>% filter(cruise!="MT")) %>%
+  select(-abs_depth)
+
+write.csv(all_pcn, "made_data/all_pcn.csv", row.names = FALSE)
+```
+
+
+## Combine all the above into env_metadata
+
+```{r load made_data and make env_metadata}
+station_metadata <- read_csv("made_data/station_metadata.csv")
+all_pcn <- read_csv("made_data/all_pcn.csv")
+all_nuts <- read_csv("made_data/all_nuts.csv")
+meso_chl <- read_csv("made_data/meso_chl.csv")
+all_core <- read_csv("made_data/all_core.csv")
+beam_core <- read_csv("made_data/beam_core.csv")
+light_core <- read_csv("made_data/light_core.csv")
+
+env_metadata <- all_core %>%
+  left_join(station_metadata) %>%
+  left_join(all_nuts) %>%
+  left_join(all_pcn) %>% 
+  left_join(meso_chl) %>%
+  left_join(beam_core) %>%
+  left_join(light_core) %>%
+  arrange(cruise, station, cast, rosette) %>%
+  # Organize columns, not dropping anything
+  select(cruise, station, cast, time, lat, lon, DCM_depth, sla, local_hour,
+         rosette, pressure, abs_depth, temp, sal, theta, dic, alk, ph, oxy_um,
+         PAR, PAR_perc, no23_um, po4_um, DON_um, DOP_um, si_um,
+         PC_um, PN_um, chl_ug, phaeo_ug, beam_atten,
+         everything()) %>%
+  mutate(abs_depth=ifelse(is.na(abs_depth), pressure, abs_depth))
+
+write.csv(env_metadata, "made_data/env_metadata.csv", row.names = FALSE)
+```
+
+```{r check via plots, eval=FALSE}
+env_metadata <- read_csv("made_data/env_metadata.csv")
+
+# Check on cruise, time, lat, lon, sla
+env_metadata %>%
+  arrange(time) %>%
+  distinct(cruise, lon, lat, sla) %>%
+  ggplot(aes(x=lon, y=lat, group=cruise)) +
+  geom_path(aes(color=cruise), lwd=0.7) +
+  geom_point(size=3, aes(color=cruise)) +
+  scale_color_manual(values = hcl.colors(5)[2:4]) +
+  ggnewscale::new_scale_color() +
+  geom_point(aes(color=sla), size=2.2) +
+  coord_fixed() +
+  scale_color_gradient2(low = "steelblue4", high = "firebrick") +
+  theme_minimal()
+
+# PCPN and nutrient data
+env_metadata %>%
+  pivot_longer(c(ends_with("um"))) %>%
+  filter(!is.na(value)) %>%
+  filter(pressure<260) %>%
+  select(cruise, station, cast, pressure, name, value) %>%
+  ggplot(aes(x=value, y=pressure)) +
+  geom_path(aes(group=interaction(station, cast))) +
+  geom_point(aes(color=station)) +
+  facet_grid(cruise~name, scales="free_x") +
+  scale_y_reverse()
+
+env_metadata %>%
+  select(cruise, time, pressure:last_col()) %>%
+  pivot_longer(cols = temp:last_col()) %>%
+  filter(pressure<260) %>%
+  group_by(name) %>%
+  mutate(value=(value-min(value, na.rm = TRUE))/
+           (max(value, na.rm = TRUE)-min(value, na.rm = TRUE))) %>%
+  ungroup() %>%
+  mutate(name=factor(name, levels=unique(name))) %>%
+  mutate(cruise=factor(cruise, levels=c("MT", "MC", "FK"))) %>%
+  filter(!is.na(value)) %>%
+  ggplot() +
+  geom_point(aes(x=time, y=pressure, color=value)) +
+  facet_grid(name~cruise, scales = "free_x") +
+  scale_y_reverse() +
+  scale_color_viridis_c() +
+  theme(legend.position = "none")
+ggsave("figures/env_metadata_all.pdf", device = "pdf", width = 8, height = 20,
+       units = "in")
+```
+
+## Metabolite sample data creation (file_metadata)
+
+```{r samp_log from sample log}
+if(!file.exists("raw_data/MESO_SCOPE_Cruise_KM1709_Sample_Log.xlsx")){
+  stop("Go download the data from email, search 'MESO_SCOPE_Cruise_KM1709_Sample_Log'")
+  # Needs to be converted to .xlsx and downloaded
+}
+if(!file.exists("raw_data/MESO_SCOPE_Cruise_KM1709_Sample_Log.xlsx")){
+  stop("Go download the data from email, search 'FALKOR- Sample Log_INGALLS'")
+  # Needs to be converted to .xlsx and downloaded
+}
+bottle_depth_data <- read_csv("made_data/bottle_depth_data.csv")
+MT_samps <- "raw_data/MESO_SCOPE_Cruise_KM1709_Sample_Log.xlsx" %>%
+  read_excel(sheet = "Metabolites_and_Proteins", range = "A2:J114") %>%
+  mutate(cruise="MT") %>%
+  select(cruise, station=Station, cast=Cast, depth=`Depth (m)`, 
+         rosette=`Niskin #`, id=`Sample ID`) %>%
+  filter(complete.cases(.)) %>%
+  mutate(station=str_remove(station, "^S")) %>%
+  mutate(cast=as.numeric(str_remove(cast, "^C"))) %>%
+  # We can grab DCM values here or from the mini DCM spreadsheet I made later
+  # mutate(abs_depth=as.numeric(str_remove(depth, "DCM="))) %>%
+  mutate(depth=str_replace(depth, ".0", "m")) %>%
+  mutate(depth=str_replace(depth, "=.*", "")) %>%
+  # Guessing at rosette number here - doesn't really matter bc we're matching
+  # based on station more than exact rosette mostly and all bottles
+  # were fired at similar depths and times
+  mutate(rosette=ifelse(rosette=="?", 1, rosette)) %>% 
+  mutate(rosette=as.numeric(rosette)) %>%
+  # Fixing likely transcription error - sample looks like 15m samples and
+  # all other triplicates were 19, 20, and 21
+  mutate(rosette=ifelse(rosette==4 & cast==3 & station=="6", 21, rosette)) %>%
+  left_join(bottle_depth_data)
+MC_samps <- "raw_data/MESO_SCOPE_Cruise_KM1709_Sample_Log.xlsx" %>%
+  read_excel(sheet = "Metabolites_High_Resolution", range = "A2:J35") %>%
+  mutate(cruise="MC") %>%
+  select(cruise, station=Station, cast=Cast, depth=`Depth (m)`, 
+         rosette=`Niskin #`, id=`Sample ID`) %>%
+  filter(!is.na(station)) %>%
+  mutate(station=str_remove(station, "^S")) %>%
+  mutate(cast=as.numeric(str_remove(cast, "^C"))) %>%
+  mutate(rosette=as.numeric(rosette)) %>%
+  mutate(depth=str_replace(depth, "\\-", "less")) %>%
+  mutate(depth=str_replace(depth, "\\+", "plus")) %>%
+  mutate(id=str_remove(id, "^MHR")) %>%
+  left_join(bottle_depth_data)
+samp_log <- bind_rows(MT_samps, MC_samps)
+```
+
+```{r file_metadata from mzML list}
+samp_metadata <- list.files("../mzMLs/pos", pattern = "Smp.*mzML") %>%
+  data.frame(filename=.) %>%
+  mutate(samp_type="Smp") %>%
+  mutate(cruise=case_when(
+    str_detect(filename, "180205") ~ "MC",
+    str_detect(filename, "180821") ~ "MT",
+    str_detect(filename, "190715") ~ "FK",
+    TRUE ~ "Unknown"
+  )) %>%
+  mutate(station=str_extract(filename, "((?<=S)\\d+)|L\\d")) %>%
+  mutate(cast=case_when(
+    cruise=="MC" ~ str_extract(filename, "(?<=C)\\d+"),
+    cruise=="MT" ~ str_extract(filename, "(?<=C)\\d"),
+    cruise=="FK" ~ "1",
+  )) %>%
+  mutate(cast=as.numeric(cast)) %>%
+  mutate(depth=str_extract(filename, "15m|25m|DCM(plus|less)?(10m|20m)?|175m")) %>%
+  mutate(tripl=str_extract(filename, "(?<=_)[A-C](?=.mzML$)")) %>%
+  mutate(untripl=str_replace(filename, "_[A-C].mzML$", "")) %>%
+  mutate(date_run=str_extract(filename, "^\\d+")) %>%
+  mutate(date_run=strptime(date_run, format = "%y%m%d")) %>%
+  mutate(id=str_extract(filename, "(?<=_)(MS|L).*_[A-C](?=.mzML$)")) %>%
+  mutate(id=str_replace(id, "less", "-")) %>%
+  mutate(id=str_replace(id, "plus", "+"))
+absolute_depths <- samp_metadata %>%
+  distinct(station, depth) %>%
+  mutate(depth_diff=sapply(depth, function(depth){
+    depth_num <- str_extract(depth, "(?<=DCM(plus|less))\\d*")
+    depth_num <- ifelse(is.na(depth_num), 0, depth_num)
+    depth_sign <- sapply(str_extract(depth, "less|plus"), 
+                         switch, "plus"=1, "less"=-1, 0, USE.NAMES = FALSE)
+    as.numeric(depth_num)*depth_sign
+  })) %>%
+  left_join(read.csv("raw_data/all_DCMs.csv")) %>%
+  mutate(abs_depth=DCM_depth+depth_diff) %>%
+  mutate(abs_depth=ifelse(str_detect(depth, "DCM"), abs_depth, 
+                          as.numeric(str_extract(depth, "^\\d+")))) %>%
+  select(station, cast, depth, abs_depth)
+samp_metadata <- samp_metadata %>%
+  left_join(absolute_depths) %>%
+  left_join(samp_log, by=c("cruise", "station", "cast", "depth", "id")) %>%
+  # If we have an exact depth for a given bottle, use it, otherwise trust
+  # the depth extracted from sample sheets or file names
+  mutate(abs_depth = ifelse(is.na(pressure), abs_depth, pressure)) %>%
+  select(-pressure)
+
+extra_metadata <- list.files("../mzMLs/pos", pattern = "Blk|Std|Poo.*mzML") %>%
+  data.frame(filename=.) %>%
+  mutate(samp_type=str_extract(filename, "Std|Blk|Poo")) %>%
+  mutate(cruise=case_when(
+    str_detect(filename, "170706") ~ "MC",
+    str_detect(filename, "180205") ~ "MC",
+    str_detect(filename, "180821") ~ "MT",
+    str_detect(filename, "190715") ~ "FK",
+    TRUE ~ "Unknown"
+  )) %>%
+  mutate(date_run=str_extract(filename, "^\\d+")) %>%
+  mutate(date_run=strptime(date_run, format = "%y%m%d"))
+
+if(!file.exists("made_data/file_timestamps.csv")){
+  list.files("../mzMLs/pos", pattern = "mzML", full.names = TRUE) %>%
+    grabMSdata(grab_what = "metadata") %>%
+    `$`("metadata") %>%
+    select(filename, timestamp) %>%
+    write.csv("made_data/file_timestamps.csv", row.names = FALSE)
+}
+file_timestamps <- read_csv("made_data/file_timestamps.csv") %>%
+  fill(timestamp, .direction = "up")
+
+file_metadata <- bind_rows(samp_metadata, extra_metadata) %>%
+  left_join(file_timestamps) %>%
+  arrange(timestamp) %>%
+  # Just reordering, nothing getting dropped
+  select(c("filename", "samp_type", "cruise", "station", "cast", "depth", 
+           "abs_depth", "rosette", "tripl", "id", "untripl", "date_run", 
+           "timestamp"))
+write.csv(file_metadata, file = "made_data/file_metadata.csv", row.names = FALSE)
+```
+
+## Interpolate metadata for metabolite samples
+
+```{r summary similarity distance dot plot}
+env_metadata <- read_csv("made_data/env_metadata.csv")
+env_metadata_long <- env_metadata %>%
+  pivot_longer(cols = temp:het_abund) %>%
+  filter(!is.na(value)) %>%
+  select(cruise, station, cast, lat, abs_depth, name, value)
+
+samp_metadata_w_time <- read_csv("made_data/file_metadata.csv") %>%
+  filter(samp_type=="Smp") %>%
+  left_join(env_metadata %>% distinct(cruise, station, cast, lat, local_hour))
+
+cruise_bounds <- samp_metadata_w_time %>%
+  group_by(cruise) %>%
+  summarise(min_bound=min(lat)-0.25, max_bound=max(lat)+0.25)
+
+metadata_gp <- env_metadata_long %>%
+  left_join(cruise_bounds) %>%
+  # filter(time > min_bound & time < max_bound) %>%
+  filter(lat > min_bound & lat < max_bound) %>%
+  filter(abs_depth < 300) %>%
+  ggplot(aes(x=lat, y=abs_depth)) +
+  geom_jitter(aes(color=name), width = 0, height = 0) +
+  geom_point(color="black", data = samp_metadata_w_time) +
+  scale_y_reverse() +
+  facet_wrap(~factor(cruise, levels = c("MT", "MC", "FK"), 
+                     labels = c("Eddy transect", "Eddy center", "Falkor")), 
+             scales = "free_x", nrow=1)
+cruisetrack_gp <- env_metadata %>%
+  arrange(time) %>%
+  group_by(cruise, station) %>%
+  mutate(lat=mean(lat), sla=mean(sla)) %>%
+  left_join(cruise_bounds) %>%
+  filter(lat > min_bound & lat < max_bound) %>%
+  ggplot(aes(x=lat, y=sla, label=station)) +
+  geom_path() +
+  geom_point(aes(color=sla)) +
+  facet_wrap(~cruise, scales = "free_x") +
+  scale_color_gradient2(low = muted("blue"), high = muted("red"), mid = "grey80") +
+  facet_wrap(~factor(cruise, levels = c("MT", "MC", "FK"), 
+                     labels = c("Eddy transect", "Eddy center", "Falkor")), 
+             scales = "free_x", nrow=1)
+
+top_left_indent <- 1
+top_right_indent <- 40
+layout_mat <- rbind(
+  c(rep(NA, top_left_indent), rep(1, 1000-top_left_indent-top_right_indent),
+    rep(NA, top_right_indent)),
+  2, 2, 2
+)
+comb_gp <- grid.arrange(cruisetrack_gp, metadata_gp, layout_matrix=layout_mat)
+ggsave(comb_gp, filename = "env_metadata.png", device = "png", type="cairo",
+       width = 10, height = 8, path = "figures")
+# plotly::ggplotly(metadata_gp)
+```
+
+```{r interpolate env_metadata to metab sample values}
+station_metadata <- read_csv(file = "made_data/station_metadata.csv")
+file_metadata <- read_csv("made_data/file_metadata.csv") %>%
+  left_join(station_metadata)
+env_metadata <- read_csv("made_data/env_metadata.csv")
+
+temp_env_meta <- env_metadata %>%
+  select(cruise, station, value_depth=abs_depth, temp:euk_abund) %>%
+  mutate(pseudostation=case_when(
+    station%in%as.character(74:86)~"anticyc",
+    station%in%as.character(27:59)~"cyc",
+    TRUE~station
+  ))
+temp_file_meta <- file_metadata %>%
+  filter(samp_type=="Smp") %>%
+  select(station, cruise, filename, samp_depth=abs_depth) %>%
+  mutate(pseudostation=case_when(
+    station%in%as.character(74:100)~"anticyc",
+    station%in%as.character(25:70)~"cyc",
+    TRUE~station
+  ))
+
+interp_out <- temp_env_meta %>%
+  bind_rows(temp_file_meta) %>%
+  group_by(pseudostation) %>%
+  group_split() %>%
+  map_dfr(function(single_station){
+    single_station %>%
+      mutate(samp_depth=ifelse(is.na(samp_depth), value_depth, samp_depth)) %>%
+      mutate(across(temp:euk_abund, function(col){
+        if(sum(!is.na(col))<2){return(NA)}
+        approx(x = value_depth, y=col, xout = samp_depth, rule = 2)$y
+      })) %>%
+      suppressWarnings() %>%
+      filter(!is.na(filename))
+  }) %>%
+  select(-value_depth, -pseudostation, -samp_depth)
+
+filled_file_metadata <- file_metadata %>% left_join(interp_out)
+
+write.csv(filled_file_metadata, "made_data/filled_file_metadata.csv", row.names = FALSE)
+```
+
+```{r load data for plotting}
+filled_file_metadata <- read_csv("made_data/filled_file_metadata.csv")
+filled_MT_metadata <- filled_file_metadata %>% filter(cruise=="MT")
+filled_MC_metadata <- filled_file_metadata %>% filter(cruise=="MC")
+env_metadata <- read_csv("made_data/env_metadata.csv")
+```
+
+```{r plot MT interpolated data as transects}
+meta_nms <- c("no23_um", "po4_um", "chl_ug", "phaeo_ug", 
+             "PC_um", "PN_um", "DON_um", "DOP_um",
+             "dic", "alk", "ph", "oxy_um", 
+              paste0(c("pro", "syn", "het", "euk"), "_abund"))
+
+meta_MT_gps <- lapply(meta_nms, function(chosen_var){
+  env_metadata %>%
+    filter(cruise=="MT") %>%
+    filter(!is.na(get(chosen_var))) %>%
+    ggplot(aes(x=time, y=abs_depth, color=get(chosen_var))) + 
+    geom_point(aes(y=abs_depth-2), size=4.5, color="grey50") +
+    geom_point(aes(y=abs_depth-2), size=4) +
+    geom_point(aes(y=abs_depth), filled_MT_metadata, size=4.5, color="red") +
+    geom_point(aes(y=abs_depth), filled_MT_metadata, size=4) +
+    ylim(250, 0) +
+    scale_color_viridis_c() +
+    ggtitle(chosen_var) +
+    theme_bw() +
+    theme(legend.position = "none", axis.title = element_blank())
+})
+
+comb_gp <- do.call(grid.arrange, c(meta_MT_gps, ncol=4))
+ggsave(comb_gp, filename = "figures/interp_MT_data.png", device = "png", 
+       width = 10, height = 10, units = "in", type="cairo")
+```
+
+```{r plot MT interped data as depth profiles}
+meta_MT_depthgps <- lapply(meta_nms, function(chosen_var){
+  env_metadata %>%
+    filter(cruise=="MT") %>%
+    filter(!is.na(get(chosen_var))) %>%
+    ggplot(aes(x=get(chosen_var), y=abs_depth, color=get(chosen_var))) + 
+    geom_path(aes(group=station), color="black", lwd=1) +
+    geom_point(size=4) +
+    geom_point(data = filled_MT_metadata, color="red") +
+    ylim(250, 0) +
+    scale_color_viridis_c() +
+    ggtitle(chosen_var) +
+    theme_bw() +
+    theme(legend.position = "none", axis.title = element_blank())
+})
+comb_gp <- do.call(grid.arrange, c(meta_MT_depthgps, ncol=4))
+ggsave(comb_gp, filename = "figures/interp_MT_depthprofs.png", device = "png", 
+       width = 10, height = 10, units = "in", type="cairo")
+```
+
+```{r plot MC interpolated data as transects}
+meta_nms <- c("no23_um", "po4_um", "chl_ug", "phaeo_ug", 
+             "PC_um", "PN_um", "DOP_um", 
+             paste0(c("pro", "syn", "het", "euk"), "_abund"),
+             "beam_atten", "PAR")
+
+meta_MC_gps <- lapply(meta_nms, function(chosen_var){
+  env_metadata %>%
+    filter(cruise=="MC") %>%
+    filter(!is.na(get(chosen_var))) %>%
+    ggplot(aes(x=time, y=abs_depth, color=get(chosen_var))) + 
+    geom_point(aes(y=abs_depth-2), size=4.5, color="grey50") +
+    geom_point(aes(y=abs_depth-2), size=4) +
+    geom_point(aes(y=abs_depth), filled_MC_metadata, size=4.5, color="red") +
+    geom_point(aes(y=abs_depth), filled_MC_metadata, size=4) +
+    ylim(250, 0) +
+    scale_color_viridis_c() +
+    ggtitle(chosen_var) +
+    theme_bw() +
+    theme(legend.position = "none", axis.title = element_blank())
+})
+
+comb_gp <- do.call(grid.arrange, c(meta_MC_gps, ncol=4))
+ggsave(comb_gp, filename = "figures/interp_MC_data.png", device = "png", 
+       width = 10, height = 10, units = "in", type="cairo")
+```
+
+```{r plot MC interped data as depth profiles}
+meta_MC_depthgps <- lapply(meta_nms, function(chosen_var){
+  env_metadata %>%
+    filter(cruise=="MC") %>%
+    filter(!is.na(get(chosen_var))) %>%
+    ggplot(aes(x=get(chosen_var), y=abs_depth, color=get(chosen_var))) + 
+    geom_path(aes(group=station), color="black", lwd=1) +
+    geom_point(size=4) +
+    geom_point(data = filled_MC_metadata, color="red") +
+    ylim(250, 0) +
+    scale_color_viridis_c() +
+    ggtitle(chosen_var) +
+    theme_bw() +
+    theme(legend.position = "none", axis.title = element_blank())
+})
+comb_gp <- do.call(grid.arrange, c(meta_MC_depthgps, ncol=4))
+ggsave(comb_gp, filename = "figures/interp_MC_depthprofs.png", device = "png", 
+       width = 10, height = 10, units = "in", type="cairo")
+```
+
+Metadata pairs plot and heatmaply things
+
+```{r heatmaply metadata}
+filled_MT_metadata <- filled_file_metadata %>%
+  filter(cruise=="FK") %>%
+  filter(samp_type=="Smp") %>%
+  select(where(~!all(is.na(.x))))
+
+heatmap_cor <- filled_MT_metadata %>%
+  select(abs_depth, time, lat, sla, local_hour, #alk, dic, ph
+         ends_with("abund"), #beam_atten,
+         ends_with("um"), ends_with("ug")) %>%
+  data.matrix() %>%
+  cor(use = "pair") %>%
+  abs()
+
+cor(cophenetic(hclust(dist(heatmap_cor))), dist(heatmap_cor))
+pheatmap::pheatmap(
+  mat = heatmap_cor, color = viridisLite::viridis(100),
+  filename = "figures/meta_cor_clust.pdf", width = 7, height = 7
+)
+heatmaply::heatmaply(heatmap_cor)
+```
+
+```{r ggally pairsplot}
+filled_MT_metadata <- filled_file_metadata %>%
+  filter(cruise=="MT") %>%
+  mutate(depth=factor(depth, levels = c("15m", "DCM", "175m")))
+
+library(GGally)
+filled_MT_metadata %>%
+  select(station, depth, abs_depth, time, lat, sla, local_hour, alk, dic, ph, 
+         ends_with("um"), ends_with("ug"), ends_with("abund")) %>%
+  ggpairs(aes(color=depth)) %>%
+  ggsave(filename = "MT_ggpairsplot.pdf", device = "pdf", path = "figures", 
+         width = 30, height = 30, units = "in", dpi = 300)
+```
+
+## PCA groupings 
+
+```{r pca, eval=FALSE}
+filled_MT_metadata <- read_csv("made_data/filled_file_metadata.csv") %>%
+  filter(cruise=="MT") %>%
+  filter(samp_type=="Smp") %>%
+  mutate(depth=factor(depth, levels = c("15m", "DCM", "175m")))
+
+pca_output <- filled_MT_metadata %>%
+  select(filename, abs_depth, time, lat, sla, local_hour, #alk, dic, ph, 
+         ends_with("abund"), ends_with("um"), ends_with("ug"),
+         beam_atten, -oxy_um) %>%
+  column_to_rownames("filename") %>%
+  data.matrix() %>%
+  scale() %>%
+  prcomp()
+# plot(pca_output)
+biplot(pca_output)
+biplot(pca_output, choices = c(3, 4))
+
+ggpca_data <- pca_output$x %>%
+  as.data.frame() %>%
+  rownames_to_column("filename") %>%
+  select(filename, PC1:PC4) %>%
+  left_join(filled_MT_metadata)
+ggpca_arrows <- pca_output$rotation %>% 
+  `*`(10) %>%
+  as.data.frame() %>%
+  rownames_to_column("env_param")
+ggpca_labels <- ggpca_arrows %>% 
+  mutate(PC2=PC2+0.2) %>%
+  mutate(PC2=case_when(
+    env_param=="sla"~PC2-0.4,
+    env_param=="PC_um"~PC2+0.2,
+    env_param=="phaeo_ug"~PC2+0.2,
+    TRUE~PC2)) %>%
+  mutate(PC4=PC4+0.3)
+ggplot(mapping = aes(x=PC1, y=PC2)) + 
+  geom_point(data = ggpca_data, aes(color=depth)) +
+  geom_segment(data = ggpca_arrows, aes(xend=0, yend=0), 
+               arrow = arrow(length = unit(0.02, "npc"), ends = "first")) +
+  geom_label(data = ggpca_labels, aes(label=env_param)) +
+  theme_bw() +
+  theme(legend.position = c(0.8, 0.8))
+ggsave(filename = "MT_PC1_PC2.png", device = "png", path = "figures", 
+       width = 5, height = 5, dpi = 144, units = "in", type="cairo")
+ggplot(mapping=aes(x=PC3, y=PC4)) + 
+  geom_point(data=ggpca_data, aes(color=sla, size=lat)) +
+  geom_segment(data = ggpca_arrows, aes(xend=0, yend=0), 
+               arrow = arrow(length = unit(0.02, "npc"), ends = "first")) +
+  geom_label(data = ggpca_labels, aes(label=env_param)) +
+  theme_bw()
+ggsave(filename = "MT_PC3_PC4.png", device = "png", path = "figures", 
+       width = 5.5, height = 5, dpi = 144, units = "in", type="cairo")
+```
+
+## Get standards and clean up
+It's also nice to pull down a list of standards that will be found in the data.
+
+```{r grabstans}
+if(!file.exists("raw_data/raw_stans.csv")){
+  raw_stans <- read.csv(paste0(
+    "https://raw.githubusercontent.com/IngallsLabUW/Ingalls_Standards",
+    "/master/Ingalls_Lab_Standards.csv"
+  ))
+  write.csv(raw_stans, file = "raw_data/raw_stans.csv", row.names = FALSE)
+}
+raw_stans <- read.csv("raw_data/raw_stans.csv")
+clean_stans <- raw_stans %>%
+  filter(Column=="HILIC") %>%
+  mutate(polarity=ifelse(str_detect(z, "-"), "neg", "pos")) %>%
+  mutate(mz=as.numeric(mz)) %>%
+  mutate(peak_quality=str_extract(Peak_Quality, "Yes|No|Problematic")) %>%
+  select(compound_type=Compound_Type, compound_name=Compound_Name,
+         compound_name_old=Compound_Name_Original,
+         formula=Empirical_Formula, rt=RT_minute, mz=mz, 
+         ionization_form=Ionization_Form,
+         charge=z, kegg_id=KEGG_Code, polarity, conc_um=Concentration_uM,
+         date_added=Date_Added, mix=HILIC_Mix, priority=Priority,
+         peak_quality) %>%
+  add_row(compound_type="Custom", compound_name="Bisulfate",
+          compound_name_old="Bisulfate", formula="HSO4", rt=13, 
+          mz=95.95172965+1.007276, ionization_form="[M]", 
+          charge=-1, date_added=150101, polarity="neg") %>%
+  add_row(compound_type="Custom", compound_name="Bromine81",
+          compound_name_old="Bromine upper", formula="Br(81)", rt=7, 
+          mz=80.91563, ionization_form="[M]", charge=-1, 
+          date_added=150101, polarity="neg") %>%
+  add_row(compound_type="Custom", compound_name="Bromine79",
+          compound_name_old="Bromine lower", formula="Br(79)", rt=7, 
+          mz=78.91768, ionization_form="[M]", charge=-1, 
+          date_added=150101, polarity="neg") %>%
+  add_row(compound_type="Custom", compound_name="Pyro from glutamine?",
+          compound_name_old=compound_name, formula="C5H7NO3", rt=11, 
+          mz=130.050419, ionization_form="[M-NH3+H]", charge=-1, 
+          date_added=150101, polarity="pos") %>%
+  add_row(compound_type="Custom", compound_name="Pyro from glutamate?",
+          compound_name_old=compound_name, formula="C5H7NO3", rt=12, 
+          mz=130.050419, ionization_form="[M-H2O+H]", charge=-1, 
+          date_added=150101, polarity="pos") %>%
+  # add_row(compound_type="Custom", compound_name="Deoxyguanosine?",
+  #         compound_name_old=compound_name, formula="C10H13N5O4", rt = 4.5,
+  #         mz=268.10403, ionization_form="[M+H]", charge=1, 
+  #         date_added=150101, polarity="pos") %>%
+  add_row(compound_type="Custom", compound_name="Deoxycytidine?",
+          compound_name_old=compound_name, formula="C10H13N5O4", rt = 6.6,
+          mz=228.09788, ionization_form="[M+H]", charge=1, 
+          date_added=150101, polarity="pos") %>%
+  add_row(compound_type="Custom", compound_name="Homoserine betaine?",
+          compound_name_old=compound_name, formula="C7H15NO3", rt = 6.7,
+          mz=162.1125, ionization_form="[M+H]", charge=1, 
+          date_added=150101, polarity="pos") %>%
+  add_row(compound_type="Custom", compound_name="Threonine betaine?",
+          compound_name_old=compound_name, formula="C7H15NO3", rt = 5,
+          mz=162.1125, ionization_form="[M+H]", charge=1, 
+          date_added=150101, polarity="pos") %>%
+  add_row(compound_type="Custom", compound_name="Theanine?",
+          compound_name_old=compound_name, formula="C7H14N2O3", rt = 6.8,
+          mz=175.10771, ionization_form="[M+H]", charge=1, 
+          date_added=150101, polarity="pos") %>%
+  mutate(date_added=strptime(x = date_added, format = "%y%m%d"))
+write.csv(clean_stans, file = "made_data/clean_stans.csv", row.names = FALSE)
+```
