@@ -14,3 +14,9 @@
 
 !targeted/*
 !targeted/made_data/longdata.csv
+
+!untargeted/scripts/*
+!untargeted/all_feats.csv
+!untargeted/all_peaks.csv
+!untargeted/output_control.Rmd
+!untargeted/untargeted.Rproj
