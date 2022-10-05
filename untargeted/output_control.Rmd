@@ -484,7 +484,7 @@ feature_data <- M_area_peaks %>%
 stan_annotations <- read.csv(paste0(output_folder, "stan_annotations.csv"))
 # database_formulae <- readRDS("unique_formulae.rds") %>%
 #   gsub(pattern = "\\+.?", replacement = "")
-database_formulae <- unique(readRDS("hmdb_formulae.rds"))
+database_formulae <- unique(readRDS("../metadata/raw_data/hmdb_formulae.rds"))
 
 source("scripts/formula_assignments.R")
 
