@@ -1,4 +1,6 @@
 *
+!*/
 
 !.gitignore
 
+!manuscript/manuscript.Rmd
