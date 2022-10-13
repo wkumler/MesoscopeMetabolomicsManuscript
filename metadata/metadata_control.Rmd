@@ -1289,6 +1289,33 @@ clean_stans <- raw_stans %>%
           compound_name_old=compound_name, formula="C7H14N2O3", rt = 6.8,
           mz=175.10771, ionization_form="[M+H]", charge=1, 
           date_added=150101, polarity="pos") %>%
+  add_row(compound_type="Custom", compound_name="Asterina-330",
+          compound_name_old=compound_name, formula="C12H20N2O6", rt = 10.5,
+          mz=289.1393, ionization_form="[M+H]", charge=1) %>%
+  add_row(compound_type="Custom", compound_name="Shinorine",
+        compound_name_old=compound_name, formula="C13H20N2O8", rt = 11.6,
+        mz=333.1292, ionization_form="[M+H]", charge=1) %>%
+  add_row(compound_type="Custom", compound_name="Palythine",
+        compound_name_old=compound_name, formula="C10H16N2O5", rt = 11.0,
+        mz=245.1132, ionization_form="[M+H]", charge=1) %>%
+  add_row(compound_type="Custom", compound_name="Porphyra-334?",
+        compound_name_old=compound_name, formula="C14H22N2O8", rt = 8.1,
+        mz=347.1449, ionization_form="[M+H]", charge=1) %>%
+  add_row(compound_type="Custom", compound_name="Mycosporine-2-glycine?",
+        compound_name_old=compound_name, formula="C12H18N2O7", rt = 11.3,
+        mz=303.1186, ionization_form="[M+H]", charge=1) %>%
+  add_row(compound_type="Custom", compound_name="Palythene/Usujirene?",
+        compound_name_old=compound_name, formula="C13H20N2O5", rt = 8.3,
+        mz=285.1445, ionization_form="[M+H]", charge=1) %>%
+  add_row(compound_type="Custom", compound_name="Also Palythene/Usujirene?",
+        compound_name_old=compound_name, formula="C13H20N2O5", rt = 6.9,
+        mz=285.1445, ionization_form="[M+H]", charge=1) %>%
+  add_row(compound_type="Custom", compound_name="Mycosporine-glycine?",
+        compound_name_old=compound_name, formula="C10H15NO6", rt = 10,
+        mz=246.0972, ionization_form="[M+H]", charge=1) %>%
+  add_row(compound_type="Custom", compound_name="Also mycosporine-glycine?",
+        compound_name_old=compound_name, formula="C10H15NO6", rt = 9.5,
+        mz=246.0972, ionization_form="[M+H]", charge=1) %>%
   mutate(date_added=strptime(x = date_added, format = "%y%m%d"))
 write.csv(clean_stans, file = "made_data/clean_stans.csv", row.names = FALSE)
 ```
