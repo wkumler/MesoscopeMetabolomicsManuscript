@@ -1319,3 +1319,29 @@ clean_stans <- raw_stans %>%
   mutate(date_added=strptime(x = date_added, format = "%y%m%d"))
 write.csv(clean_stans, file = "made_data/clean_stans.csv", row.names = FALSE)
 ```
+
+## Culture data ----
+
+```{r}
+clean_stans <- read.csv(file = "made_data/clean_stans.csv")
+
+culture_desc <- readxl::read_xlsx("raw_data/Heal_mSystems uncorrected Metabs_SuppTabs_20210223.xlsx",
+                  sheet = "S7_Culturedescriptions_full")
+culture_data <- readxl::read_xlsx("raw_data/Heal_mSystems uncorrected Metabs_SuppTabs_20210223.xlsx",
+                                  sheet = "S5_FullEnviroCulture_PeakAreas")
+taxa_metabs <- culture_data %>%
+  filter(!str_detect(MassFeature_Column, "RP$")) %>%
+  mutate(polarity=tolower(str_extract(MassFeature_Column, "Neg$|Pos$"))) %>%
+  select(Identification, polarity, `7803_B`:Nmar_3) %>%
+  pivot_longer(cols = `7803_B`:Nmar_3) %>%
+  left_join(clean_stans %>% select(compound_name, compound_name_old, polarity), 
+            by=c(Identification="compound_name_old", "polarity")) %>%
+  filter(!is.na(compound_name)) %>%
+  left_join(culture_desc %>% select(name=`Sample ID`, taxa=`Broad taxon`, species=Species),
+            by="name") %>%
+  filter(!is.na(value)) %>%
+  select(compound_name, polarity, broad_taxa=taxa, species, id=name, value)
+
+write.csv(taxa_metabs, file = "made_data/taxa_metabs.csv")
+```
+
