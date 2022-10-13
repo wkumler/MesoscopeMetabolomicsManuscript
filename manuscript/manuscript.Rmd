@@ -9,8 +9,6 @@ editor_options:
   chunk_output_type: inline
 ---
 
-Hi Regina
-
 ```{r run analysis, eval=FALSE, echo=FALSE}
 # Run untargeted analysis
 knitr::purl("../untargeted/output_control.Rmd", output="../untargeted/output_script.R")
@@ -547,7 +545,13 @@ The less-subjective PERMANOVA confirmed that depth was a major factor in control
 ### Metabolite response to depth 
 
 ```{r posthoc_classes and posthoc_table}
+long_MT_meta <- filled_file_metadata %>%
+  filter(samp_type=="Smp") %>%
+  filter(cruise=="MT") %>%
+  select(filename, no23_um:euk_abund) %>%
+  pivot_longer(cols = no23_um:euk_abund, names_to = "feature", values_to = "norm_area")
 kw_diff_feats <- MT_peaks %>%
+  bind_rows(long_MT_meta) %>%
   left_join(filled_file_metadata, by="filename") %>% 
   select(feature, depth, value=norm_area) %>%
   nest(data=-feature) %>%
@@ -609,6 +613,7 @@ Approximately half (`r posthoc_table["All equal"]` / `r sum(posthoc_table)`) of 
 
 ```{r clockplot, fig.height=6, fig.width=6}
 rank_peaks <- MT_peaks %>%
+  bind_rows(long_MT_meta) %>%
   group_by(feature) %>%
   mutate(norm_area=rank(norm_area)) %>%
   # mutate(value=value/max(value)) %>%
@@ -622,6 +627,7 @@ clockplot_df <- rank_peaks %>%
   group_by(feature, depth) %>%
   summarise(mean_fold_change=mean(norm_area/mean_area)) %>%
   pivot_wider(names_from=depth, values_from=mean_fold_change) %>%
+  mutate(env_cmpd=ifelse(startsWith(feature, "MT"), FALSE, TRUE)) %>%
   left_join(posthoc_classes, by="feature") %>%
   mutate(x=DCM-1) %>%       # cursed but works??
   mutate(y=`15m`+DCM/2-1.5) # super fucking cursed
@@ -629,6 +635,32 @@ clock_scale <- 0.66
 axis_xends <- c(-1/2, 1.1, -1/2)*clock_scale
 axis_yends <- c(sqrt(3)/2, 0, -sqrt(3)/2)*clock_scale
 axis_y_dodge <- c(2, 2, -2)*clock_scale/25
+
+env_label_df <- clockplot_df %>%
+  filter(!startsWith(feature, "MT")) %>%
+  mutate(xend=x*1.3, yend=y*1.3) %>%
+  mutate(xend=case_when(
+    feature=="DON_um"~-0.5,
+    feature=="syn_abund"~-0.3,
+    feature=="DOP_um"~-0.1,
+    feature=="pro_abund"~0.1,
+    feature=="PC_um"~0.3,
+    feature=="het_abund"~0.5,
+    feature=="PN_um"~0.5,
+    feature=="beam_atten"~0.7,
+    TRUE~xend
+  )) %>%
+  mutate(yend=case_when(
+    feature=="DON_um"~0.7,
+    feature=="syn_abund"~0.8,
+    feature=="DOP_um"~0.7,
+    feature=="pro_abund"~0.8,
+    feature=="PC_um"~0.7,
+    feature=="het_abund"~0.8,
+    feature=="PN_um"~0.6,
+    feature=="beam_atten"~0.5,
+    TRUE~yend
+  ))
 
 color_scale <- c("grey50", hcl(h = seq(15, 375, length=13), l=65, c=100)[1:12], "grey80")
 names(color_scale) <- levels(clockplot_df$resp_class)
@@ -644,7 +676,12 @@ clock_gp <- ggplot(clockplot_df) +
            label=c("15m axis", "DCM axis", "175m axis"), 
            fill="#FFFFFFAA", label.size=0) +
   geom_point(aes(x=x, y=y, color=resp_class), alpha=0.8) +
-  coord_fixed(xlim = c(-1.1, 1.3)*clock_scale, ylim = c(-1.1, 1.1)*clock_scale) +
+  geom_segment(aes(x=x, y=y, xend=xend, yend=yend), data = env_label_df) +
+  geom_label(aes(x=xend, y=yend, color=resp_class, label=feature), 
+                   data = env_label_df, min.segment.length = 0) +
+  # geom_label_repel(aes(x=x, y=y, color=resp_class, label=feature), 
+  #                  data = env_label_df, min.segment.length = 0) +
+  coord_fixed(xlim = c(-1.1, 1.3)*clock_scale, ylim = c(-1.2, 1.2)*clock_scale) +
   scale_color_manual(values = color_scale, breaks = names(color_scale)) +
   theme_void() +
   theme(legend.position = "right", legend.title = element_blank())
@@ -723,7 +760,7 @@ MAA_msms <- MAA_maybe %>%
   group_by(MAA, filename, rt) %>%
   arrange(desc(int)) %>%
   # slice(5) %>%
-  summarize(MSMS=paste(fragmz, int, sep = ", ", collapse = "; "))
+  summarize(premz=mean(premz), MSMS=paste(fragmz, int, sep = ", ", collapse = "; "))
 
 MAA_msdata <- MAA_maybe %>%
   mutate(rtmed=rtmed/60) %>%
