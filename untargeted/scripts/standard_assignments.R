@@ -323,7 +323,7 @@ if(cruise=="MT" & polarity=="pos") {
     rmAnno("4-Aminobutyric acid") %>%
     reAnno("Allopurinol", new_feature_num = "FT0359") %>%
     reAnno("N-Methyltaurine", new_feature_num = "FT0385") %>%
-    reAnno(cmpd_name = "N6-Acetyl-L-lysine", new_feature_num = "FT0759") %>%
+    reAnno("N6-Acetyl-L-lysine", new_feature_num = "FT0760") %>%
     reAnno("Nicotinic acid", new_feature_num = "FT0252") %>%
     reAnno("S-Adenosylmethionine", new_feature_num = "FT1537") %>%
     rmAnno("O-Acetyl-L-serine") %>%

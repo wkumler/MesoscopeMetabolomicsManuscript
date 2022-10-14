@@ -12,8 +12,8 @@ library(data.table)
 library(pbapply)
 library(RaMS)
 
-polarity <- "neg"
-cruise <- "MC"
+polarity <- "pos"
+cruise <- "MT"
 output_folder <- paste0(c(cruise, polarity, "output/"), collapse = "_")
 mzml_path <- paste0("../mzMLs/", polarity, "/")
 
@@ -310,8 +310,8 @@ RT choice:
 ```{r targeted, purl=TRUE}
 M_area_peaks <- read.csv(paste0(output_folder, "M_area_peaks.csv"))
 given_stans <- read.csv("../metadata/made_data/clean_stans.csv") %>% 
-  filter(polarity==!!polarity) %>%
-  filter(run_date[1]>=date_added)
+  filter(polarity==!!polarity) %>% 
+  filter(run_date[1]>=date_added | is.na(date_added))
 
 feature_data <- M_area_peaks %>%
   group_by(feature) %>%
