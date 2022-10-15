@@ -1342,6 +1342,6 @@ taxa_metabs <- culture_data %>%
   filter(!is.na(value)) %>%
   select(compound_name, polarity, broad_taxa=taxa, species, id=name, value)
 
-write.csv(taxa_metabs, file = "made_data/taxa_metabs.csv")
+write.csv(taxa_metabs, file = "made_data/taxa_metabs.csv", row.names = FALSE)
 ```
 
