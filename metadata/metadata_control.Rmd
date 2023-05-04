@@ -1,7 +1,7 @@
 ---
-title: "Metadata control"
+title: "Metadata control document"
 author: "William Kumler"
-date: "5/5/2022"
+date: "5/5/2023"
 output: html_document
 ---
 
@@ -36,9 +36,7 @@ if(!dir.exists("figures")){
 }
 
 options(pillar.sigfig = 7)
-```
 
-```{r functions}
 toDecDeg <- function(deg, min, dir){
   num <- deg+min/60
   if(dir%in%c("S", "W")){
@@ -58,7 +56,7 @@ at the cruise logbook.
 Also now includes data from .gof files for exact depth
 
 ```{r station_metadata}
-# DCMs are entered manually ----
+# DCM depths are entered manually ----
 if(!file.exists("raw_data/all_DCMs.csv")){
   falkor_DCMs <- data.frame(
     station=c(62, 64, 77, 80),
@@ -1197,11 +1195,14 @@ write.csv(clean_stans, file = "made_data/clean_stans.csv", row.names = FALSE)
 ## Culture data 
 
 ```{r}
+download.file("https://datadryad.org/stash/downloads/file_stream/2192675", 
+              destfile = "raw_data/Heal_mSystems_Supplement.xlsx", 
+              mode = "wb")
 clean_stans <- read.csv(file = "made_data/clean_stans.csv")
 
-culture_desc <- readxl::read_xlsx("raw_data/Heal_mSystems uncorrected Metabs_SuppTabs_20210223.xlsx",
+culture_desc <- readxl::read_xlsx("raw_data/Heal_mSystems_Supplement.xlsx",
                   sheet = "S7_Culturedescriptions_full")
-culture_data <- readxl::read_xlsx("raw_data/Heal_mSystems uncorrected Metabs_SuppTabs_20210223.xlsx",
+culture_data <- readxl::read_xlsx("raw_data/Heal_mSystems_Supplement.xlsx",
                                   sheet = "S5_FullEnviroCulture_PeakAreas")
 taxa_metabs <- culture_data %>%
   filter(!str_detect(MassFeature_Column, "RP$")) %>%
