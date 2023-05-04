@@ -18,6 +18,7 @@ clean_stans <- read.csv("../metadata/made_data/clean_stans.csv")
 name_conversion <- clean_stans %>%
   select(new=compound_name, old=compound_name_old) %>%
   distinct()
+file_metadata <- read.csv("../metadata/made_data/file_metadata.csv")
 ```
 
 # Convert raw data ----
@@ -501,6 +502,131 @@ write.csv(rfrs, "made_data/rf_ratios.csv", row.names=FALSE)
 quant_data <- bind_rows(falkor_data, mesotransect_data, mesocenter_data) %>%
   filter(compound_name!="Choline")
 write.csv(quant_data, file = "made_data/longdata.csv", row.names = FALSE)
+```
+
+
+```{r write MESOSCOPE to Excel}
+library(openxlsx)
+wb <- createWorkbook(creator = "William Kumler, wkumler@uw.edu")
+addWorksheet(wb, sheetName = "Sample data")
+bind_rows(mesotransect_data, mesocenter_data) %>%
+  pivot_wider(names_from = filename, values_from = nM) %>%
+  writeData(wb = wb, sheet = "Sample data")
+freezePane(wb, sheet = "Sample data", firstRow = TRUE, firstCol = TRUE)
+addWorksheet(wb, "File metadata")
+file_metadata %>%
+  filter(cruise%in%c("MT", "MC")) %>%
+  mutate(filename=str_remove(filename, ".mzML")) %>%
+  distinct(filename, samp_type, station, cast, depth, abs_depth, rosette,date_run, timestamp) %>%
+  rename(sample_name=filename, file_timestamp=timestamp) %>%
+  writeData(wb = wb, sheet = "File metadata")
+addWorksheet(wb = wb, sheetName = "Compound metadata")
+clean_stans %>%
+  select(compound_name, compound_type, formula, rt, mz, kegg_id, polarity, peak_quality) %>%
+  writeData(wb = wb, sheet = "Compound metadata")
+
+addWorksheet(wb=wb, sheetName = "README")
+data.frame(`README for Ingalls MESOSCOPE data`=c(
+  "This file was produced by William Kumler in the Ingalls lab at the University of Washington",
+  "This file contains concentrations of compounds in seawater measured via HPLC-MS",
+  "in a targeted (selected subset of known compounds) method.",
+  "",
+  "The first sheet (Sample data) contains the concentrations of various molecules in each sample",
+  "taken during the MESOSCOPE cruise in 2017. These values are in nanomoles per",
+  "liter of seawater (nM) from the particulate phase (particles collected onto",
+  "0.2um Durapore filters).",
+  "Missing values are shown as empty cells and infinite values (usually in the standards) are shown as #NUM!",
+  "",
+  "The second sheet (File metadata) contains information about the samples themselves, including",
+  "the depth, time, and station from which they were collected. ",
+  "sample_name = Name of the sample as shown in the Sample data Excel sheet",
+  "samp_type = Type of sample, whether biological sample (Smp), blank (Blk), pooled (Poo), or standard (Std)",
+  "station = Station from which the sample was collected, 1-15 plus L1 and L2",
+  "cast = Which cast the sample was taken from",
+  "depth = Depth descriptor of where in the water column the sample was collected",
+  "abs_depth = Absolute depth. Accounts for differences from DCM and is determined from the CTD itself",
+  "rosette = Which Niskin was this sample taken from? Largely incomplete",
+  "date_run = The date on which the HPLC-MS run was started",
+  "file_timestamp = The time at which the sample was actually run",
+  "",
+  "The third sheet (Compound metadata) contains information about the compounds measured",
+  "during this analysis. Not all compounds were detected and passed quality control",
+  "so there are more compounds here than found in the Sample data sheet.",
+  "compound_name = Name of the compound, as found in the Sample data sheet",
+  "compound_type = Broad compound class as determined rather arbitrarily by myself",
+  "formula = Molecular formula of the compound. Isotopes are labeled in parentheses",
+  "rt = Estimated retention time of the compound, in minutes",
+  "mz = Mass-to-charge ratio of the molecule at which it's detected in the mass spec",
+  "kegg_id = KEGG (Kyoto Encyclopedia of Genes and Genomes) ID: https://www.genome.jp/kegg/",
+  "polarity = The polarity at which the molecule was detected in the mass spec, either 'pos' for positive mode or 'neg' for negative mode",
+  "peak_quality = The typical quality of the chromatographic peak. Yes is good, No is bad, and see the Ingalls Standards repo for more details on Problematic compounds",
+  "",
+  paste("File created on", Sys.Date())
+)) %>%
+  writeData(wb = wb, sheet = "README")
+saveWorkbook(wb, file = "MESOSCOPE_Targeted_nM.xlsx", overwrite = TRUE)
+```
+
+```{r write Falkor to Excel}
+library(openxlsx)
+wb <- createWorkbook(creator = "William Kumler, wkumler@uw.edu")
+addWorksheet(wb, sheetName = "Sample data")
+falkor_data %>%
+  pivot_wider(names_from = filename, values_from = nM) %>%
+  writeData(wb = wb, sheet = "Sample data")
+freezePane(wb, sheet = "Sample data", firstRow = TRUE, firstCol = TRUE)
+addWorksheet(wb, "File metadata")
+file_metadata %>%
+  filter(cruise=="FK") %>%
+  mutate(filename=str_remove(filename, ".mzML")) %>%
+  distinct(filename, samp_type, station, cast, depth, abs_depth, rosette, date_run, timestamp) %>%
+  rename(sample_name=filename, file_timestamp=timestamp) %>%
+  writeData(wb = wb, sheet = "File metadata")
+addWorksheet(wb = wb, sheetName = "Compound metadata")
+clean_stans %>%
+  select(compound_name, compound_type, formula, rt, mz, kegg_id, polarity, peak_quality) %>%
+  writeData(wb = wb, sheet = "Compound metadata")
+
+addWorksheet(wb=wb, sheetName = "README")
+data.frame(`README for Ingalls Falkor data`=c(
+  "This file was produced by William Kumler in the Ingalls lab at the University of Washington",
+  "This file contains concentrations of compounds in seawater measured via HPLC-MS",
+  "in a targeted (selected subset of known compounds, manually integrated) method.",
+  "",
+  "The first sheet (Sample data) contains the concentrations of various molecules in each sample",
+  "taken during the Falkor cruise in 2018. These values are in nanomoles per",
+  "liter of seawater (nM) from the particulate phase (particles collected onto",
+  "0.2um Durapore filters).",
+  "Missing values are shown as empty cells and infinite values (usually in the standards) are shown as #NUM!",
+  "",
+  "The second sheet (File metadata) contains information about the samples themselves, including",
+  "the depth, time, and station from which they were collected. ",
+  "sample_name = Name of the sample as shown in the Sample data Excel sheet",
+  "samp_type = Type of sample, whether biological sample (Smp), blank (Blk), pooled (Poo), or standard (Std)",
+  "station = Station from which the sample was collected",
+  "cast = Which cast the sample was taken from",
+  "depth = Depth descriptor of where in the water column the sample was collected",
+  "abs_depth = Absolute depth. Accounts for differences from DCM and is determined from the CTD itself",
+  "rosette = Which Niskin was this sample taken from? Largely incomplete",
+  "date_run = The date on which the HPLC-MS run was started",
+  "file_timestamp = The time at which the sample was actually run",
+  "",
+  "The third sheet (Compound metadata) contains information about the compounds measured",
+  "during this analysis. Not all compounds were detected and passed quality control",
+  "so there are more compounds here than found in the Sample data sheet.",
+  "compound_name = Name of the compound, as found in the Sample data sheet",
+  "compound_type = Broad compound class as determined rather arbitrarily by myself",
+  "formula = Molecular formula of the compound. Isotopes are labeled in parentheses",
+  "rt = Estimated retention time of the compound, in minutes",
+  "mz = Mass-to-charge ratio of the molecule at which it's detected in the mass spec",
+  "kegg_id = KEGG (Kyoto Encyclopedia of Genes and Genomes) ID: https://www.genome.jp/kegg/",
+  "polarity = The polarity at which the molecule was detected in the mass spec, either 'pos' for positive mode or 'neg' for negative mode",
+  "peak_quality = The typical quality of the chromatographic peak. Yes is good, No is bad, and see the Ingalls Standards repo for more details on Problematic compounds",
+  "",
+  paste("File created on", Sys.Date())
+)) %>%
+  writeData(wb = wb, sheet = "README")
+saveWorkbook(wb, file = "Falkor_Targeted_nM.xlsx", overwrite = TRUE)
 ```
 
 # Perform some quality checks
