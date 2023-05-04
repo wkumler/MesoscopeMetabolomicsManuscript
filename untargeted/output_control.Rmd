@@ -4,7 +4,7 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE, purl=TRUE}
-knitr::opts_chunk$set(echo = TRUE, warning = FALSE, error = TRUE, purl = FALSE)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, error = TRUE, purl=TRUE)
 options(dplyr.summarise.inform=F)
 options(pillar.sigfig=10)
 suppressPackageStartupMessages(library(tidyverse))
@@ -20,7 +20,8 @@ mzml_path <- paste0("../mzMLs/", polarity, "/")
 source("scripts/functions.R")
 
 cruise_metadata <- read.csv("../metadata/made_data/file_metadata.csv") %>%
-  filter(cruise==!!cruise)
+  filter(cruise==!!cruise) %>%
+  filter(polarity==!!polarity)
 
 run_date <- cruise_metadata %>%
   pull(date_run) %>%
@@ -37,7 +38,7 @@ BiocParallel::register(BPPARAM = BiocParallel::SnowParam(tasks = length(ms_files
 
 It takes in the metadataframe created above as well as the list of paths to the .mzML files and returns a (rather large) data frame full of peaks. 
 
-```{r peakpicking, error=TRUE, purl=FALSE}
+```{r peakpicking, error=TRUE, purl=TRUE}
 library(xcms)
 
 # Create folder if it doesn't already exist
@@ -120,7 +121,7 @@ However, simply finding data at the expected mass isn't specific enough because 
 
 Deciding on the thresholds to use as cutoffs for "yes, this is an adduct/isotope" is complicated. If set too high, not all adducts and isotopes will be flagged and removed - spuriously increasing the impact of a compound that has an addiso that snuck through. If set too low, compounds that aren't adducts or isotopes will be erroneously removed. Ideally, there's a clear separation between the spurious peaks and the ones that are good - spurious all hovering around zero and good all close to 1. However, it seems like there's a lot more overlap and so there's two things we can do. First, plotting histograms of peak area and shape correlations can provide some clue as to where the valley in between the two is and that's a good starting spot. For a more intensive analysis we can use our standards to calibrate the thresholds because we can predict the isotope envelope of each standard and know what isotopes to expect and which ones shouldn't show up at all. 
 
-```{r deisoadduct, error=TRUE, purl=FALSE}
+```{r deisoadduct, error=TRUE, purl=TRUE}
 library(xcms)
 xdata_filled <- readRDS(file = paste0(output_folder, "xdata_filled.rds"))
 filled_peaks <- read.csv(file = paste0(output_folder, "filled_peaks.csv"))
@@ -475,7 +476,7 @@ ggsave(plot=BMIS_on_IS_gp, filename = paste0(output_folder, "BMIS_on_IS.pdf"),
 
 ## Annotate formulae
 
-```{r assignformulae, purl=FALSE}
+```{r assignformulae, purl=TRUE}
 M_area_peaks <- read.csv(paste0(output_folder, "M_area_peaks.csv"))
 feature_envelopes <- read.csv(paste0(output_folder, "feature_envelopes.csv"))
 feature_data <- M_area_peaks %>%
@@ -524,15 +525,20 @@ anno_quality %>% filter(success=="Failed")
 
 ## Annotate classes and structures
 
-```{r assignids}
-filled_peaks <- read.csv(paste0(output_folder, "filled_peaks.csv"))
+```{r assignids, purl=FALSE}
+filled_peaks <- read.csv(paste0(output_folder, "M_area_peaks.csv"))
 feature_envelopes <- read.csv(paste0(output_folder, "feature_envelopes.csv"))
 feature_data <- filled_peaks %>%
   group_by(feature) %>%
-  summarise(mzmed=median(mz), rtmed=median(rt), avg_area=mean(M_area)) %>%
-  left_join(feature_envelopes, by = "feature")
+  summarise(mzmed=median(mz), rtmed=median(rt), avg_area=mean(M_area))
 stan_annotations <- read.csv(paste0(output_folder, "stan_annotations.csv"))
 
+want_stans <- c("MT_POS_FT0489", "MT_POS_FT0519", "MT_POS_FT0525", "MT_POS_FT0567", 
+"MT_POS_FT0584", "MT_POS_FT0720", "MT_POS_FT0862", "MT_POS_FT0973", 
+"MT_POS_FT0433", "MT_POS_FT0618", "MT_POS_FT0664", "MT_POS_FT0691", 
+"MT_POS_FT0744", "MT_POS_FT0607", "MT_POS_FT0617", "MT_POS_FT1113", 
+"MT_POS_FT1178")
+feature_data <- feature_data %>% filter(feature%in%str_remove(want_stans, "MT_POS_"))
 
 MSMS_files <- paste0(mzml_path, "/MSMS") %>%
   list.files(pattern = unique(str_extract(ms_files, "^\\d+"))[1], 
