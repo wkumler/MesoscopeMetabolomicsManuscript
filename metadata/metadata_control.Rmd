@@ -808,10 +808,6 @@ if(!file.exists("raw_data/MESO_SCOPE_Cruise_KM1709_Sample_Log.xlsx")){
   stop("Go download the data from email, search 'MESO_SCOPE_Cruise_KM1709_Sample_Log'")
   # Needs to be converted to .xlsx and downloaded
 }
-if(!file.exists("raw_data/MESO_SCOPE_Cruise_KM1709_Sample_Log.xlsx")){
-  stop("Go download the data from email, search 'FALKOR- Sample Log_INGALLS'")
-  # Needs to be converted to .xlsx and downloaded
-}
 bottle_depth_data <- read_csv("made_data/bottle_depth_data.csv")
 MT_samps <- "raw_data/MESO_SCOPE_Cruise_KM1709_Sample_Log.xlsx" %>%
   read_excel(sheet = "Metabolites_and_Proteins", range = "A2:J114") %>%
@@ -851,8 +847,10 @@ samp_log <- bind_rows(MT_samps, MC_samps)
 ```
 
 ```{r file_metadata from mzML list}
-samp_metadata <- list.files("../mzMLs/pos", pattern = "Smp.*mzML") %>%
+samp_metadata <- list.files("../mzMLs", pattern = "Smp.*mzML", recursive = TRUE) %>%
   data.frame(filename=.) %>%
+  mutate(polarity=dirname(filename)) %>%
+  mutate(filename=basename(filename)) %>%
   mutate(samp_type="Smp") %>%
   mutate(cruise=case_when(
     str_detect(filename, "180205") ~ "MC",
@@ -897,8 +895,10 @@ samp_metadata <- samp_metadata %>%
   mutate(abs_depth = ifelse(is.na(pressure), abs_depth, pressure)) %>%
   select(-pressure)
 
-extra_metadata <- list.files("../mzMLs/pos", pattern = "Blk|Std|Poo.*mzML") %>%
+extra_metadata <- list.files("../mzMLs", pattern = "Blk|Std|Poo.*mzML", recursive = TRUE) %>%
   data.frame(filename=.) %>%
+  mutate(polarity=dirname(filename)) %>%
+  mutate(filename=basename(filename)) %>%
   mutate(samp_type=str_extract(filename, "Std|Blk|Poo")) %>%
   mutate(cruise=case_when(
     str_detect(filename, "170706") ~ "MC",
@@ -911,7 +911,9 @@ extra_metadata <- list.files("../mzMLs/pos", pattern = "Blk|Std|Poo.*mzML") %>%
   mutate(date_run=strptime(date_run, format = "%y%m%d"))
 
 if(!file.exists("made_data/file_timestamps.csv")){
-  list.files("../mzMLs/pos", pattern = "mzML", full.names = TRUE) %>%
+  bind_rows(samp_metadata, extra_metadata) %>%
+    mutate(filepath=paste("../mzMLs/", polarity, filename, sep = "/")) %>%
+    pull(filepath) %>%
     grabMSdata(grab_what = "metadata") %>%
     `$`("metadata") %>%
     select(filename, timestamp) %>%
@@ -924,9 +926,9 @@ file_metadata <- bind_rows(samp_metadata, extra_metadata) %>%
   left_join(file_timestamps) %>%
   arrange(timestamp) %>%
   # Just reordering, nothing getting dropped
-  select(c("filename", "samp_type", "cruise", "station", "cast", "depth", 
-           "abs_depth", "rosette", "tripl", "id", "untripl", "date_run", 
-           "timestamp"))
+  select(c("filename", "polarity", "samp_type", "cruise", "station", "cast",
+           "depth", "abs_depth", "rosette", "tripl", "id", "untripl",
+           "date_run", "timestamp"))
 write.csv(file_metadata, file = "made_data/file_metadata.csv", row.names = FALSE)
 ```
 
@@ -1133,7 +1135,7 @@ ggsave(comb_gp, filename = "figures/interp_MC_depthprofs.png", device = "png",
 
 Metadata pairs plot and heatmaply things
 
-```{r heatmaply metadata}
+```{r heatmaply metadata, purl=FALSE}
 filled_MT_metadata <- filled_file_metadata %>%
   filter(cruise=="FK") %>%
   filter(samp_type=="Smp") %>%
@@ -1155,76 +1157,6 @@ pheatmap::pheatmap(
 heatmaply::heatmaply(heatmap_cor)
 ```
 
-```{r ggally pairsplot}
-filled_MT_metadata <- filled_file_metadata %>%
-  filter(cruise=="MT") %>%
-  mutate(depth=factor(depth, levels = c("15m", "DCM", "175m")))
-
-library(GGally)
-filled_MT_metadata %>%
-  select(station, depth, abs_depth, time, lat, sla, local_hour, alk, dic, ph, 
-         ends_with("um"), ends_with("ug"), ends_with("abund")) %>%
-  ggpairs(aes(color=depth)) %>%
-  ggsave(filename = "MT_ggpairsplot.pdf", device = "pdf", path = "figures", 
-         width = 30, height = 30, units = "in", dpi = 300)
-```
-
-## PCA groupings 
-
-```{r pca, eval=FALSE}
-filled_MT_metadata <- read_csv("made_data/filled_file_metadata.csv") %>%
-  filter(cruise=="MT") %>%
-  filter(samp_type=="Smp") %>%
-  mutate(depth=factor(depth, levels = c("15m", "DCM", "175m")))
-
-pca_output <- filled_MT_metadata %>%
-  select(filename, abs_depth, time, lat, sla, local_hour, #alk, dic, ph, 
-         ends_with("abund"), ends_with("um"), ends_with("ug"),
-         beam_atten, -oxy_um) %>%
-  column_to_rownames("filename") %>%
-  data.matrix() %>%
-  scale() %>%
-  prcomp()
-# plot(pca_output)
-biplot(pca_output)
-biplot(pca_output, choices = c(3, 4))
-
-ggpca_data <- pca_output$x %>%
-  as.data.frame() %>%
-  rownames_to_column("filename") %>%
-  select(filename, PC1:PC4) %>%
-  left_join(filled_MT_metadata)
-ggpca_arrows <- pca_output$rotation %>% 
-  `*`(10) %>%
-  as.data.frame() %>%
-  rownames_to_column("env_param")
-ggpca_labels <- ggpca_arrows %>% 
-  mutate(PC2=PC2+0.2) %>%
-  mutate(PC2=case_when(
-    env_param=="sla"~PC2-0.4,
-    env_param=="PC_um"~PC2+0.2,
-    env_param=="phaeo_ug"~PC2+0.2,
-    TRUE~PC2)) %>%
-  mutate(PC4=PC4+0.3)
-ggplot(mapping = aes(x=PC1, y=PC2)) + 
-  geom_point(data = ggpca_data, aes(color=depth)) +
-  geom_segment(data = ggpca_arrows, aes(xend=0, yend=0), 
-               arrow = arrow(length = unit(0.02, "npc"), ends = "first")) +
-  geom_label(data = ggpca_labels, aes(label=env_param)) +
-  theme_bw() +
-  theme(legend.position = c(0.8, 0.8))
-ggsave(filename = "MT_PC1_PC2.png", device = "png", path = "figures", 
-       width = 5, height = 5, dpi = 144, units = "in", type="cairo")
-ggplot(mapping=aes(x=PC3, y=PC4)) + 
-  geom_point(data=ggpca_data, aes(color=sla, size=lat)) +
-  geom_segment(data = ggpca_arrows, aes(xend=0, yend=0), 
-               arrow = arrow(length = unit(0.02, "npc"), ends = "first")) +
-  geom_label(data = ggpca_labels, aes(label=env_param)) +
-  theme_bw()
-ggsave(filename = "MT_PC3_PC4.png", device = "png", path = "figures", 
-       width = 5.5, height = 5, dpi = 144, units = "in", type="cairo")
-```
-
 ## Get standards and clean up
 It's also nice to pull down a list of standards that will be found in the data.
 
@@ -1236,9 +1168,18 @@ if(!file.exists("raw_data/raw_stans.csv")){
   ))
   write.csv(raw_stans, file = "raw_data/raw_stans.csv", row.names = FALSE)
 }
+if(!file.exists("raw_data/custom_stans.csv")){
+  custom_stans <- read.csv(paste0(
+    "https://raw.githubusercontent.com/IngallsLabUW/Ingalls_Standards",
+    "/master/data_extra/custom_stans.csv"
+  ))
+  write.csv(custom_stans, file = "raw_data/custom_stans.csv", row.names = FALSE)
+}
 raw_stans <- read.csv("raw_data/raw_stans.csv")
+custom_stans <- read.csv("raw_data/custom_stans.csv")
 clean_stans <- raw_stans %>%
-  filter(Column=="HILIC") %>%
+  bind_rows(custom_stans) %>%
+  filter(Column=="HILIC"|Compound_Type=="Custom") %>%
   mutate(polarity=ifelse(str_detect(z, "-"), "neg", "pos")) %>%
   mutate(mz=as.numeric(mz)) %>%
   mutate(peak_quality=str_extract(Peak_Quality, "Yes|No|Problematic")) %>%
@@ -1249,73 +1190,6 @@ clean_stans <- raw_stans %>%
          charge=z, kegg_id=KEGG_Code, polarity, conc_um=Concentration_uM,
          date_added=Date_Added, mix=HILIC_Mix, priority=Priority,
          peak_quality) %>%
-  add_row(compound_type="Custom", compound_name="Bisulfate",
-          compound_name_old="Bisulfate", formula="HSO4", rt=13, 
-          mz=95.95172965+1.007276, ionization_form="[M]", 
-          charge=-1, date_added=150101, polarity="neg") %>%
-  add_row(compound_type="Custom", compound_name="Bromine81",
-          compound_name_old="Bromine upper", formula="Br(81)", rt=7, 
-          mz=80.91563, ionization_form="[M]", charge=-1, 
-          date_added=150101, polarity="neg") %>%
-  add_row(compound_type="Custom", compound_name="Bromine79",
-          compound_name_old="Bromine lower", formula="Br(79)", rt=7, 
-          mz=78.91768, ionization_form="[M]", charge=-1, 
-          date_added=150101, polarity="neg") %>%
-  add_row(compound_type="Custom", compound_name="Pyro from glutamine?",
-          compound_name_old=compound_name, formula="C5H7NO3", rt=11, 
-          mz=130.050419, ionization_form="[M-NH3+H]", charge=-1, 
-          date_added=150101, polarity="pos") %>%
-  add_row(compound_type="Custom", compound_name="Pyro from glutamate?",
-          compound_name_old=compound_name, formula="C5H7NO3", rt=12, 
-          mz=130.050419, ionization_form="[M-H2O+H]", charge=-1, 
-          date_added=150101, polarity="pos") %>%
-  # add_row(compound_type="Custom", compound_name="Deoxyguanosine?",
-  #         compound_name_old=compound_name, formula="C10H13N5O4", rt = 4.5,
-  #         mz=268.10403, ionization_form="[M+H]", charge=1, 
-  #         date_added=150101, polarity="pos") %>%
-  add_row(compound_type="Custom", compound_name="Deoxycytidine?",
-          compound_name_old=compound_name, formula="C10H13N5O4", rt = 6.6,
-          mz=228.09788, ionization_form="[M+H]", charge=1, 
-          date_added=150101, polarity="pos") %>%
-  add_row(compound_type="Custom", compound_name="Homoserine betaine?",
-          compound_name_old=compound_name, formula="C7H15NO3", rt = 6.7,
-          mz=162.1125, ionization_form="[M+H]", charge=1, 
-          date_added=150101, polarity="pos") %>%
-  add_row(compound_type="Custom", compound_name="Threonine betaine?",
-          compound_name_old=compound_name, formula="C7H15NO3", rt = 5,
-          mz=162.1125, ionization_form="[M+H]", charge=1, 
-          date_added=150101, polarity="pos") %>%
-  add_row(compound_type="Custom", compound_name="Theanine?",
-          compound_name_old=compound_name, formula="C7H14N2O3", rt = 6.8,
-          mz=175.10771, ionization_form="[M+H]", charge=1, 
-          date_added=150101, polarity="pos") %>%
-  add_row(compound_type="Custom", compound_name="Asterina-330",
-          compound_name_old=compound_name, formula="C12H20N2O6", rt = 10.5,
-          mz=289.1393, ionization_form="[M+H]", charge=1, polarity="pos") %>%
-  add_row(compound_type="Custom", compound_name="Shinorine",
-        compound_name_old=compound_name, formula="C13H20N2O8", rt = 11.6,
-        mz=333.1292, ionization_form="[M+H]", charge=1, polarity="pos") %>%
-  add_row(compound_type="Custom", compound_name="Palythine",
-        compound_name_old=compound_name, formula="C10H16N2O5", rt = 11.0,
-        mz=245.1132, ionization_form="[M+H]", charge=1, polarity="pos") %>%
-  add_row(compound_type="Custom", compound_name="Porphyra-334?",
-        compound_name_old=compound_name, formula="C14H22N2O8", rt = 8.1,
-        mz=347.1449, ionization_form="[M+H]", charge=1, polarity="pos") %>%
-  add_row(compound_type="Custom", compound_name="Mycosporine-2-glycine?",
-        compound_name_old=compound_name, formula="C12H18N2O7", rt = 11.3,
-        mz=303.1186, ionization_form="[M+H]", charge=1, polarity="pos") %>%
-  add_row(compound_type="Custom", compound_name="Palythene/Usujirene?",
-        compound_name_old=compound_name, formula="C13H20N2O5", rt = 8.3,
-        mz=285.1445, ionization_form="[M+H]", charge=1, polarity="pos") %>%
-  add_row(compound_type="Custom", compound_name="Also Palythene/Usujirene?",
-        compound_name_old=compound_name, formula="C13H20N2O5", rt = 6.9,
-        mz=285.1445, ionization_form="[M+H]", charge=1, polarity="pos") %>%
-  add_row(compound_type="Custom", compound_name="Mycosporine-glycine?",
-        compound_name_old=compound_name, formula="C10H15NO6", rt = 10,
-        mz=246.0972, ionization_form="[M+H]", charge=1, polarity="pos") %>%
-  add_row(compound_type="Custom", compound_name="Also mycosporine-glycine?",
-        compound_name_old=compound_name, formula="C10H15NO6", rt = 9.5,
-        mz=246.0972, ionization_form="[M+H]", charge=1, polarity="pos") %>%
   mutate(date_added=strptime(x = date_added, format = "%y%m%d"))
 write.csv(clean_stans, file = "made_data/clean_stans.csv", row.names = FALSE)
 ```
