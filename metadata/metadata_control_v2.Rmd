@@ -152,8 +152,8 @@ MC_log <- read_xlsx("raw_data/MESO_SCOPE_Cruise_KM1709_Sample_Log.xlsx",
   mutate(rosette=as.numeric(rosette)) %>%
   mutate(sample_id=str_remove(sample_id, "^MHR")) %>%
   mutate(date=as.Date(case_when(
-    station=="L1"~"2018-07-08",
-    station=="L2"~"2018-07-09"
+    station=="L1"~"2017-07-08",
+    station=="L2"~"2017-07-09"
   )))
 
 samp_log <- bind_rows(falkor_log, MC_log, MT_log)
@@ -571,7 +571,17 @@ interp_df <- interp_df %>%
            filter(PC_um<4) %>%
            lm(formula=PC_um~beam_atten) %>%
            predict(newdata=interp_df)) %>%
-  mutate(PC_um=ifelse(PC_um>4, pred_PC, PC_um))
+  mutate(PC_um=ifelse(PC_um>4, pred_PC, PC_um)) %>%
+  select(-pred_PC) %>%
+  mutate(sla_class=case_when(
+    sla_corr < -5 ~ "Cyclone",
+    sla_corr > 5 ~ "Anticyclone",
+    TRUE ~ "Neither"
+  )) %>%
+  mutate(time=as.POSIXct(time, origin="1970-01-01")) %>%
+  mutate(time_class=c("Night", "Morning", "Midday", "Evening")[
+    floor((as.numeric(format(time, "%H"))+3)/6)%%4+1
+  ])
 write_csv(interp_df, "filled_file_metadata.csv")
 ```
 
