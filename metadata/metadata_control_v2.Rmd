@@ -564,7 +564,8 @@ interp_df <- lst(complete_env_data, complete_file_data) %>%
   }) %>%
   bind_rows() %>%
   filter(data_type=="complete_file_data") %>%
-  select(-data_type)
+  select(-data_type, -time) %>%
+  left_join(complete_env_data %>% distinct(station, cast, time), by=c("station", "cast"))
 # Correct wonky PC values (those greater than 4) with a linear model built on beam_atten
 interp_df <- interp_df %>%
   mutate(pred_PC=interp_df %>% 
@@ -573,6 +574,7 @@ interp_df <- interp_df %>%
            predict(newdata=interp_df)) %>%
   mutate(PC_um=ifelse(PC_um>4, pred_PC, PC_um)) %>%
   select(-pred_PC) %>%
+# Discretize SLA and time
   mutate(sla_class=case_when(
     sla_corr < -5 ~ "Cyclone",
     sla_corr > 5 ~ "Anticyclone",
