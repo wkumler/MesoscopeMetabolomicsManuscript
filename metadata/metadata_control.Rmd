@@ -687,13 +687,14 @@ clean_stans <- "https://raw.githubusercontent.com/IngallsLabUW/" %>%
     z==-1 ~ "neg",
     TRUE~"unknown"
   )) %>%
-  select(compound=Compound_Name, compound_type=Compound_Type, 
+  select(compound_name=Compound_Name, compound_type=Compound_Type, 
          formula=Empirical_Formula, stan_mz=mz, stan_rt=RT_minute, 
-         mix=HILIC_Mix, conc=Concentration_uM, Date_Added, 
-         name_old=Compound_Name_Original, polarity) %>%
-  mutate(compound=case_when(
-    compound=="Ethyl aminobenzoate"~"Ethyl aminobenzoate?",
-    TRUE~compound
+         mix=HILIC_Mix, conc_um=Concentration_uM, date_added=Date_Added, 
+         name_old=Compound_Name_Original, kegg_id=KEGG_Code, polarity,
+         peak_quality=Peak_Quality) %>%
+  mutate(compound_name=case_when(
+    compound_name=="Ethyl aminobenzoate"~"Ethyl aminobenzoate?",
+    TRUE~compound_name
   ))
 extra_stans <- "https://raw.githubusercontent.com/IngallsLabUW/" %>%
   paste0("Ingalls_Standards/master/data_extra/custom_stans.csv") %>%
