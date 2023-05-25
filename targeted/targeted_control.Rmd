@@ -500,7 +500,7 @@ write.csv(rfrs, "made_data/rf_ratios.csv", row.names=FALSE)
 quant_data <- bind_rows(falkor_data, mesotransect_data, mesocenter_data) %>%
   filter(compound_name!="Choline")
 write.csv(quant_data, file = "made_data/longdata.csv", row.names = FALSE)
-write_csv(quant_data, file = "made_data/all_peaks.csv")
+write_csv(quant_data, file = "all_peaks.csv")
 ```
 
 ```{r write MESOSCOPE to Excel}
