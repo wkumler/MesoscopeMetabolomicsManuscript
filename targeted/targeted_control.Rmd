@@ -14,11 +14,11 @@ min_improvement <- 0.4
 
 cv <- function(x)sd(x)/mean(x)
 
-clean_stans <- read.csv("../metadata/made_data/clean_stans.csv")
+clean_stans <- read.csv("../metadata/clean_stans.csv")
 name_conversion <- clean_stans %>%
-  select(new=compound_name, old=compound_name_old) %>%
+  select(new=compound_name, old=name_old) %>%
   distinct()
-file_metadata <- read.csv("../metadata/made_data/file_metadata.csv")
+file_metadata <- read.csv("../metadata/filled_file_metadata.csv")
 ```
 
 # Convert raw data ----
@@ -126,12 +126,10 @@ FK_NEG_cmd <- paste(
 system(FK_NEG_cmd)
 ```
 
-```{r MSDIAL autoexport things not yet}
+```{r Mesotransect MSDIAL autoexport things not yet}
 # Not implemented yet, check on thread below for updates
 # http://www.metabolomics-forum.com/index.php?topic=1820.0
-# Instead, open an existing .mtd2 file, click the "Export" tab, select "Alignment result", specify the output directory as "Area_HILICPos_EddyTransect.csv", check a couple of the boxes (Raw Data Area is the only critical one), change the output format to msp(?), and hit the "Export" button at the bottom. You then need to open this file in Excel and save as CSV.
-
-# Haven't been able to find the raw data for negative mode so I'm currently just copying this off the Google Drive (G:\Shared drives\Ingalls Lab\Collaborative Projects\MESO-SCOPE\EddyTransect\HILIC_Neg_MSDial)
+# Instead, open an existing .mtd2 file, click the "Export" tab, select "Alignment result", specify the output directory as the current working directory, check the Raw Data matrix (Area) box , keep the output format as msp, and hit the "Export" button at the bottom.
 ```
 
 
@@ -250,17 +248,18 @@ falkor_data <- rfs_falkor %>%
 Continue with the MESOSCOPE transect data. Here again, we use Raafay's notes
 on peak quality to remove the gross peaks.
 
-```{r transectSkylineImport}
-manual_pos <- read_csv("raw_data/Mesotransect/Area_HILICPos_EddyTransect.csv", skip = 4) %>%
-  filter(`Metabolite name`!="Unknown") %>%
-  select(compound_name=`Metabolite name`, starts_with("180821")) %>%
-  pivot_longer(cols=starts_with("180821"), names_to = "filename", values_to="area") %>%
-  mutate(polarity="pos")
-manual_neg <- read_csv("raw_data/Mesotransect/Area_HILICNeg_EddyTransect.csv", skip = 4) %>%
+```{r transectMsdialImport}
+
+manual_neg <- read_delim("raw_data/Mesotransect/MSDial_neg_data/Area_0_20235251247.txt", skip = 4, delim = "\t") %>%
   filter(`Metabolite name`!="Unknown") %>%
   select(compound_name=`Metabolite name`, starts_with("180821")) %>%
   pivot_longer(cols=starts_with("180821"), names_to = "filename", values_to="area") %>%
   mutate(polarity="neg")
+manual_pos <- read_delim("raw_data/Mesotransect/MSDial_pos_data/Area_2_2023525133.txt", skip = 4, delim = "\t") %>%
+  filter(`Metabolite name`!="Unknown") %>%
+  select(compound_name=`Metabolite name`, starts_with("180821")) %>%
+  pivot_longer(cols=starts_with("180821"), names_to = "filename", values_to="area") %>%
+  mutate(polarity="pos")
 manual_ints <- rbind(manual_pos, manual_neg) %>%
   mutate(compound_name=str_replace_all(compound_name, "Ingalls_|w/o MS2:|Unsettled: ", "")) %>%
   mutate(filename = ifelse(str_detect(filename, "DDA"),
@@ -276,14 +275,13 @@ clean_ints_transect <- manual_ints %>%
   filter(compound_name!="Methyl 3-methylthiopropionate") %>%
   mutate(compound_name=str_replace(compound_name, "Monophosphate, 15N5", "monophosphate, 15N5")) %>%
   left_join(name_conversion, by=c("compound_name"="old")) %>% 
-  mutate(compound_name=new) %>% 
+  mutate(compound_name=ifelse(is.na(new), compound_name, new)) %>% 
   select(-new) %>% 
   left_join(manual_quality, by=c("compound_name", "polarity")) %>%
   filter(integrated=="Y" &in_samps%in%c("Y", "Maybe?", "Kinda?", "Barely", "Kinda")) %>%
   select(-integrated, -in_samps) %>%
   mutate(area=as.numeric(area)) %>%
   anti_join(distinct(., compound_name, polarity) %>% filter(duplicated(compound_name)))
-
 ```
 
 ```{r transectBMIS}
@@ -353,7 +351,7 @@ rfs_transect <- transect_stans %>%
   mutate(rf_ratio=rf_matrix/rf_h2o)
 
 mesotransect_data <- rfs_transect %>% 
-  left_join(BMISed_transect, by="compound_name") %>%
+  left_join(BMISed_transect, by="compound_name", multiple="all") %>%
   left_join(clean_stans) %>%
   mutate(uM = BMISed_area/rf_h2o * 0.0004/10 * 1/rf_ratio * 2) %>% # 400uL vial, 10L sample, diluted 2x
   mutate(nM=uM*1000) %>%
@@ -502,8 +500,8 @@ write.csv(rfrs, "made_data/rf_ratios.csv", row.names=FALSE)
 quant_data <- bind_rows(falkor_data, mesotransect_data, mesocenter_data) %>%
   filter(compound_name!="Choline")
 write.csv(quant_data, file = "made_data/longdata.csv", row.names = FALSE)
+write_csv(quant_data, file = "made_data/all_peaks.csv")
 ```
-
 
 ```{r write MESOSCOPE to Excel}
 library(openxlsx)
@@ -517,12 +515,13 @@ addWorksheet(wb, "File metadata")
 file_metadata %>%
   filter(cruise%in%c("MT", "MC")) %>%
   mutate(filename=str_remove(filename, ".mzML")) %>%
-  distinct(filename, samp_type, station, cast, depth, abs_depth, rosette,date_run, timestamp) %>%
-  rename(sample_name=filename, file_timestamp=timestamp) %>%
+  distinct(filename, samp_type, station, cast, depth, abs_depth, rosette,date_run) %>%
+  rename(sample_name=filename) %>%
   writeData(wb = wb, sheet = "File metadata")
 addWorksheet(wb = wb, sheetName = "Compound metadata")
 clean_stans %>%
-  select(compound_name, compound_type, formula, rt, mz, kegg_id, polarity, peak_quality) %>%
+  select(compound_name, compound_type, formula, stan_rt, stan_mz, 
+         kegg_id, polarity, peak_quality) %>%
   writeData(wb = wb, sheet = "Compound metadata")
 
 addWorksheet(wb=wb, sheetName = "README")
@@ -547,7 +546,6 @@ data.frame(`README for Ingalls MESOSCOPE data`=c(
   "abs_depth = Absolute depth. Accounts for differences from DCM and is determined from the CTD itself",
   "rosette = Which Niskin was this sample taken from? Largely incomplete",
   "date_run = The date on which the HPLC-MS run was started",
-  "file_timestamp = The time at which the sample was actually run",
   "",
   "The third sheet (Compound metadata) contains information about the compounds measured",
   "during this analysis. Not all compounds were detected and passed quality control",
@@ -555,8 +553,8 @@ data.frame(`README for Ingalls MESOSCOPE data`=c(
   "compound_name = Name of the compound, as found in the Sample data sheet",
   "compound_type = Broad compound class as determined rather arbitrarily by myself",
   "formula = Molecular formula of the compound. Isotopes are labeled in parentheses",
-  "rt = Estimated retention time of the compound, in minutes",
-  "mz = Mass-to-charge ratio of the molecule at which it's detected in the mass spec",
+  "stan_rt = Estimated retention time of the compound, in minutes",
+  "stan_mz = Mass-to-charge ratio of the molecule at which it's detected in the mass spec",
   "kegg_id = KEGG (Kyoto Encyclopedia of Genes and Genomes) ID: https://www.genome.jp/kegg/",
   "polarity = The polarity at which the molecule was detected in the mass spec, either 'pos' for positive mode or 'neg' for negative mode",
   "peak_quality = The typical quality of the chromatographic peak. Yes is good, No is bad, and see the Ingalls Standards repo for more details on Problematic compounds",
@@ -579,12 +577,13 @@ addWorksheet(wb, "File metadata")
 file_metadata %>%
   filter(cruise=="FK") %>%
   mutate(filename=str_remove(filename, ".mzML")) %>%
-  distinct(filename, samp_type, station, cast, depth, abs_depth, rosette, date_run, timestamp) %>%
-  rename(sample_name=filename, file_timestamp=timestamp) %>%
+  distinct(filename, samp_type, station, cast, depth, abs_depth, rosette, date_run) %>%
+  rename(sample_name=filename) %>%
   writeData(wb = wb, sheet = "File metadata")
 addWorksheet(wb = wb, sheetName = "Compound metadata")
 clean_stans %>%
-  select(compound_name, compound_type, formula, rt, mz, kegg_id, polarity, peak_quality) %>%
+  select(compound_name, compound_type, formula, stan_rt, stan_mz, 
+         kegg_id, polarity, peak_quality) %>%
   writeData(wb = wb, sheet = "Compound metadata")
 
 addWorksheet(wb=wb, sheetName = "README")
@@ -609,7 +608,6 @@ data.frame(`README for Ingalls Falkor data`=c(
   "abs_depth = Absolute depth. Accounts for differences from DCM and is determined from the CTD itself",
   "rosette = Which Niskin was this sample taken from? Largely incomplete",
   "date_run = The date on which the HPLC-MS run was started",
-  "file_timestamp = The time at which the sample was actually run",
   "",
   "The third sheet (Compound metadata) contains information about the compounds measured",
   "during this analysis. Not all compounds were detected and passed quality control",
@@ -617,8 +615,8 @@ data.frame(`README for Ingalls Falkor data`=c(
   "compound_name = Name of the compound, as found in the Sample data sheet",
   "compound_type = Broad compound class as determined rather arbitrarily by myself",
   "formula = Molecular formula of the compound. Isotopes are labeled in parentheses",
-  "rt = Estimated retention time of the compound, in minutes",
-  "mz = Mass-to-charge ratio of the molecule at which it's detected in the mass spec",
+  "stan_rt = Estimated retention time of the compound, in minutes",
+  "stan_mz = Mass-to-charge ratio of the molecule at which it's detected in the mass spec",
   "kegg_id = KEGG (Kyoto Encyclopedia of Genes and Genomes) ID: https://www.genome.jp/kegg/",
   "polarity = The polarity at which the molecule was detected in the mass spec, either 'pos' for positive mode or 'neg' for negative mode",
   "peak_quality = The typical quality of the chromatographic peak. Yes is good, No is bad, and see the Ingalls Standards repo for more details on Problematic compounds",
