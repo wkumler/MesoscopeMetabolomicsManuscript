@@ -1,0 +1,63 @@
+---
+title: "AllMeso manuscript"
+author: "William Kumler"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r Run analysis}
+if(!file.exists("../metadata/filled_file_metadata.csv")){
+  setwd("../metadata")
+  knitr::purl("metadata_control.Rmd")
+  source("metadata_control.R")
+  file.remove("metadata_control.R")
+  setwd("../manuscript")
+}
+if(!file.exists("../untargeted/all_peaks.csv")){
+  setwd("../untargeted")
+  data_iters <- c("FK_pos", "FK_neg", "MS_pos", "MS_neg")
+  knitr::purl("untargeted_control.Rmd")
+  for(cruise in c("FK", "MS")){
+    for(polarity in c("pos", "neg")){
+      source("untargeted_control.R")
+    }
+  }
+  file.remove("untargeted_control.R")
+  map(data_iters, function(output_dir){
+    comb_peaks <- read_csv(paste0(output_dir, "_output/clean_peak_data.csv")) %>%
+      mutate(temp=output_dir) %>%
+      separate(temp, into = c("cruise", "polarity"), sep = "_") %>%
+      mutate(feature=str_replace(feature, "FT", paste0(toupper(output_dir), "_")))
+  }) %>%
+    bind_rows() %>%
+    write_csv("all_peaks.csv")
+  map(data_iters, function(output_dir){
+    comb_peaks <- read_csv(paste0(output_dir, "_output/clean_feat_data.csv")) %>%
+      mutate(temp=output_dir) %>%
+      separate(temp, into = c("cruise", "polarity"), sep = "_") %>%
+      mutate(feature=str_replace(feature, "FT", paste0(toupper(output_dir), "_")))
+  }) %>%
+    bind_rows() %>%
+    write_csv("all_feats.csv")
+  setwd("../manuscript")
+}
+if(!file.exists("../targeted/all_peaks.csv")){
+  setwd("../targeted")
+  knitr::purl("../targeted/targeted_control.Rmd")
+  source("targeted_control.R")
+  file.remove("targeted_control.R")
+  setwd("../manuscript")
+}
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+
+filled_file_metadata <- read_csv("../metadata/filled_file_metadata.csv")
+clean_stans <- read_csv("../metadata/clean_stans.csv")
+untarg_feats <- read_csv("../untargeted/all_feats.csv")
+untarg_peaks <- read_csv("../untargeted/all_peaks.csv")
+targ_peaks <- read_csv("../targeted/all_peaks.csv")
+```
+
