@@ -680,7 +680,8 @@ map(c("L1", "9"), function(station_i){
 
 ```{r}
 clean_stans <- "https://raw.githubusercontent.com/IngallsLabUW/" %>%
-  paste0("Ingalls_Standards/master/Ingalls_Lab_Standards.csv") %>%
+  paste0("Ingalls_Standards/8fb6679505f692ec7d1cb4bf54ff1c5d4967c9a6/") %>%
+  paste0("Ingalls_Lab_Standards.csv") %>%
   read_csv() %>%
   filter(Column=="HILIC") %>%
   mutate(polarity=case_when(
