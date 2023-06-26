@@ -538,8 +538,29 @@ extra_filedata <- list.files("../mzMLs", pattern = "Blk|Std|Poo.*mzML", recursiv
   mutate(date_run=str_extract(filename, "^\\d+")) %>%
   mutate(date_run=strptime(date_run, format = "%y%m%d"))
 
+if(!file.exists("raw_data/timestamp_filedata.csv")){
+  timestamp_filedata <- list.files("../mzMLs", pattern = "mzML", recursive = TRUE, full.names = TRUE) %>%
+    RaMS::grabMSdata(grab_what="metadata") %>%
+    pluck("metadata") %>%
+    distinct(filename, timestamp, polarity) %>%
+    mutate(polarity=str_extract(polarity, "..."))
+  
+  pooled_patches <- timestamp_filedata %>%
+    filter(str_detect(filename, "180821_Poo")) %>%
+    distinct(filename, timestamp) %>%
+    drop_na()
+  timestamp_filedata <- timestamp_filedata %>%
+    rows_patch(pooled_patches)
+  write_csv(timestamp_filedata, "raw_data/timestamp_filedata.csv")
+} else {
+  timestamp_filedata <- read_csv("raw_data/timestamp_filedata.csv")
+}
+
 complete_file_data <- bind_rows(samp_filedata, extra_filedata) %>%
+  left_join(timestamp_filedata, by=c("filename", "polarity")) %>%
   left_join(samp_log)
+extra_filedata <- extra_filedata %>%
+  left_join(timestamp_filedata)
 ```
 
 
