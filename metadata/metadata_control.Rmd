@@ -606,6 +606,7 @@ interp_df <- interp_df %>%
     floor((as.numeric(format(time, "%H"))+3)/6)%%4+1
   ]) %>%
   bind_rows(extra_filedata) %>%
+  mutate(ms_run=cruise) %>%
   mutate(cruise=ifelse(cruise%in%c("MC", "MT"), "MS", cruise))
 write_csv(interp_df, "filled_file_metadata.csv")
 ```
