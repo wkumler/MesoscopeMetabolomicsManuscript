@@ -4,7 +4,7 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, purl = TRUE)
 options("readr.num_columns" = 0)
 
 library(tidyverse)
@@ -17,6 +17,9 @@ cv <- function(x)sd(x)/mean(x)
 clean_stans <- read.csv("../metadata/clean_stans.csv")
 name_conversion <- clean_stans %>%
   select(new=compound_name, old=name_old) %>%
+  distinct()
+date_filter <- clean_stans %>%
+  select(compound_name=name_old, date_added) %>%
   distinct()
 file_metadata <- read.csv("../metadata/filled_file_metadata.csv")
 ```
@@ -214,7 +217,7 @@ BMISed_falkor <- clean_ints_falkor %>%
 ```
 
 ```{r falkorRFs}
-falkor_rundate <- strptime("190715", "%y%m%d")
+falkor_rundate <- 190715
 falkor_stans <- clean_stans %>%
   filter(date_added<=falkor_rundate)
 
@@ -267,12 +270,16 @@ manual_ints <- rbind(manual_pos, manual_neg) %>%
                            filename)) %>%
   mutate(filename = ifelse(str_detect(filename, "QC"),
                            str_replace(filename, "Poo", "QC"),
-                           filename))
+                           filename)) %>%
+  anti_join(date_filter %>% filter(date_added>180821))
+
 
 # Once again, filter only those that Raafay integrated
 clean_ints_transect <- manual_ints %>%
   filter(!str_detect(filename, "DDA")) %>%
   filter(compound_name!="Methyl 3-methylthiopropionate") %>%
+  filter(compound_name!="N(e)-Acetyl-Lysine") %>%
+  filter(compound_name!="Valine") %>%
   mutate(compound_name=str_replace(compound_name, "Monophosphate, 15N5", "monophosphate, 15N5")) %>%
   left_join(name_conversion, by=c("compound_name"="old")) %>% 
   mutate(compound_name=ifelse(is.na(new), compound_name, new)) %>% 
@@ -282,6 +289,24 @@ clean_ints_transect <- manual_ints %>%
   select(-integrated, -in_samps) %>%
   mutate(area=as.numeric(area)) %>%
   anti_join(distinct(., compound_name, polarity) %>% filter(duplicated(compound_name)))
+
+# Fix sample 180821_Smp_MS6C315m_C which didn't get extraction standards added
+ext_stans_list <- c(
+  "Isethionic acid, 13C2",
+  "L-Cysteic acid, 2H3",
+  "Sulfoacetic acid, 13C2",
+  "3-Sulfolactate, 13C3",
+  "Taurine, 2H4"
+)
+update_df <- clean_ints_transect %>%
+  filter(str_detect(filename, "Smp")) %>%
+  filter(polarity=="neg") %>%
+  filter(compound_name%in%ext_stans_list) %>%
+  group_by(compound_name) %>%
+  summarise(area=median(area)) %>%
+  mutate(filename="180821_Smp_MS6C315m_C")
+clean_ints_transect <- clean_ints_transect %>%
+  rows_update(update_df, by = c("compound_name", "filename"))
 ```
 
 ```{r transectBMIS}
@@ -329,10 +354,10 @@ BMISed_transect <- clean_ints_transect %>%
 ```{r transectRFs}
 transect_rundate <- strptime("180821", "%y%m%d")
 transect_stans <- clean_stans %>%
-  filter(date_added<=transect_rundate)
+  filter(strptime(date_added, "%y%m%d")<=transect_rundate)
 
 rfs_transect <- transect_stans %>%
-  left_join(clean_ints_transect, by="compound_name") %>%
+  left_join(clean_ints_transect, by=c("compound_name", "polarity")) %>%
   filter(str_detect(filename, "_Std_")) %>% 
   # filter(compound_name=="N6-Acetyl-L-lysine") %>%
   # filter(compound_name=="Dimethylsulfonioacetate") %>%
@@ -358,6 +383,49 @@ mesotransect_data <- rfs_transect %>%
   select(compound_name, nM, filename, polarity)
 ```
 
+```{r transect fix sucrose/trehalose integrations, eval=FALSE}
+# Sucrose and trehalose got integrated together which is obnoxious because we 
+# have IS for each of those so it'd be really nice to get those good numbers
+# Re-integrating using RaMS
+
+library(RaMS)
+# msdata <- list.files("../tmzMLs/neg", full.names = TRUE, 
+#                      pattern = "170706|180821|180205") %>% 
+#   grabMSdata(verbosity = 0)
+# tresuc_msdata <- msdata$MS1[mz%between%pmppm(341.10839, 10)]
+# IS_msdata <- msdata$MS1[mz%between%pmppm(353.1497, 10)]
+
+
+
+suc_data <- tresuc_msdata[rt%between%c(11.2, 12.1)] %>%
+  group_by(filename) %>%
+  summarize(area=sum(int))
+suc_IS_data <- IS_msdata[rt%between%c(11.2, 12.1)] %>%
+  group_by(filename) %>%
+  summarize(IS_area=sum(int))
+# ggplot(suc_IS_data) + geom_col(aes(x=filename, y=IS_area))
+suc_nM <- left_join(suc_data, suc_IS_data) %>%
+  mutate(nM=area/IS_area*5000 * 0.0004/10 * 2) %>%
+  mutate(compound_name="Sucrose")
+
+tre_data <- tresuc_msdata[rt%between%c(12.1, 12.9)] %>%
+  group_by(filename) %>%
+  summarize(area=sum(int))
+tre_IS_data <- IS_msdata[rt%between%c(12.1, 12.9)] %>%
+  group_by(filename) %>%
+  summarize(IS_area=sum(int))
+# ggplot(suc_IS_data) + geom_col(aes(x=filename, y=IS_area))
+tre_nM <- left_join(tre_data, tre_IS_data) %>%
+  mutate(nM=area/IS_area*5000 * 0.0004/10 * 2) %>%
+  mutate(compound_name="Trehalose")
+
+update_df <- bind_rows(tre_nM, suc_nM) %>%
+  select(compound_name, nM, filename) %>%
+  mutate(polarity="neg") %>%
+  mutate(filename=str_remove(filename, ".tmzML"))
+mesotransect_data <- mesotransect_data %>%
+  rows_upsert(update_df, by=c("compound_name", "nM", "filename", "polarity"))
+```
 
 # Mesocenter things
 
@@ -378,14 +446,15 @@ manual_ints <- rbind(manual_pos, manual_neg) %>%
   mutate(compound_name=str_replace(
     compound_name, "Monophosphate, 15N5", "monophosphate, 15N5")) %>%
   left_join(name_conversion, by=c("compound_name"="old")) %>% 
-  mutate(compound_name=new) %>% 
+  mutate(compound_name=ifelse(is.na(new), compound_name, new)) %>% 
   select(-new) %>% 
   left_join(manual_quality, by=c("compound_name", "polarity"))
 
 clean_ints_center <- manual_ints %>%
   filter(integrated=="Y"&in_samps%in%c("Y", "Maybe?", "Kinda?", "Barely", "Kinda")) %>%
   select(-integrated, -in_samps) %>% 
-  mutate(area=as.numeric(area))
+  mutate(area=as.numeric(area)) %>%
+  filter(!compound_name%in%c("Turicine", "Hydroxyisoleucine"))
 ```
 
 ```{r centerBMIS}
@@ -438,13 +507,17 @@ these samples instead.
 
 ```{r centerRFs}
 # Slightly weird because Mesocenter data doesn't have H2OinMatrix samples
-# Instead, use rf_ratio from Falkor to swap in
 center_rundate <- strptime("180205", "%y%m%d")
 center_stans <- clean_stans %>%
-  filter(date_added<=center_rundate)
+  filter(strptime(date_added, "%y%m%d")<=center_rundate)
+
+custom_h2o_mat <- clean_ints_center %>%
+  filter(str_detect(filename, "Poo_Full")) %>%
+  group_by(compound_name) %>%
+  summarise(newH2OInMatrix=mean(area)*(1-(62.94*100/80)/100))
 
 rfs_center <- center_stans %>% 
-  left_join(clean_ints_center, by="compound_name") %>% 
+  left_join(clean_ints_center, by=c("compound_name", "polarity")) %>%
   filter(str_detect(filename, "_Std_")) %>%
   filter(compound_type!="Internal Standard") %>%
   select(-compound_type) %>% 
@@ -455,13 +528,16 @@ rfs_center <- center_stans %>%
   group_by(compound_name, type) %>%
   summarize(mean_area=mean(area, na.rm = TRUE), conc_um=unique(conc_um)) %>%
   pivot_wider(names_from = type, values_from=mean_area) %>%
+  left_join(custom_h2o_mat) %>%
+  # left_join(rfs_falkor) %>%
   mutate(rf_h2o=InH2O/conc_um) %>%
-  left_join(rfs_falkor %>% select("rf_ratio", "compound_name"), by="compound_name")
+  mutate(rf_matrix=(InMatrix - newH2OInMatrix)/conc_um) %>%
+  mutate(rf_ratio=rf_matrix/rf_h2o)
 
 mesocenter_data <- rfs_center %>% 
   left_join(BMISed_center, by="compound_name") %>% 
   left_join(clean_stans) %>% 
-  mutate(uM = BMISed_area/rf_h2o * 0.0004/10 * 1/rf_ratio * 2) %>% 
+  mutate(uM = BMISed_area/rf_h2o * 0.0004/10 * 1/rf_ratio * 2) %>%
   mutate(nM=uM*1000) %>%
   select(compound_name, nM, filename, polarity)
 ```
@@ -479,7 +555,7 @@ raw_area_data <- rbind(
   cbind(clean_ints_center, cruise="Mesocenter"),
   cbind(clean_ints_transect, cruise="Mesotransect")
 ) %>%
-  left_join(clean_stans, by="compound_name")
+  left_join(clean_stans, by=c("compound_name", "polarity"))
 write.csv(raw_area_data, file = "made_data/raw_area_data.csv", row.names = FALSE)
 
 
@@ -498,7 +574,8 @@ write.csv(rfrs, "made_data/rf_ratios.csv", row.names=FALSE)
 
 ## Write out quant data
 quant_data <- bind_rows(falkor_data, mesotransect_data, mesocenter_data) %>%
-  filter(compound_name!="Choline")
+  filter(compound_name!="Choline") %>%
+  mutate(nM=ifelse(compound_name=="Homarine", nM/25, nM))
 write.csv(quant_data, file = "made_data/longdata.csv", row.names = FALSE)
 write_csv(quant_data, file = "all_peaks.csv")
 ```
