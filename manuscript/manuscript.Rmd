@@ -138,6 +138,15 @@ splividis <- function(n, ...){
 }
 ```
 
+## Abstract
+
+## Introduction
+
+
+
+
+
+## Results
 ### Metabolome changes significantly across the eddy dipole at DCM and 175m
 
 We found that the metabolome differed between the cyclone and anticyclone samples, with multivariate statistics detecting the largest differences in the DCM and 175 meter samples while the surface was more homogenous (Figure 1). At the DCM, approximately 16% of the variation in the metabolome could be explained by SLA alone according to the PERMANOVA (p = 0.003) and SLA was strongly correlated with the first principal component (r = .615, % variance explained by PC1 = 27.2), indicating that this was one of the largest sources of variation in the dataset. Notably, the samples taken from the exact center of the cyclonic eddy were highly distinct and likely drove much of the variance explained. In the deep samples, 12% of the variance was explained by SLA (p = 0.008) according to the PERMANOVA and SLA was highly correlated with the second PC of the dataset (r = .697, % variance explained by PC2 = 15.4), though the first PC did not seem to have any visible pattern with metadata and appeared to capture largely variation between biological triplicates. At the surface, SLA trends are less evident with a larger p-value (0.087) and a lower R$^2$ (0.09) (Figure 1).
@@ -1436,3 +1445,6 @@ The eddy effects, on the other hand, were much less strong during this cruise. O
   - Discussion: differences between this and MESOSCOPE could be due in large part to the different community composition here - MESOSCOPE looked like a big diatom bloom (according to Benedetto paper) while Sam's results show that this was more dinoflagellate/haptophyte and diatoms had "no trend". Maybe also eddy age?
   - Discussion: Surface more variable than DCM in Falkor (kinda also for MESOSCOPE?)
   - Discussion: What the hell is with these samples. There's an insane amount of variance within triplicates and the SLA signal is highest at the *surface* despite Sam's data and the MESOSCOPE dataset strongly implying the opposite should be true - although if a lot of the metabolism is driven by haptophytes then those are much more abundant at the surface?
+
+
+## Discussion
