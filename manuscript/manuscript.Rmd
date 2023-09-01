@@ -142,10 +142,21 @@ splividis <- function(n, ...){
 
 ## Introduction
 
+Until recently, the ocean's subtropical gyres were considered homogenous and static [@Karl1999]. In the past 25 years, however, regular sampling and advances in measurement technology have revealed its variability on time scales from the diel to the seasonal [@Karl2017; @Karl2021]. A major source of this variability comes in the form of mesoscale eddies in which water is entrained into circular surface currents tens to hundreds of kilometers in diameter [@McGillicuddy2016]. Prior research has established the importance of these mesoscale features in introducing nutrients into the euphotic zone and altering the community composition [@Sweeney2003; @Barone2019]. In particular, the deep chlorophyll maximum (DCM) is known to correspond to the top of the nitricline and differs dramatically between cyclonic and anticyclonic eddies in depth and intensity. @Barone2022 reported a shift in the microbial DCM community with eukaryotic phytoplankton enriched and prokaryotic phytoplankton depleted in cyclonic eddies with the converse true for anticyclonic ones, while @Hawco2021 and @Dugenne2023 showed that some of this shift was due to alterations in dissolved iron chemistry and nitrogen fixation.
+
+These recent works have highlighted the effect of eddies on both bulk oceanographic parameters such as particulate carbon and nitrogen and the composition of the community, but we still lack direct links between the genomic and transcriptomic assays occurring regularly around the world and the particulate organic matter produced by those organisms [@Kharbush2020]. This missing link is bridged by metabolomics, a nascent field studying the structure and function of the cell on a molecular level. Of particular interest within the metabolome are those small, polar molecules that represent the fundamental unit of cell biology and function as building blocks for macromolecules [@Moran2022]. These small molecules also have roles of their own within the cell, acting as osmolytes, antioxidants, nutrient storage compounds, and more [@Geraldes2021; @VanMooy2009; @Mojzes2020; @Kharbush2020]. Despite these critical functions, they are difficult to study in the marine environment due to their low concentrations and similarity to the abundant salt ions, resulting in challenges in detection and quantification [@Boysen2018; @Moran2022; @Sacks2022].
+
+  - Important to do because the actual composition of particles determines fate
+  - Reference my own paper somewhere too
+
+Here, we use spatially resolved measurements of metabolites in particles across an eddy dipole in the North Pacific Subtropical Gyre (NPSG) to categorize unidentified molecular features based on their co occurrence with a set of simultaneously measured physical, chemical, and biological parameters. The gyre in particular represents an intriguing opportunity for metabolomic research because it has been shown to contain the highest proportion of chemical features with unknown structure and function and have highly variable responses changes in depth and across diel cycles [@Heal2021; @Boysen2021]. This study connects biogeochemical measurements to a molecular-scale perspective of particulate organic matter, linking the chemical currencies that fuel metabolism and interactions among marine microbes to the environment in which they’re found.
+
+  - We identify hundreds of known and unknown molecular features of interest that may relate to the biogeochemical functioning of ocean gyres.
 
 
 
 
+## Methods
 ## Results
 ### Metabolome changes significantly across the eddy dipole at DCM and 175m
 
