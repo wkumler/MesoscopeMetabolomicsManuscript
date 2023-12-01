@@ -1,6 +1,6 @@
 ---
 title: "Metabolites reflect variability introduced by mesoscale eddies in the North Pacific Subtropical Gyre"
-author: "William Kumler"
+author: "William Kumler, Laura T. Carlson, Wei Qin, Rachel A. Lundeen, Benedetto Barone, and Anitra E. Ingalls"
 date: "`r Sys.Date()`"
 output: 
   word_document:
