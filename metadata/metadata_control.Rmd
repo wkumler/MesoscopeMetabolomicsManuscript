@@ -198,6 +198,7 @@ meso_ctddata <- parseCTD("raw_data/MS_CTDsummary_current.txt")
 falkor_ctddata <- parseCTD("raw_data/FK_CTDsummary_current.txt") %>%
   filter(time > "2018-03-23 04:01:51")
 complete_ctddata <- bind_rows(meso_ctddata, falkor_ctddata)
+write_csv(complete_ctddata, "complete_ctddata.csv")
 ```
 
 ```{r SLA parsing}
@@ -257,6 +258,7 @@ falkor_core <- gofReader("raw_data/fk180310.gof") %>%
   mutate(station=as.character(station)) %>%
   mutate(cruise="FK")
 all_core <- bind_rows(meso_core, falkor_core)
+write_csv(all_core, "all_core_gof.csv")
 ```
 
 ```{r Parsing beam attenuation data}
