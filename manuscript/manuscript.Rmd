@@ -266,7 +266,7 @@ library(cowplot)
 nmds_and_med_metab <- plot_grid(nolegend_plot, get_legend(nmds_sla_gp), 
                                 nrow=1, rel_widths = c(0.9, 0.1))
 ggsave("nmds_and_med_metab.png", plot = nmds_and_med_metab, device = "png", 
-       path = "figures", width = 6.5, height = 4.5, units = "in", dpi = 300,
+       path = "figures", width = 6.875, height = 4.5, units = "in", dpi = 300,
        bg="white")
 ```
 
@@ -793,7 +793,7 @@ MC_nmds_gp <- multivar_analysis_MC$nmds_output %>%
   theme_bw() +
   theme(legend.position = "bottom")
 ggsave("MC_nmds_gp.png", plot = MC_nmds_gp, device = "png", 
-       path = "figures", width = 6.5, height = 4.5, units = "in", dpi = 300)
+       path = "figures", width = 6.875, height = 4.5, units = "in", dpi = 300)
 ```
 
 ![](figures/MC_nmds_gp.png)
@@ -935,7 +935,7 @@ kclust_volcano_gp <- egg::ggarrange(
     cowplot::get_legend(volcanoplot_gp), rel_widths = c(0.85, 0.15)
   )
 ggsave("kclust_volcano_gp.png", plot = kclust_volcano_gp, device = "png", 
-       path = "figures", width = 6.5, height = 4, units = "in", dpi = 300,
+       path = "figures", width = 6.875, height = 4, units = "in", dpi = 300,
        bg="white")
 ```
 
@@ -1082,7 +1082,7 @@ fk_nmdsplot <- fk_nmdsplot +
            label.r = unit(0, "in"))
 
 ggsave("fk_nmdsplot.png", plot = fk_nmdsplot, device = "png",
-       path = "figures", width = 6.5, height = 4, units = "in", dpi = 300,
+       path = "figures", width = 6.875, height = 4, units = "in", dpi = 300,
        bg="white")
 ```
 
@@ -1468,7 +1468,7 @@ pca_sla_cor_gp <- cowplot::plot_grid(lm_gp, deep_pc1_barplot_gp,
                                      rel_heights = c(0.6, 0.4), 
                                      ncol = 1, labels = "AUTO")
 ggsave("pca_sla_cor_gp.png", pca_sla_cor_gp, device = "png", path = "supplement",
-       width = 6.5, height = 6.5, units = "in", dpi = 300)
+       width = 6.875, height = 6.5, units = "in", dpi = 300)
 
 ```
 
@@ -1478,43 +1478,6 @@ ggsave("pca_sla_cor_gp.png", pca_sla_cor_gp, device = "png", path = "supplement"
 
 ## Supplemental figure 2
 
-```{r supp figure fraction of PC in metabolites}
-pc_comp_df <- targ_peaks %>%
-  filter(str_detect(filename, "180821_Smp")) %>%
-  left_join(clean_stans %>% select(compound_name, formula, polarity)) %>%
-  mutate(n_C=as.numeric(str_extract(formula, "(?<=C)\\d+"))) %>%
-  mutate(nM_C=n_C*nM) %>%
-  left_join(filled_file_metadata, by = join_by(filename)) %>%
-  filter(samp_type=="Smp") %>%
-  group_by(filename) %>%
-  summarize(total_nM=sum(nM_C), PC_um=unique(PC_um)) %>%
-  mutate(frac_in_metab=total_nM/1000/PC_um) %>%
-  left_join(filled_file_metadata, by = join_by(filename)) %>%
-  mutate(depth=str_extract(depth, "DCM|Deep|Surface")) %>%
-  mutate(depth=factor(depth, levels=c("Surface", "DCM", "Deep"))) %>%
-  mutate(station=factor(station, levels=c(as.character(4:14))))
-
-pc_frac_metab_gp <- ggplot(pc_comp_df, aes(x=station, y=frac_in_metab, color=sla_corr)) +
-  geom_hline(yintercept = 0) +
-  geom_boxplot(width = 0.9, linewidth=0.8) +
-  geom_point(color="black", size=2) +
-  scale_y_continuous(labels = scales::label_percent()) +
-  facet_grid(~depth, scales="free") +
-  scale_color_gradient2(
-    low = scales::muted("blue"), high = scales::muted("red"),  mid = "grey90",
-    aesthetics = c("color", "fill")
-  ) +
-  guides(color=guide_colorbar(direction = "horizontal", title.position = "top", 
-                              title.hjust = 0.5)) +
-  labs(color="Sea level\nanomaly (cm)", x="Station",
-       y="Fraction of PC represented by known metabolites") +
-  theme_bw() +
-  theme(legend.position = c(0.85, 0.8), legend.background = element_rect(color="grey90"))
-ggsave("pc_frac_metab_gp.png", pc_frac_metab_gp, device = "png", path = "supplement",
-       width = 6.5, height = 3.5, units = "in", dpi = 300)
-```
-
-![](supplement/pc_frac_metab_gp.png)
 
 *Supplemental figure 2: Fraction of particulate carbon represented by known metabolites. Boxplots set behind points are colored according to sea level anomaly (SLA) with red corresponding to a positive SLA (anticyclone) and blue corresponding to negative SLA (cyclone).*
 
@@ -1621,7 +1584,7 @@ fk_nmds_and_med_metab <- plot_grid(nolegend_plot, get_legend(nmds_sla_gp),
                                 nrow=1, rel_widths = c(0.85, 0.15))
 
 ggsave("fk_nmds_and_med_metab.png", plot = fk_nmds_and_med_metab, device = "png",
-       path = "supplement", width = 6.5, height = 5.5, units = "in", dpi = 300,
+       path = "supplement", width = 6.875, height = 5.5, units = "in", dpi = 300,
        bg="white")
 ```
 
@@ -1726,7 +1689,7 @@ top10_stacked_area_station_gp <- map(c("Surface", "DCM", "Deep"), function(depth
     theme_bw()
 }) %>% gridExtra::arrangeGrob(grobs = ., ncol = 1)
 ggsave("top10_stacked_area_station_gp.png", plot = top10_stacked_area_station_gp, 
-       device = "png", path = "supplement", width = 6.5, height = 9, 
+       device = "png", path = "supplement", width = 6.875, height = 9, 
        units = "in", dpi = 300)
 ```
 
@@ -1770,7 +1733,7 @@ katherine_comp_mostcycenriched_gp <- culture_areas %>%
   theme(axis.text.x = element_text(angle=90, hjust=1, vjust=0.5))
 
 ggsave("katherine_comp_mostcycenriched_gp.png", plot = katherine_comp_mostcycenriched_gp, 
-       device = "png", path = "supplement", width = 6.5, height = 5, units = "in", dpi = 300)
+       device = "png", path = "supplement", width = 6.875, height = 5, units = "in", dpi = 300)
 ```
 
 ![](supplement/katherine_comp_mostcycenriched_gp.png)
@@ -1819,7 +1782,7 @@ MC_stacked_mostdiff_gp <- pairwise_tests %>%
         strip.background = element_blank(), strip.text = element_blank()) +
   labs(x=NULL, y="Relative peak area", fill="Mass feature")
 ggsave("MC_stacked_mostdiff_gp.png", plot = MC_stacked_mostdiff_gp, device = "png", 
-       path = "supplement", width = 6.5, height = 3, units = "in", dpi = 300)
+       path = "supplement", width = 6.875, height = 3, units = "in", dpi = 300)
 ```
 
 ![](supplement/MC_stacked_mostdiff_gp.png)
