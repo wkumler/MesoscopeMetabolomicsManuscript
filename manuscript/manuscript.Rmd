@@ -148,7 +148,7 @@ TBD
 
 # Introduction
 
-High frequency, long-term observations at Station ALOHA in the North Pacific Subtropical Gyre (NPSG) over the past 25 years have revealed temporal and spatial variability in what had prevously been considered a homogenous environment.[@Karl1999; @Karl2017; @Karl2021] A major source of this variability comes in the form of mesoscale eddies in which water is entrained into circular surface currents tens to hundreds of kilometers in diameter [@Karl2017; @McGillicuddy2016]. Prior research has established the importance of these mesoscale features in introducing nutrients into the euphotic zone and altering the community composition [@Sweeney2003; @Barone2019]. In particular, the depth and intensity of the deep chlorophyll maximum (DCM) at the top of the nitricline differs dramatically between cyclonic and anticyclonic eddies. @Barone2022 reported a shift in the microbial community at the DCM with eukaryotic phytoplankton enriched and prokaryotic phytoplankton depleted in cyclonic eddies. @Hawco2021 and @Dugenne2023 showed that some of this difference was due to alterations in dissolved iron chemistry and nitrogen fixation, especially at the surface. [Anitra: so the surface is driving changes at the DCM?]
+High frequency, long-term observations at Station ALOHA in the North Pacific Subtropical Gyre (NPSG) over the past 25 years have revealed temporal and spatial variability in what had prevously been considered a homogenous environment [@Karl1999; @Karl2017; @Karl2021]. A major source of this variability comes in the form of mesoscale eddies in which water is entrained into circular surface currents tens to hundreds of kilometers in diameter [@Karl2017; @McGillicuddy2016]. Prior research has established the importance of these mesoscale features in introducing nutrients into the euphotic zone and altering the community composition [@Sweeney2003; @Barone2019]. In particular, the depth and intensity of the deep chlorophyll maximum (DCM) at the top of the nitricline differs dramatically between cyclonic and anticyclonic eddies. @Barone2022 reported a shift in the microbial community at the DCM with eukaryotic phytoplankton enriched and prokaryotic phytoplankton depleted in cyclonic eddies, and @Hawco2021 and @Dugenne2023 showed that some of this difference was due to alterations in dissolved iron chemistry and nitrogen fixation.
 
 Here, we use measurements of metabolites in particles across an eddy dipole in the North Pacific Subtropical Gyre (NPSG) to categorize both known compounds and unidentified mass features based on their co-occurrence with a set of simultaneously measured physical, chemical, and biological parameters. The gyre in particular represents an intriguing opportunity for metabolomic research because it has been shown to contain the highest proportion of chemical features with unknown structure and function and have highly variable responses to changes in latitude, depth, and across diel cycles [@Heal2021; @Boysen2021; @Kumler2023]. This study connects biogeochemical measurements to a molecular-scale perspective of particulate organic matter, linking the chemical currencies that fuel metabolism and interactions among marine microbes to the mesoscale environment in which they’re found.
 
@@ -272,7 +272,7 @@ ggsave("nmds_and_med_metab.png", plot = nmds_and_med_metab, device = "png",
 
 ![](figures/nmds_and_med_metab.png)
 
-*Figure 1: Plots of the metabolome across the eddy dipole, broken down by depth. The top row of plots are non-metric multidimensional scaling (NMDS) plots, in which points correspond to individual samples and have been colored by their corrected sea level height anomaly. NMDS stress values (s) have been reported in the bottom left corner, while PERMANOVA R$^2$ and p-values are reported in the top left. SLA trends are visible in the DCM and deep samples, with dark blue circles consistently discriminating from the dark red circles along the first multidimensional axis. The bottom row of plots show the direction and magnitude of this effect by plotting the grand mean of the normalized metabolite peak areas in the stations taken across the eddy dipole.*
+*Figure 1: Plots of the metabolome across the eddy dipole, broken down by depth. The top row of plots are non-metric multidimensional scaling (NMDS) plots, in which points correspond to individual samples and have been colored by their corrected sea level height anomaly. NMDS stress values (s) have been reported in the bottom left corner, while PERMANOVA R$^2$ and p-values are reported in the top left. SLA trends are visible in the DCM and deep samples, with dark blue circles consistently discriminating from the dark red circles along the first multidimensional axis. The bottom row of plots show the direction and magnitude of this effect by plotting the grand median of the z-score normalized metabolite peak areas in the stations taken across the eddy dipole with the upper whisker extent, median bar, and lower whisker extent corresponding to the values measured in three biological triplicates.*
 
 We expected a large part of the difference in metabolomes with respect to SLA to be due to the increased biomass in the cyclone DCM and the parallel increase in the anticyclone deep samples. Within our molecular feature population, a subset are known metabolites that we quantified using standards (Figure 2).
 
@@ -284,14 +284,26 @@ avg_targ_concs <- targ_peaks %>%
   group_by(compound_name) %>%
   mutate(mean_cmpd_nm=mean(nM)) %>%
   ungroup()
-base_targ_gp <- avg_targ_concs %>%
+arrow_df <- data.frame(
+  cyc_type=c("Anticyclone\ncenter", "Cyclone\ncenter"),
+  x=c("6", "12"), xend=c("6", "12"),
+  y=c(5, 4), yend=c(9.5, 6.5),
+  color=c(scales::muted("red"), scales::muted("blue")),
+  depth=factor("Deep", levels=c("Surface", "DCM", "Deep"), 
+               labels=c("Surface  (15m)", "DCM  (110-120m)", "Deep  (175m)")),
+  lab_x=c("5", "10")
+)
+barplot_targ_gp <- avg_targ_concs %>%
   group_by(compound_name, untripl) %>%
-  summarise(nM=mean(nM), mean_cmpd_nm=unique(mean_cmpd_nm)) %>%
+  summarise(nM=median(nM), mean_cmpd_nm=unique(mean_cmpd_nm)) %>%
   ungroup() %>%
   arrange(desc(mean_cmpd_nm)) %>%
-  mutate(compound_name=ifelse(compound_name=="Dimethylsulfoniopropionate", "DMSP", compound_name)) %>%
+  mutate(compound_name=ifelse(compound_name=="Trimethylamine N-oxide", "TMAO", compound_name)) %>%
+  mutate(compound_name=ifelse(compound_name=="Hydroxyisoleucine", "HO-Ile", compound_name)) %>%
+  mutate(compound_name=ifelse(compound_name=="Glycine betaine", "GBT", compound_name)) %>%
+  mutate(compound_name=str_remove(compound_name, "^L-")) %>%
   mutate(compound_name=ifelse(
-    compound_name%in%head(unique(compound_name), 11), 
+    compound_name%in%head(unique(compound_name), 9), 
     compound_name, "Other")) %>%
   mutate(compound_name=fct_inorder(compound_name)) %>%
   left_join(filled_file_metadata %>% distinct(untripl, depth, station)) %>%
@@ -304,80 +316,104 @@ base_targ_gp <- avg_targ_concs %>%
   ggplot() +
   geom_hline(yintercept = 0) +
   geom_col(aes(x=station, y=mean_nM, fill=compound_name), width = 0.9) +
-  scale_fill_manual(values = c(hcl.colors(12)[c(1,3,5,7,9,11,2,4,6,8,10)], "grey50")) +
+  scale_fill_manual(values = c(splividis(9), "grey50")) +
   scale_y_continuous(expand = c(0.005, 0.1)) +
-  labs(x="Station", y="Mean nM metabolite concentration", fill=NULL) +
+  labs(x=NULL, y="Median nM\nmetabolite concentration", fill=NULL) +
   facet_grid(~depth, scales="free", space = "free") +
-  theme_bw() +
-  theme(legend.position = "bottom")
-
-sla_loess_points <- filled_file_metadata %>%
-  filter(samp_type=="Smp") %>%
-  filter(ms_run=="MT") %>%
-  distinct(station, sla_corr) %>%
-  mutate(station=factor(station, levels=as.character(4:14))) %>%
-  group_by(station) %>%
-  summarise(sla_corr=mean(sla_corr)) %>%
-  mutate(station=as.numeric(station)) %>%
-  loess(formula = sla_corr~station) %>%
-  predict(., newdata=data.frame(station=seq(1, 11, 0.01))) %>%
-  data.frame(station=seq(1, 11, 0.01), sla_corr=.)
-arrow_df <- data.frame(
-  cyc_type=c("Anticyclone\ncenter", "Cyclone\ncenter"),
-  x=c("6", "12"), xend=c("6", "12"),
-  y=c(5, 4), yend=c(7.5, 6.5),
-  color=c(scales::muted("red"), scales::muted("blue")),
-  depth=factor("Deep", levels=c("Surface", "DCM", "Deep"), 
-               labels=c("Surface  (15m)", "DCM  (110-120m)", "Deep  (175m)")),
-  lab_x=c("5", "11")
-)
-targ_gp_w_sla <- base_targ_gp +
+  guides(fill=guide_legend(nrow=2, byrow = TRUE)) +
   ggnewscale::new_scale_fill() +
-  geom_tile(aes(x=station, y=-0.5, fill=sla_corr),
-            color=NA, width=0.11, height=0.5, data = sla_loess_points) +
+  geom_segment(aes(x=x, y=y, xend=xend, yend=yend, color=color), data=arrow_df,
+               arrow=arrow(ends = "first", length = unit(0.1, "npc"), type = "closed"),
+               linewidth=0, linejoin = "bevel") +
+  geom_segment(aes(x=x, y=y+0.5, xend=xend, yend=yend, color=color), 
+               data=arrow_df, linewidth=2) +
+  geom_text(aes(x=lab_x, y=yend+0.5, color=color, label=cyc_type), 
+            data=arrow_df, vjust=0, hjust=0, lineheight=0.8) +
+  scale_x_discrete(breaks=as.character(seq(4, 14, 2))) +
   scale_fill_gradient2(
     low = scales::muted("blue"), high = scales::muted("red"),  mid = "grey90",
     aesthetics = c("fill"), guide = "none"
   ) +
-  geom_segment(aes(x=x, y=y, xend=xend, yend=yend, color=color), data=arrow_df,
-               arrow=arrow(ends = "first", length = unit(0.1, "npc"), type = "closed"),
-               linewidth=0, linejoin = "bevel") +
-  geom_segment(aes(x=x, y=y+0.5, xend=xend, yend=yend, color=color), data=arrow_df, linewidth=2) +
-  geom_text(aes(x=lab_x, y=yend+0.5, color=color, label=cyc_type), 
-            data=arrow_df, vjust=0, hjust=0, lineheight=0.8) +
-  scale_color_identity()
+  scale_color_identity() +
+  theme_bw() +
+  theme(legend.position = "top", axis.text.x = element_blank(), 
+        legend.margin = margin(t = 10,0,0,0), 
+        legend.box.margin = margin(-10,-10,-10,-10),
+        plot.margin = unit(numeric(4), "cm"),
+        strip.text = element_text(face = "bold"))
 
-PC_data <- filled_file_metadata %>%
+
+frac_pc_in_metab_df <- targ_peaks %>%
+  filter(str_detect(filename, "180821_Smp")) %>%
+  left_join(clean_stans %>% select(compound_name, formula, polarity)) %>%
+  mutate(n_C=as.numeric(str_extract(formula, "(?<=C)\\d+"))) %>%
+  mutate(nM_C=n_C*nM) %>%
+  left_join(filled_file_metadata, by = join_by(filename)) %>%
   filter(samp_type=="Smp") %>%
-  filter(ms_run=="MT") %>%
-  distinct(station, PC_um, depth) %>%
-  mutate(depth=factor(depth, levels=c("Surface", "DCM", "Deep"), 
-                      labels=c("Surface  (15m)", "DCM  (110-120m)", "Deep  (175m)"))) %>%
-  mutate(station=factor(station, levels=as.character(4:14)))
-targ_gp_w_sla_PC <- targ_gp_w_sla +
-  geom_point(aes(x=station, y=PC_um*5), data=PC_data, pch=21, fill="white", color="black") +
-  scale_y_continuous(sec.axis = sec_axis(~./5, name = "Particulate carbon (o, µM)"),
-                     expand = c(0.005, 0.1))
+  group_by(filename) %>%
+  summarize(total_nM=sum(nM_C), PC_um=unique(PC_um)) %>%
+  mutate(frac_in_metab=total_nM/1000/PC_um) %>%
+  left_join(filled_file_metadata, by = join_by(filename, PC_um)) %>%
+  mutate(depth=str_extract(depth, "DCM|Deep|Surface")) %>%
+  mutate(depth=factor(depth, levels=c("Surface", "DCM", "Deep"))) %>%
+  mutate(station=factor(station, levels=c(as.character(4:14))))
+pc_frac_metab_gp <- frac_pc_in_metab_df %>%
+  ggplot(aes(x=station, y=frac_in_metab, color=sla_corr)) +
+  geom_hline(yintercept = 0) +
+  geom_boxplot(width = 0.9, linewidth=0.8) +
+  scale_x_discrete(breaks=as.character(seq(4, 14, 2))) +
+  scale_y_continuous(labels = scales::label_percent()) +
+  facet_grid(~depth, scales="free") +
+  scale_color_gradient2(
+    low = scales::muted("blue"), high = scales::muted("red"),  mid = "grey90",
+    aesthetics = c("color", "fill")
+  ) +
+  guides(color=guide_colorbar(direction = "horizontal", title.position = "top", 
+                              title.hjust = 0.5, barheight = 0.2, reverse = TRUE)) +
+  labs(color="Corr. SLA (cm)", x="Station",
+       y="Fraction of PC represented\nby known metabolites") +
+  theme_bw() +
+  theme(legend.position = c(0.84, 0.75), legend.background = element_rect(color="grey90"),
+        strip.background = element_blank(), strip.text = element_blank(),
+        plot.margin = margin(0,1,0,0))
 
-ggsave("targ_gp_w_sla_PC.png", plot = targ_gp_w_sla_PC, device = "png", 
-       path = "figures", width = 6.5, height = 4.5, units = "in", dpi = 300)
+targ_gp_w_sla_frac <- egg::ggarrange(barplot_targ_gp, pc_frac_metab_gp, draw = FALSE)
+
+no_outlier_frac_pc_in_metab_df <- frac_pc_in_metab_df %>%
+  filter(!(station=="11" & tripl=="A" & depth=="Surface")) %>%
+  filter(!(station=="6" & tripl=="B" & depth=="Surface")) %>%
+  filter(!(station=="7" & tripl=="C" & depth=="Surface")) %>%
+  filter(!(station=="11" & tripl=="B" & depth=="DCM"))
+pc_totalnm_plot <- no_outlier_frac_pc_in_metab_df %>%
+  ggplot() +
+  aes(x=PC_um, y=total_nM) +
+  geom_smooth(method="lm", color="black") +
+  geom_point(aes(fill=sla_corr), pch=21, color="black") +
+  facet_wrap(~depth, ncol=1, scales="free") +
+  labs(x="Particulate\ncarbon (uM)", y="Total nM carbon in known metabolites") +
+  scale_fill_gradient2(
+    low = scales::muted("blue"), high = scales::muted("red"),  mid = "grey90",
+    aesthetics = c("fill"), guide = "none"
+  ) +
+  theme_bw() +
+  theme(strip.text = element_text(face = "bold"))
+
+targ_gp_w_sla_pc <- cowplot::plot_grid(
+  targ_gp_w_sla_frac, pc_totalnm_plot, rel_widths = c(3, 1), labels = "AUTO"
+) +
+  theme(plot.background = element_rect(fill="white", color=NA))
+
+plot(targ_gp_w_sla_pc)
+
+ggsave("targ_gp_w_sla_pc.png", plot = targ_gp_w_sla_pc, device = "png", 
+       path = "figures", width = 6.875, height = 4.5, units = "in", dpi = 300)
 ```
 
-![](figures/targ_gp_w_sla_PC.png)
+![](figures/targ_gp_w_sla_pc.png)
 
-*Figure 2: Concentrations of known compounds across the eddy dipole, broken down by depth. Stacked bars correspond to known compounds, with the top 11 shown and all other metabolites summed in grey (n=[TBD]). DMSP = dimethylsulfoniopropionate. Sea level anomaly (SLA) is shown by the red-blue color scale underneath the barplot with red corresponding to a positive SLA (anticyclone) and blue corresponding to negative SLA (cyclone). The eddy centers (stations 6 and 12) have been labeled with arrows of the same color scheme in the final panel. Particulate carbon concentrations in µmol/L are shown as white dots and use the y-axis scale on the right side (200x the metabolite scale) [Anitra: This implies that the metabolites are 1/200 of the POC. But you have plotted compound concentration not carbon for metabolites. Assuming each compound has an average of 4 carbon atoms, you would have to multiply by 4 so that is 1/50 (2%) or so of POC. I think you need to make this clear somehow. Or you could make an additional plot with C for each compound. I see supp fig 2 has the %POC so maybe that is enough but maybe call out that figure here.][Will: I agree, let's brainstorm].*
+*Figure 2: A) Upper row of stacked barplots shows known compounds measured across the eddy dipole and separated by depth. Bar height corresponds to median triplicate concentration for each metabolite, with the top 9 shown and the 44 other identified metabolites summed in grey. TMAO = trimethylamine N-oxide, HO-Ile = hydroxyisoleucine, GBT = glycine betaine, DCM = deep chlorophyll maximum. Lower row of boxplots shows the fraction of total particulate carbon (PC) in the known metabolites across the eddy dipole, with the upper whisker extent, median bar, and lower whisker extent corresponding to the values measured in three biological triplicates. Colors correspond to corrected sea level anomaly (Corr. SLA) in centimeters, with dark red indicating anticyclonic (positive SLA) and dark blue indicating cyclonic (negative SLA) eddy state. B) Type I linear regressions of particulate carbon against total nM carbon in known metabolites. Points have been colored according to the SLA scheme in A) and have been placed on independent axes. Outlier points have been removed from the surface at stations 6, 10, and 11 as well as a DCM sample from station 12. For the full regression, see Supplemental Figure XX.*
 
 ```{r avg targ conc values and numbers for text, eval=FALSE}
-avg_targ_concs %>%
-  group_by(filename) %>%
-  summarise(nM=sum(nM)) %>%
-  left_join(filled_file_metadata %>% distinct(filename, untripl, PC_um, depth)) %>%
-  group_by(untripl, PC_um, depth) %>%
-  summarise(nM=mean(nM), .groups = "drop") %>%
-  group_by(depth) %>%
-  summarise(PC_vs_nM=broom::tidy(cor.test(PC_um, nM)))
-  # summarise(PC_vs_nM=broom::tidy(cor.test(PC_um, nM, method = "spearman")))
-  # ggplot(aes(x=PC_um, y=nM, color=depth)) + geom_point() + geom_smooth(method="lm")
 avg_targ_concs %>%
   mutate(compound_name=fct_inorder(compound_name)) %>%
   mutate(depth=factor(depth, levels=c("Surface", "DCM", "Deep"))) %>%
@@ -404,91 +440,77 @@ avg_targ_concs %>%
   count(depth_class)
 ```
 
-We found that the overall concentration of known molecules was highest at the DCM of the cyclone, in line with our expectations and prior results. The most abundant quantified molecule overall was trimethylamine N-oxide (TMAO), with an average concentration of 1.38 nM. At the surface hydroxyisoleucine was the most abundant metabolite at 1.53 nM due to its monotonic decrease with depth as opposed to a majority of the osmolytes (37/53) which reached maximum concentrations at the DCM instead (Figure 2).
+We found that the overall concentration of known molecules was highest at the DCM of the cyclone, in line with our expectations and prior results. The most abundant quantified molecule overall was trimethylamine N-oxide (TMAO), with an average concentration of 1.38 nM and a distinct DCM maximum (Figure 2). This pattern of a subsurface maximum at the DCM was mirrored by a majority of the known molecules (37/53). Other abundant molecules decreased monotonically with depth, with highest values at the surface (Figure 2).
 
-[Anitra: comments on the paragraph above: Maybe instead of this somewhat convoluted description you could just break it down by depth and say which compound was most abundant at each depth? Or which compound was most abundant in the cyclone and anticyclone. And then in a separate sentence just simply state that most compounds reached a ma at the DCM, but hydroxyisoleucine was an exception. Also, are you implying that hydroxyisoleucine is an osmolyte? Is that true? Also, what do you mean by "average"?]
+```{r PC_vs_totnM regression values, eval=FALSE}
+no_outlier_frac_pc_in_metab_df %>%
+  ggplot(aes(x=PC_um, y=total_nM)) + 
+  geom_smooth(method="lm", color="grey40") +
+  geom_point(aes(color=depth)) + 
+  geom_smooth(aes(color=depth), method="lm") +
+  theme_bw()
 
-Bulk particulate organic carbon (POC) measurements correlated well with overall [Anitra: what do you mean by overall here?] metabolite concentrations ($r= .554$, p-value < 0.001) but this was largely driven by both parameters having higher values in the surface than at depth. When analyzed at each depth individually, the DCM ($r_{DCM}= .790$, p-value = 0.003) and 175 meter samples ($r_{Deep}= .554$, p-value = 0.077) had weaker but still good correlations, but no such association was detected at the surface ($r_{Surface}= -.125$, p-value = 0.714).
+# Overall trend between PC and total nM metabolites (all depths)
+broom::tidy(lm(total_nM~PC_um, data=no_outlier_frac_pc_in_metab_df))[2,]
+with(no_outlier_frac_pc_in_metab_df, cor(PC_um, total_nM))
+lme4::lmer(total_nM~PC_um + (1|depth), data=no_outlier_frac_pc_in_metab_df)
 
-```{r PC vs metab abund anovas and perm test, eval=FALSE}
-pc_comp_df <- targ_peaks %>%
-  filter(str_detect(filename, "180821_Smp")) %>%
-  left_join(clean_stans %>% select(compound_name, formula, polarity)) %>%
-  mutate(n_C=as.numeric(str_extract(formula, "(?<=C)\\d+"))) %>%
-  mutate(nM_C=n_C*nM) %>%
-  left_join(filled_file_metadata, by = join_by(filename)) %>%
-  filter(samp_type=="Smp") %>%
-  group_by(filename) %>%
-  summarize(total_nM=sum(nM_C), PC_um=unique(PC_um)) %>%
-  mutate(frac_in_metab=total_nM/1000/PC_um) %>%
-  left_join(filled_file_metadata, by = join_by(filename)) %>%
-  mutate(depth=str_extract(depth, "DCM|Deep|Surface")) %>%
-  mutate(depth=factor(depth, levels=c("Surface", "DCM", "Deep"))) %>%
-  mutate(station=factor(station, levels=c(as.character(4:14))))
-
-# Significance testing between depths and SLA classes for % PC in metab
-pc_comp_df %>% aov(formula=frac_in_metab~depth) %>% TukeyHSD()
-pc_comp_df %>% aov(formula=frac_in_metab~sla_class) %>% TukeyHSD()
-
-# Significance testing for differences in % in metabs as a function of SLA by depth
-pc_comp_df %>%
-  nest(data=-depth) %>%
-  mutate(aov_out=map(data, ~broom::tidy(aov(.x$frac_in_metab~.x$sla_class)))) %>%
-  mutate(kw_out=map(data, ~broom::tidy(kruskal.test(.x$frac_in_metab~.x$sla_class)))) %>%
-  pivot_longer(c(aov_out, kw_out)) %>%
-  unnest(value) %>%
-  drop_na(p.value) %>%
-  select(depth, name, p.value) %>%
-  group_by(name) %>%
-  mutate(p.value=p.adjust(p.value, method="fdr")) %>%
-  ungroup() %>%
-  arrange(name, depth)
-pc_comp_df %>%
-  ggplot(aes(x=sla_class, y=frac_in_metab)) +
-  geom_boxplot() +
-  facet_wrap(~depth, nrow=1)
-
-# Permutation testing for effect size test on Deep SLA differences
-set.seed(123)
-map_dbl(seq(1, 2, 0.1), function(n_mult){
-  map_dbl(1:100, function(h){
-    pc_comp_df %>%
-      filter(depth=="Deep") %>%
-      group_by(sla_class) %>%
-      summarize(mean=mean(frac_in_metab), sd=sd(frac_in_metab), n=n()) %>%
-      mutate(sim_vals=map(1:3, function(i){rnorm(.$n[i]*n_mult, .$mean[i], .$sd[i])})) %>%
-      unnest_longer(sim_vals) %>%
-      aov(formula=sim_vals~sla_class) %>%
-      broom::tidy() %>%
-      filter(term=="sla_class") %>%
-      pull(p.value)
-  }) %>% mean()
-}, .progress = TRUE)
+# By-depth trend between PC and total nM metabolites
+no_outlier_frac_pc_in_metab_df %>%
+  group_by(depth) %>%
+  summarise(overall=broom::tidy(lm(total_nM~PC_um))[2,], 
+            cor_vals=cor(PC_um, total_nM))
 ```
 
-This correlation between PC [Anitra: Is there ATP data? Might be interesting to compare. Will: instinct says no, I think that ATP was really only collected during the diel phase and from a few spots during lagrangian. TODO: Double check the dashboard] and overall metabolite abundance implied that the fraction of PC represented by known metabolites was likely to be fixed across the eddy transect and this expectation was validated by followup analyses. [Anitra: I do not see this at all. I see spikes in metabolite concentration that are not matched with spikes in PC. Mostly at the eddy centers. Do you not think this is suggestive of a change in the contribution of biomass to PC in the eddy centers? I would assume if you had biomass instead of PC you would be able to see biomass increase at the centers where metabolites increase. TODO: Check the same values using beam attenuation (interpolate if necessary)] Known metabolites contributed between approximately 1.5% and 5% of the carbon to the total PC load, but this variance was not clearly due to either depth or SLA (Supplemental figure 2). The only difference we observed was a slightly reduced metabolite contribution in the 175 meter samples (0.6 percentage points lower at 175 meters, p-value=0.002) while no difference was detected between the surface and DCM samples or between the cyclone, anticyclone, and outside the eddy samples (all p-values > 0.1). A higher proportion of PC in living biomass would translate to a higher proportion of metabolites in POC. This lack of difference may have been due to the small sample sizes (6 anticyclonic stations, 3 cyclonic, and 2 neither, each sampled in triplicate). A followup permutational sensitivity analysis indicated that a difference in means of 0.4 percentage points would have been obtained at the α < 0.05 level for SLA in the 175 meter samples if ~1.5x as many samples had been collected with mean and variances remaining similar.
+As expected, bulk particulate carbon (PC) measurements showed a strong trend with summed metabolite concentrations ($\beta = 23.7$, Pearson's $r$ = .876, p-value < 0.001). This overall trend was largely driven by both higher values in the surface than at depth but when analyzed at each depth individually the general correspondence held. The DCM had the strongest trend ($\beta$ = 22.1, $r= .689$, p-value < 0.001) while Surface ($\beta$ = 16.0, $r = .375$, p-value = 0.04) and Deep ($\beta$ = 23.9, $r = 0.503$, p-value = 0.003) values were weaker but still compelling relationships. However, this association required the removal of three samples in the surface and one in the DCM with anomalously high metabolite loads. The full regression is reported in Supplemental Figure XX.
 
-[TODO: switch to POC instead of PC after confirming it's only the organics]
+```{r PC vs total_nM ANOVA by depth, eval=FALSE}
+# More carbon in metabolites at DCM when outliers removed?
+no_outlier_frac_pc_in_metab_df %>%
+  mutate(pred_total_nM=predict(lm(formula=total_nM~PC_um, data=.), newdata=.)) %>%
+  select(filename, depth, station, sla_class, sla_corr, total_nM, PC_um, pred_total_nM) %>%
+  mutate(total_nM_resid=total_nM-pred_total_nM) %>%
+  aov(formula=total_nM_resid~depth) %>% TukeyHSD() %>% broom::tidy()
+  # ggplot() + geom_boxplot(aes(x=depth, y=total_nM_resid)) + aes(color=sla_class)
 
-  - Discussion: My % PC in metabs lower than Angie's? Because her PC values were way higher but metab concentrations were about the same?
+# More carbon in metabolites at DCM when outliers handled with rank testing?
+frac_pc_in_metab_df %>%
+  mutate(pred_total_nM=predict(lm(formula=total_nM~PC_um, data=.), newdata=.)) %>%
+  select(filename, depth, total_nM, PC_um, pred_total_nM) %>%
+  mutate(total_nM_resid=rank(total_nM-pred_total_nM)) %>%
+  kruskal.test(formula=total_nM_resid~depth) %>% broom::tidy()
+  # ggplot() + geom_boxplot(aes(x=depth, y=total_nM_resid))
+
+# More carbon in metabolites at DCM when measured by % in metabs too
+no_outlier_frac_pc_in_metab_df %>%
+  aov(formula=frac_in_metab~depth) %>% TukeyHSD() %>% broom::tidy()
+  # ggplot() + geom_boxplot(aes(x=depth, y=frac_in_metab))
+no_outlier_frac_pc_in_metab_df %>%
+  group_by(depth) %>%
+  summarise(median(frac_in_metab))
+frac_pc_in_metab_df %>%
+  kruskal.test(formula=frac_in_metab~depth, data=.) %>% broom::tidy()
+  # ggplot() + geom_boxplot(aes(x=depth, y=rank(frac_in_metab)))
+```
+
+Known metabolites contributed between 1.5% and 5% of the carbon to the total PC load with higher values at the DCM than the surface or 175m samples (Figure 2, Supplemental Figure XX). DCM samples contained approximately 25% (0.5 percentage points) more carbon in the known metabolite pool (One-way ANOVA with outliers removed plus Tukey post-hoc, p<0.001, n=30-33) but there was no clear trend with SLA.
 
 ```{r comparison to Angies PC values way higher than mine, eval=FALSE}
 angie_pcdata <- "../metadata/raw_data/Karl_HL2_WC_PCPN_Final_Data.xlsx" %>%
   openxlsx::read.xlsx() %>%
   slice(-1) %>%
-  select(depth=`Depth.(m)`, PC_um=`C.value.(µmol/L)`) %>%
-  filter(depth<30) %>%
+  select(abs_depth=`Depth.(m)`, PC_um=`C.value.(µmol/L)`) %>%
+  # filter(depth<30) %>%
   mutate(cruise="HOE-Legacy")
 
 my_pcdata <- filled_file_metadata %>%
-  filter(depth=="Surface") %>%
-  distinct(depth, PC_um) %>%
+  # filter(depth=="Surface") %>%
+  distinct(abs_depth, PC_um) %>%
   mutate(cruise="MESOSCOPE")
 
 rbind(angie_pcdata, my_pcdata) %>%
   ggplot() +
-  geom_boxplot(aes(x=cruise, y=PC_um)) +
-  scale_y_continuous(limits = c(0, NA))
+  geom_point(aes(x=PC_um, y=-abs_depth, color=cruise))
 ```
 
 ### A single sample highlights a network of related metabolites
@@ -557,11 +579,14 @@ ms11_df <- c("C11H23NO6", "C11H23NO6", "C9H19NO5", "C8H17NO5", "C6H13NO6", "C8H1
     compound_name=="Hydroxyisoleucine"~NA,
     compound_name=="Dexpanthenol"~NA,
     TRUE~compound_name
-  ))
+  )) %>%
+  mutate(rtmed=round(rtmed, 1)) %>%
+  mutate(compound_name=ifelse(is.na(compound_name), "", compound_name)) %>%
+  mutate(feature=ifelse(is.na(feature), "", feature)) %>%
+  dplyr::rename(`Median m/z`=mzmed, `Median RT`=rtmed, `Putative formula`=formula,
+                `Compound name`=compound_name, `Feature ID`=feature)
 knitr::kable(ms11_df)
 ```
-
-[TODO: Clean up this table. Make sure the RT values only 2-3 sigfigs, make column names legible, etc.]
 
 We explored this *Trichodesmium* hypothesis further by analyzing additional samples taken from the bloom to see whether the compounds abundant in *Trichodesmium* were also abundant in samples taken directly from the bloom itself. Of the 14 masses identified in the environmental sample, 7 had good-quality peaks when viewed in the bloom samples as extracted ion chromatograms, though only 4 of these matched closely in retention time. 
 
@@ -812,8 +837,6 @@ multivar_analysis_MC$pca_output[[1]]$x %>%
 
 head(multivar_analysis_MC$pca_output[[1]]$sdev^2/sum(multivar_analysis_MC$pca_output[[1]]$sdev^2)*100)
 ```
-
-  - Discussion: I still really like the idea of modeling things according to the slope of their change across the eddy dipole. Light-sensitive or pressure-sensitive (e.g. sunscreen molecules, piezolytes) metabolites wouldn't change at all, DCM-specific metabolites (e.g. chlorophyll) would change by 20m or so as the DCM does, nutrient-sensitive metabolites (guanine? glutamate/glutamine?) would track with the isonutrials, and the salinity or temperature sensitive metabolites (aka pure osmolytes) would track with isopycnals. Do I have enough data to show that here? I forget what my early attempts to quantify these gradients looked like.
 
 To characterize the observed differences in multivariate space we used k-means clustering as an unsupervised way to identify dominant trends within the data (Figure 4). We found that a majority of the metabolites (Clusters 1 and 2, 63% of the total) fell into clusters with larger peak areas in the cyclone, as expected, while also detecting 32 metabolites that clustered such that the mean metabolite was enriched in the anticyclone (Cluster 4, Figure 4). Cluster 2 notably had a distinct decrease in relative peak area with depth, while the other clusters had much less clear depth trends. Cluster 1 also showed a DCM maximum for the samples from the anticyclone, correlating well with flow cytometry counts of picoeukaryotes (r=.851) that was not present in the cyclone (r=.013).
 
@@ -1399,7 +1422,7 @@ knitr::write_bib(packages_used[nchar(packages_used)>0], file = "r-packages.bib")
 <div id="refs"></div>
 
 # Supplement
-## Supplemental figure 1
+## Supp fig: PCA axes 1-3 vs SLA by depth
 
 ```{r supp figure/table prcomp vs SLA}
 pcdata <- multivar_analysis %>%
@@ -1476,10 +1499,106 @@ ggsave("pca_sla_cor_gp.png", pca_sla_cor_gp, device = "png", path = "supplement"
 
 *Supplemental figure 1: Results of a principal component analysis performed separately on each depth of the eddy transect metabolome. A) Regressions of SLA against various principal components, broken down by depth. % variance explained by each PC is noted in the upper right corner of the plot. Colors have been added corresponding to the SLA value for clarity but are redundant with the x-axis values. Lines of best fit and the associated standard error have been added behind the points in black and translucent grey, respectively. Strong associations exist between PC1 and SLA in the DCM samples and PC2 and SLA in the deep samples. B) Principal component 1 values for the 175 meter samples at each station showing large variance between triplicates rather than any external factor.*
 
-## Supplemental figure 2
+## Supp fig: Stacked barplot of top metabs by triplicate
+
+```{r targ barplot relative and absolute}
+targ_barplot_df <- targ_peaks %>%
+  left_join(filled_file_metadata, by="filename") %>%
+  filter(ms_run=="MT") %>%
+  filter(samp_type=="Smp") %>%
+  group_by(compound_name) %>%
+  mutate(mean_cmpd_nm=mean(nM)) %>%
+  ungroup() %>%
+  arrange(desc(mean_cmpd_nm)) %>%
+  mutate(compound_name=ifelse(compound_name=="Trimethylamine N-oxide", "TMAO", compound_name)) %>%
+  mutate(compound_name=ifelse(compound_name=="Hydroxyisoleucine", "HO-Ile", compound_name)) %>%
+  mutate(compound_name=ifelse(compound_name=="Glycine betaine", "GBT", compound_name)) %>%
+  mutate(compound_name=str_remove(compound_name, "^L-")) %>%
+  mutate(compound_name=ifelse(
+    compound_name%in%head(unique(compound_name), 9), 
+    compound_name, "Other")) %>%
+  mutate(compound_name=fct_inorder(compound_name)) %>%
+  group_by(depth, station, compound_name, tripl) %>%
+  summarise(nM=sum(nM), .groups = "keep") %>%
+  mutate(depth=factor(depth, levels=c("Surface", "DCM", "Deep"), 
+                      labels=c("Surface  (15m)", "DCM  (110-120m)", "Deep  (175m)"))) %>%
+  mutate(station=factor(station, levels=as.character(4:14)))
+base_tripl_barplot <- targ_barplot_df %>%
+  ggplot() +
+  aes(x=tripl, y=nM, fill=compound_name) +
+  geom_hline(yintercept = 0) +
+  facet_grid(depth~station, scales="free_y", switch = "x") +
+  scale_fill_manual(values = c(splividis(9), "grey50")) +
+  labs(x="Station", y="Metabolite concentration (nM)", fill=NULL) +
+  theme_bw() +
+  theme(axis.text.x = element_blank(), axis.ticks.x = element_blank(),
+        strip.background.x = element_blank(), 
+        panel.border = element_blank())
+abs_targ_bar_gp <- base_tripl_barplot +
+  geom_col(width=1) +
+  ggtitle("A) Absolute concentrations of most abundant metabolites") +
+  scale_y_continuous(expand = expansion()) +
+  theme(legend.position="none", strip.text.x = element_blank(), axis.title.x = element_blank())
+rel_targ_bar_gp <- base_tripl_barplot +
+  geom_col(width=1, position = "fill") +
+  scale_y_continuous(labels = scales::label_percent(), expand = expansion()) +
+  theme(legend.position = "bottom") +
+  guides(fill=guide_legend(nrow=2, byrow = TRUE)) +
+  ggtitle("B) Relative composition of the metabolome")
+egg::ggarrange(abs_targ_bar_gp, rel_targ_bar_gp, ncol=1)
+```
+
+## Supp fig: Regressions of PC vs total nM metabolites with outliers
+
+```{r}
+comb_pc_reg_df <- bind_rows(
+  frac_pc_in_metab_df %>% mutate(status="All files"),
+  no_outlier_frac_pc_in_metab_df %>%
+    mutate(status="Dropped outliers")
+)
+
+PC_comb_gp <- gridExtra::arrangeGrob(
+  comb_pc_reg_df %>%
+    ggplot(aes(x=PC_um, y=total_nM)) +
+    geom_point(aes(fill=depth), pch=21) +
+    geom_smooth(method="lm", color="black") +
+    geom_smooth(aes(color=depth), method="lm") +
+    facet_wrap(~status, ncol=1, scales="free_y") +
+    theme_bw() +
+    theme(legend.position = "top"),
+  comb_pc_reg_df %>%
+    ggplot() +
+    aes(x=PC_um, y=total_nM) +
+    geom_smooth(method="lm", color="black") +
+    geom_point(aes(fill=sla_corr), pch=21, color="black", size=3) +
+    ggh4x::facet_grid2(depth~status, scales="free", independent="all") +
+    labs(x="Particulate carbon (uM)", 
+         y="Total nM carbon in known metabolites",
+         fill="Corr.\nSLA\n(cm)") +
+    scale_fill_gradient2(
+      low = scales::muted("blue"), high = scales::muted("red"),  mid = "grey90"
+    ) +
+    theme_bw() +
+    theme(legend.position = "top"),
+  nrow = 1
+)
+plot(PC_comb_gp)
+comb_pc_reg_df %>%
+  nest(data=-c(status, depth)) %>%
+  mutate(reg_vals=map(data, ~broom::tidy(lm(.x$total_nM~.x$PC_um)))) %>%
+  unnest(reg_vals) %>%
+  filter(term!="(Intercept)")
 
 
-*Supplemental figure 2: Fraction of particulate carbon represented by known metabolites. Boxplots set behind points are colored according to sea level anomaly (SLA) with red corresponding to a positive SLA (anticyclone) and blue corresponding to negative SLA (cyclone).*
+# xmdl <- lm(total_nM~PC_um, data=all_targ_pc_reg_df)
+# plot(fitted(xmdl), residuals(xmdl))
+# dfbeta(xmdl) %>% 
+#   as.data.frame() %>%
+#   cbind(all_targ_pc_reg_df$filename)
+```
+
+
+*Supplemental figure 2: [TBD something about triplicates]*
 
 ## Supplemental figure 3
 
