@@ -591,6 +591,7 @@ interp_df <- lst(complete_file_data, complete_env_data) %>%
   left_join(complete_env_data %>% distinct(station, cast, time), by=c("station", "cast"))
 # Correct wonky PC values (those greater than 4) with a linear model built on beam_atten
 interp_df <- interp_df %>%
+  mutate(PC_uncor=PC_um) %>%
   mutate(pred_PC=interp_df %>% 
            filter(PC_um<4) %>%
            lm(formula=PC_um~beam_atten) %>%
