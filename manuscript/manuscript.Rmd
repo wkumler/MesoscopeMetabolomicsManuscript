@@ -1,6 +1,6 @@
 ---
 title: "Metabolites reflect variability introduced by mesoscale eddies in the North Pacific Subtropical Gyre"
-author: "William Kumler, Laura T. Carlson, Wei Qin, Rachel A. Lundeen, Benedetto Barone, and Anitra E. Ingalls"
+author: "William Kumler, Wei Qin, Rachel A. Lundeen, Benedetto Barone, Laura T. Carlson, and Anitra E. Ingalls"
 date: "`r Sys.Date()`"
 output: 
   word_document:
@@ -8,6 +8,7 @@ output:
 bibliography:
 - Exported Items.bib
 - r-packages.bib
+csl: limnology-and-oceanography.csl
 ---
 
 ```{r Run analysis, include=FALSE}
@@ -144,20 +145,20 @@ splividis <- function(n, ...){
 
 # Abstract
 
-TBD
+Mesoscale eddies significantly alter open ocean environments such as the North Pacific Subtropical Gyre. Previous studies have explored eddy effects on biogeochemical measurements and community composition but not on the molecular composition of particulate organic matter. This study reports the exact concentration of 67 metabolites and relative abundances for 640 molecular features to understand how mesoscale eddies impact the NPSG's metabolome during two cruises in 2017 and 2018. We find that many metabolites track biomass trends, but biosignals like isethionic acid, homarine, and trigonelline linked to picoeukaryotes were enriched at the deep chlorophyll maximum of the cyclonic features, while degradation products such as arsenobetaine were enriched in anticyclones. Additionally, we identify taurine betaine (N,N,N-trimethyltaurine) in open ocean samples for the first time. By analyzing depth variability (accounting for 20-40% of metabolomic variability across ~150 meters) and isopycnal disruption (explaining 10-20% of variability across a sea level anomaly range of 40 centimeters), this analysis constrains the importance of mesoscale eddies in modeling the chemical composition of particulate matter in the largest biomes on the planet.
 
 # Introduction
 
-High frequency, long-term observations at Station ALOHA in the North Pacific Subtropical Gyre (NPSG) over the past 25 years have revealed temporal and spatial variability in what had prevously been considered a homogenous environment [@Karl1999; @Karl2017; @Karl2021]. A major source of variability comes in the form of mesoscale eddies in which water is entrained into circular surface currents tens to hundreds of kilometers in diameter [@Karl2017; @McGillicuddy2016]. These mesoscale features introduce nutrients into the euphotic zone and alter the community composition [@Sweeney2003; @Barone2019]. In particular, the depth and intensity of the deep chlorophyll maximum (DCM) at the top of the nitricline differs dramatically between cyclonic and anticyclonic eddies. @Barone2022 reported a shift in the microbial community at the DCM with eukaryotic phytoplankton enriched and prokaryotic phytoplankton depleted in cyclonic eddies, and @Hawco2021 and @Dugenne2023 showed that some of this difference was due to alterations in dissolved iron chemistry and nitrogen fixation.
+High frequency, long-term observations at Station ALOHA in the North Pacific Subtropical Gyre (NPSG) over the past 25 years have revealed temporal and spatial variability in what had prevously been considered a homogenous environment [@Karl1999; @Karl2017; @Karl2021]. A major source of variability comes in the form of mesoscale eddies in which water is entrained into circular surface currents tens to hundreds of kilometers in diameter [@Karl2017; @McGillicuddy2016; @Rii2022]. These mesoscale features introduce nutrients into the euphotic zone and alter the community composition [@Sweeney2003; @Barone2019]. In particular, the depth and intensity of the deep chlorophyll maximum (DCM) at the top of the nitricline differs dramatically between cyclonic and anticyclonic eddies. @Barone2022 reported a shift in the microbial community at the DCM with eukaryotic phytoplankton enriched and prokaryotic phytoplankton depleted in cyclonic eddies, and @Hawco2021 and @Dugenne2023 showed that some of this difference was due to alterations in dissolved iron chemistry and nitrogen fixation.
 
 Here, we use measurements of metabolites in particles across an eddy dipole in the North Pacific Subtropical Gyre (NPSG) to categorize both known compounds and unidentified mass features based on their co-occurrence with a set of simultaneously measured physical, chemical, and biological parameters. The gyre in particular represents an intriguing opportunity for metabolomic research because it has been shown to contain the highest proportion of chemical features with unknown structure and function, many of which have highly variable responses to changes in latitude, depth, and across diel cycles [@Heal2021; @Boysen2021; @Kumler2023]. This study connects biogeochemical measurements to a molecular-scale perspective of particulate organic matter, linking the chemical currencies that fuel metabolism and interactions among marine microbes to the mesoscale environment in which the currencies are found.
 
 # Results
 ## Metabolome variability across the eddy dipole
 
-Using data for all molecular features, we found that the metabolome differed between the cyclone and anticyclone samples, with multivariate statistics detecting the largest differences in the DCM and 175 meter samples (Figure 1). At the DCM, approximately 16% of the variation in the metabolome could be explained by SLA alone according to the PERMANOVA (p = 0.003) and SLA was strongly correlated with the first principal component (r = .615, % variance explained by PC1 = 27.2), indicating that this was one of the largest sources of variation in the dataset. Notably, the samples taken from the exact center of the cyclonic eddy were highly distinct and likely drove much of the variance explained. In the 175m samples, 12% of the variance was explained by SLA (p = 0.008) according to the PERMANOVA and SLA was highly correlated with the second PC of the dataset (r = .697, % variance explained by PC2 = 15.4), though the first PC did not seem to have any visible pattern with metadata and appeared to capture largely variation between biological triplicates (Supplemental figure 1). At the surface, SLA trends are less evident with a larger p-value (0.087) and a lower R$^2$ (0.09) (Figure 1).
+We found that the metabolome clearly differed between the cyclonic and anticyclonic samples when all molecular features were analyzed. Multivariate statistics detected the largest differences in particulate matter composition at the DCM and 175 meter samples (Figure 1). At the DCM, approximately 16% of the variation in the metabolome could be explained by sea level anomaly (SLA) alone (PERMANOVA, p = 0.003) and SLA was strongly correlated with the first principal component (r = .615, % variance explained by PC1 = 27.2), indicating that this was one of the largest sources of variation in the dataset. Notably, the samples taken from the exact center of the cyclonic eddy were highly distinct and likely drove much of the variance explained. In the 175m samples, 12% of the variance was explained by SLA (PERMANOVA, p = 0.008) and SLA was highly correlated with the second PC of the dataset (r = .697, % variance explained by PC2 = 15.4), though the first PC did not seem to have any visible pattern with metadata and appeared to largely capture variation between biological triplicates (Supplemental figure 1). At the surface, SLA trends are less evident with a larger p-value (PERMANOVA, p=0.087) and a lower R$^2$ (0.09) (Figure 1).
 
-To characterize this difference, we plotted an "average" metabolite peak area per station at each depth by taking the median value of all the detected mass features after z-score normalization (Figure 1). As expected, the average metabolite collected at the exact center of the cyclonic eddy (Station 12) was much more abundant than in any sample at this same depth in the rest of the dipole samples. Similarly, the 175 meter samples showed the largest metabolite abundances in the anticyclone relative to other stations at this depth. This method also allowed us to see the remarkably sinusoidal response of the average metabolite across the stations. This response correlated negatively with SLA at the DCM (lower SLA = higher average values, $r_{DCM}= -.716$) but positively with SLA at the surface and at depth ($r_{surface} = .211$, $r_{deep} = .830$).
+To characterize the difference between eddies in a lower-dimensional space, we plotted an "average" metabolite peak area per station at each depth by taking the median value of each of the detected mass features after z-score normalization (Figure 1). As expected, the average metabolite collected at the exact center of the cyclonic eddy (Station 12) was more abundant than in other samples at this same depth. Similarly, the 175 meter samples showed the largest metabolite abundances in the anticyclone relative to other stations at this depth. This method also allowed us to see the remarkably sinusoidal response of the average metabolite across the stations. This response correlated negatively with SLA at the DCM (lower SLA = higher average values, $r_{DCM}= -.716$) but positively with SLA at the surface and at depth ($r_{surface} = .211$, $r_{deep} = .830$).
 
 ```{r multivar_analysis object creation - nmds/pca/permanova}
 set.seed(123)
@@ -274,7 +275,7 @@ ggsave("nmds_and_med_metab.png", plot = nmds_and_med_metab, device = "png",
 
 *Figure 1: Plots of the metabolome across the eddy dipole, broken down by depth. The top row of plots are non-metric multidimensional scaling (NMDS) plots, in which points correspond to individual samples and have been colored by their corrected sea level height anomaly. NMDS stress values (s) have been reported in the bottom left corner, while PERMANOVA R$^2$ and p-values are reported in the top left. SLA trends are visible in the DCM and deep samples, with dark blue circles consistently discriminating from the dark red circles along the first multidimensional axis. The bottom row of plots show the direction and magnitude of this effect by plotting the grand median of the z-score normalized metabolite peak areas in the stations taken across the eddy dipole with the upper whisker extent, median bar, and lower whisker extent corresponding to the values measured in three biological triplicates.*
 
-We expected a large part of the difference in metabolomes with respect to SLA to be due to the increased biomass in the cyclone DCM and the parallel increase in the anticyclone deep samples. Within our molecular feature population, a subset are known metabolites that we quantified using standards (Figure 2).
+We expected a large part of the SLA trends to be due to the elevated biomass in the cyclone DCM relative to the anticyclone and the inverse pattern in the 175 meter samples. While we were unable to quantify a majority of the molecular features in the dataset for direct comparison to biomass metrics, a subset of those were known metabolites that we quantified using standards (Figure 2).
 
 ```{r figure stacked barplot MT eddy transect w PC and SLA}
 avg_targ_concs <- targ_peaks %>%
@@ -418,9 +419,9 @@ avg_targ_concs %>%
   count(depth_class)
 ```
 
-We found that the overall concentration of known molecules was highest at the DCM of the cyclone, in line with our expectations and prior results. The most abundant quantified molecule overall was trimethylamine N-oxide (TMAO), with an average concentration of 1.38 nM and a distinct DCM maximum (Figure 2). This pattern of a subsurface maximum at the DCM was mirrored by a majority of the known molecules (37/53). Most other abundant molecules decreased monotonically with depth, with highest values at the surface (Figure 2).
+We found that the overall concentration of known molecules was highest at the DCM of the cyclone. The most abundant quantified molecule in the eddy transect samples was trimethylamine N-oxide (TMAO), with an average concentration of 1.38 nM and a distinct DCM maximum (Figure 2). This pattern of a subsurface maximum at the DCM was mirrored by a majority of the known molecules (37/53). Most other abundant molecules decreased monotonically with depth, with highest values at the surface.
 
-```{r PC_vs_totnM regression values, eval=FALSE}
+```{r PC_vs_totnM regression values}
 no_outlier_frac_pc_in_metab_df <- frac_pc_in_metab_df %>%
   filter(!(station=="11" & tripl=="A" & depth=="Surface")) %>%
   filter(!(station=="6" & tripl=="B" & depth=="Surface")) %>%
@@ -512,7 +513,7 @@ frac_pc_in_metab_df %>%
   # ggplot() + geom_boxplot(aes(x=depth, y=rank(frac_in_metab)))
 ```
 
-Known metabolites contributed between 1.5% and 5% of the carbon to the total PC load with higher values at the DCM than the surface or 175m samples (Figure 2, Supplemental Figure 3). DCM samples contained approximately 25% (0.5 percentage points) more carbon in the known metabolite pool (One-way ANOVA with outliers removed plus Tukey post-hoc, p<0.001, n=30-33) but there was no clear trend with SLA.
+Known metabolites contributed between 1.5% and 5% of the carbon to the total PC load with higher values at the DCM than the surface or 175m samples (Figure 2, Supplemental Figure 3). DCM samples contained approximately 25% more carbon in the known metabolite pool (One-way ANOVA with outliers removed plus Tukey post-hoc, p<0.001, n=30-33) but there was no clear trend with SLA.
 
 ```{r comparison to Angies PC values way higher than mine, eval=FALSE}
 angie_pcdata <- "../metadata/raw_data/Karl_HL2_WC_PCPN_Final_Data.xlsx" %>%
@@ -534,7 +535,7 @@ rbind(angie_pcdata, my_pcdata) %>%
 
 ### A single sample highlights a network of related metabolites
 
-One sample, taken from the surface at Station 11 (MS11C215m_A), was highly distinct from all others (including its paired triplicates) with several metabolites measuring two or more orders of magnitude larger in peak area and concentration both before and after normalization to internal standards. Heuristic exploration of potentially related masses identified a total of 14 compounds highly abundant in this one sample alone. The only identified compounds with this trend were taurine and acetyltaurine, though three others with *m/z* 146.1176, 148.0968, and 206.1388 were discovered to be likely isomers of known compounds (acetylcholine/(3-carboxypropyl)trimethylammonium, hydroxyisoleucine, and dexpanthenol, respectively). One feature (*m/z* = 184.0637, RT = 7.0 minutes) was identified as choline sulfate using a second run of standards, while an additional mass feature at 168.0689 and RT = 8.5 was putatively flagged as taurine betaine. This mass was also one of the most highly enriched in the MS11C215m_A sample after taurine itself, with a peak area nearly 30x that of the next largest sample. No clear explanation emerged explaining why some compounds were hyperabundant in this surface sample, though one possible explanation was the *Trichodesmium* bloom occurring at the same time [@Dugenne2023].
+One sample, taken from the surface at Station 11 (MS11C215m_A), was highly distinct from all others (including its paired triplicates) with several metabolites measuring two or more orders of magnitude larger in peak area and concentration both before and after normalization to internal standards. Heuristic exploration of potentially related masses identified a total of 14 compounds highly abundant in this one sample alone. The only identified compounds with this trend were taurine and acetyltaurine, though three others with *m/z* 146.1176, 148.0968, and 206.1388 were discovered to be likely isomers of known compounds (acetylcholine/(3-carboxypropyl)trimethylammonium, hydroxyisoleucine, and dexpanthenol, respectively). One feature (*m/z* = 184.0637, RT = 7.0 minutes) was identified as choline sulfate using a second run of standards, while an additional mass feature at 168.0689 and RT = 8.5 was putatively flagged as taurine betaine. This mass was also one of the most highly enriched in the MS11C215m_A sample after taurine itself, with a peak area nearly 30x that of the next largest sample. No clear explanation emerged for why some compounds were hyperabundant in this surface sample, though one possible explanation was the *Trichodesmium* bloom that was also sampled at this time [@Dugenne2023].
 
 ```{r MS11A offenders table}
 ms11_offenders <- untarg_peaks %>%
@@ -627,7 +628,7 @@ knitr::kable(ms11_df)
 |   266.1598|       8.5|C11H23NO6        |                 |            |
 |   266.1598|      10.0|C11H23NO6        |                 |            |
 
-*Table 1: Detected mass features with peak areas in sample MS11C215m_A much larger than the sample with the next-largest peak area. RT = retention time in minutes. Taurine betaine is followed by a ? to denote that this identification is putative. Feature ID is a disambiguating key produced by XCMS processing.*
+*Table 1: Detected mass features that were enriched in the 15m sample from Station 11 (MS11C215m_A). RT = retention time in minutes. Taurine betaine is followed by a ? to denote that this identification is putative. Feature ID is a disambiguating key produced by XCMS processing.*
 
 ```{r trichobloomsamples comparison, eval=FALSE}
 library(RaMS)
@@ -658,7 +659,7 @@ trichodata$MS1[mz%between%pmppm(162.1125, 10)] %>%
   ggtitle("Homoserine betaine in Tricho bloom samples")
 ```
 
-We explored this *Trichodesmium* hypothesis further by analyzing additional samples taken from the bloom to see whether compounds abundant in hand-picked *Trichodesmium* colonies were also abundant in samples taken directly from the bloom itself. After searching for the 14 mass features above in the environmental sample, 7 had good-quality peaks when viewed in the bloom samples as extracted ion chromatograms, though only 4 of these matched closely in retention time. We also performed a search of the untargeted data for homoserine betaine, a known *T. erythraeum* (strain IMS101) osmolyte [@Pade2016]. Although this compound was not in our standard library due to a lack of authentic standards, we identified three mass features in the 162.1125 *m/z* window with retention times of 7.1, 8.4, and 9.9 minutes. The feature at RT 9.9 matched our carnitine standard's retention time, leaving the two earlier peaks with putative identifications of threonine betaine at 7.1 and homoserine betaine at 8.4 given the elution order of threonine before homoserine in our authentic standards. This order is the reverse of that in @Pade2016, which showed homoserine betaine eluting prior to carnitine as expected given our use of a polar HILIC column and their use of a nonpolar Hypercarb column. They did not report an additional peak detected at this mass, leaving our putative identification of the threonine betaine as low-confidence. None of the three 162.1125 features showed the same degree of enrichment in MS11C215m_A as taurine or the other 13 compounds detected, though MS11C215m_A was the largest, second-largest, and third-largest peak for carnitine, threonine betaine, and homoserine betaine, respectively.
+We explored the possibility that a nearby *Trichodesmium* bloom was responsible for the unusual composition of this one sample by analyzing additional samples taken directly from the bloom to see whether compounds abundant in hand-picked *Trichodesmium* colonies were also abundant the Station 11 samples. After searching for the 14 mass features above in the environmental sample, 7 had good-quality peaks when viewed in the bloom samples as extracted ion chromatograms, though only 4 of these matched closely in retention time. We also performed a search of the untargeted data for homoserine betaine, a known *T. erythraeum* (strain IMS101) osmolyte [@Pade2016]. Although this compound was not in our standard library due to a lack of authentic standards, we identified three mass features in the 162.1125 *m/z* window with retention times of 7.1, 8.4, and 9.9 minutes. The feature at RT 9.9 matched our carnitine standard's retention time, leaving the two earlier peaks with putative identifications of threonine betaine at 7.1 and homoserine betaine at 8.4 given the elution order of threonine before homoserine in our authentic standards. This order is the reverse of that in @Pade2016, which showed homoserine betaine eluting prior to carnitine. This elution order is expected given our use of a normal phse HILIC column and their use of a reversed phase Hypercarb column. They did not report an additional peak detected at this mass, leaving our putative identification of the threonine betaine as low-confidence. None of the three 162.1125 features showed the same degree of enrichment in MS11C215m_A as taurine or the other 13 compounds detected, though MS11C215m_A was the largest, second-largest, and third-largest peak for carnitine, threonine betaine, and homoserine betaine, respectively.
 
 ```{r homoserinebetaine search, eval=FALSE}
 library(arrow)
@@ -712,7 +713,7 @@ untarg_peaks %>%
 
 ## Compositional shifts in metabolome as well as bulk biomass
 
-In addition to absolute shifts in metabolite concentration due to biomass differences, we also explored compositional shifts in the metabolomes.
+In addition to absolute shifts in metabolite concentration due to biomass differences, we also explored compositional shifts in the metabolomes by assessing the fraction of the total metabolite pool contributed by each compound across the eddy transect.
 
 ```{r regression relative abundance coefficients, eval=FALSE}
 reg_coefs <- untarg_peaks %>%
@@ -816,7 +817,7 @@ multivar_analysis_MC <- untarg_peaks %>%
   # mutate(perm_label=paste0("R2 = ", perm_r2, "\np = ", perm_pval))
 ```
 
-To provide context for the sea level anomaly responses detected above, we additionally performed high-resolution depth sampling around the DCM at the center of both eddy poles. Here, we found that the ~40 meter difference in depth and the transition between the eddies explained similar amounts of variation in the data (R$^2_{depth}=0.253$, R$^2_{SLA}=0.238$) and were both highly significant factors (permutational p-values << 0.001). Additionally, both sample depth and SLA were well-correlated with the first principal component of the metabolite matrix (r$_{depth}=.766$, r$_{SLA}=.684$, fraction of variance explained by PC$_1$ = 30.8%) (Figure 3). A 2D NMDS plot of the samples showed good separation between the eddies, with cyclonic samples largely on the left side of Figure 3 while anticyclonic samples fell almost entirely to the right. Notably, the cyclonic samples show a much larger spread than the anticyclonic ones, indicating larger sample variability at the surface than the DCM. A depth gradient is visible along MDS 2, with the deepest samples generally at the top right of the plot and the shallowest ones closer to the bottom and left.
+To provide context for the sea level anomaly responses detected above, we additionally performed high-resolution depth sampling around the DCM at the center of both eddy poles. Here, we found that the ~40 meter depth range and the transition between the eddies explained similar amounts of variation in the data (R$^2_{depth}=0.253$, R$^2_{SLA}=0.238$) and were both highly significant factors (permutational p-values << 0.001). Additionally, both sample depth and SLA were correlated with the first principal component of the metabolite matrix (r$_{depth}=.766$, r$_{SLA}=.684$, fraction of variance explained by PC$_1$ = 30.8%) (Figure 3). A 2D NMDS plot of the samples showed clear separation between the eddies, with cyclonic samples largely on the left side of Figure 3 while anticyclonic samples fell almost entirely to the right. Notably, the cyclonic samples show a much larger spread than the anticyclonic ones, indicating larger sample variability at the surface than the DCM. A depth gradient is visible along MDS 2, with the deepest samples generally at the top right of the plot and the shallowest ones closer to the bottom and left.
 
 ```{r figure MC NMDS plot}
 MC_nmds_gp <- multivar_analysis_MC$nmds_output %>%
@@ -830,7 +831,7 @@ MC_nmds_gp <- multivar_analysis_MC$nmds_output %>%
   ggplot(aes(label=tripl)) +
   geom_vline(xintercept = 0) +
   geom_hline(yintercept = 0) +
-  geom_point(aes(x=MDS1, y=MDS2, color=sla_class), size=4, pch=19) +
+  geom_point(aes(x=MDS1, y=MDS2, color=sla_class), size=5, pch=19) +
   scale_color_manual(
     values=c(scales::muted("blue"), scales::muted("red")),
     breaks=c("Cyclone", "Anticyclone"),
@@ -841,21 +842,23 @@ MC_nmds_gp <- multivar_analysis_MC$nmds_output %>%
            label.r = unit(0, "in"), size=6) +
   annotate("label", x=-Inf, y=Inf, label=multivar_analysis_MC$nmds_stress,
            hjust=0, vjust=1, label.r = unit(0, "in")) +
-  geom_point(aes(x=MDS1, y=MDS2, fill=depth, alpha=depth), size=4, pch=21, color="black") +
+  geom_point(aes(x=MDS1, y=MDS2, fill=depth, alpha=depth), size=5, pch=21, color="black") +
   scale_fill_manual(
-    values = c("grey90", "grey80", "grey60", "grey40", "grey20"),
+    values = c("white", "white", "white", "black", "black"),
     breaks = c("-20m", "-10m", "DCM", "+10m", "+20m")
   ) +
   scale_alpha_manual(
-    values = c(0.4, 0.2, 0, 0.2, 0.4),
+    values = c(0.7, 0.4, 0.2, 0.1, 0.4),
     breaks = c("-20m", "-10m", "DCM", "+10m", "+20m")
   ) +
   coord_fixed() +
   guides(alpha="none", color="none", fill=guide_legend(
-    title = "Depth", title.position = "top", title.hjust = 0.5, direction = "horizontal"
+    title = "Depth", title.position = "top", title.hjust = 0.5, direction = "horizontal",
+    override.aes = list(fill=c("grey90", "grey80", "grey60", "grey40", "grey20"))
   )) +
   theme_bw() +
   theme(legend.position = "bottom")
+MC_nmds_gp
 ggsave("MC_nmds_gp.png", plot = MC_nmds_gp, device = "png", 
        path = "figures", width = 6.875, height = 4.5, units = "in", dpi = 300)
 ```
@@ -911,28 +914,28 @@ kclust_df <- kclust %>%
   mutate(norm_area=scale(norm_area)[,1]) %>%
   group_by(cluster, depth, sla_class) %>%
   summarise(mean_rank=mean(norm_area), iqr_value=sd(norm_area), .groups = "drop")
+library(ggh4x)
+strip_theme <- strip_themed(background_x = elem_list_rect(fill= c(
+  "#414487FF", "#7AD151FF", "#22A884FF", "#2A788EFF")))
 kclust_gp <- kclust_df %>%
   left_join(data.frame(size=kclust$size) %>% mutate(cluster=row_number()), by="cluster") %>%
-  mutate(cluster=paste0("Cluster #", cluster, ": n=", size)) %>%
+  mutate(clusterlab=paste0("Cluster #", cluster, ": n=", size)) %>%
   mutate(depth=factor(depth, labels=rev(c("-20m", "-10m", "DCM", "+10m", "+20m")),
                       levels=rev(c("DCMless20m", "DCMless10m", "DCM", "DCMplus10m", "DCMplus20m")))) %>%
   ggplot(aes(y=depth, color=sla_class)) +
   geom_vline(xintercept = 0) +
-  # geom_ribbon(aes(xmin=mean_rank-iqr_value, xmax=mean_rank+iqr_value, group=sla_class),
-  #             linewidth=1, fill="#FFFFFF22") +
   geom_path(aes(x=mean_rank, group=sla_class), linewidth=1) +
-  geom_point(aes(x=mean_rank), size=2) +
-  geom_label(data = data.frame(cluster="Cluster #1: n=73", x=c(0, 0.9), depth=c(5.5, 1),
-                               sla_class=c("Anticyclone", "Cyclone")),
-             aes(x=x, label=sla_class)) +
-  facet_wrap(~cluster, nrow = 1) +
+  geom_point(aes(x=mean_rank), size=3) +
+  ggh4x::facet_wrap2(~clusterlab, nrow = 1, strip = strip_theme) +
   scale_color_manual(values = c(scales::muted("blue"), scales::muted("red"), "grey50"), 
                      breaks = c("Cyclone", "Anticyclone", "Neither"),
                      guide="none") +
   labs(x="Mean z-scaled metabolite area", y="Sampling depth", color=NULL) +
   coord_cartesian(ylim = c(1, 5.5)) +
   theme_bw() +
-  theme(plot.background = element_rect(fill = "white"))
+  theme(plot.background = element_rect(fill = "white"),
+        strip.background = element_rect(fill = "white"),
+        strip.text = element_text(face = "bold", color="white"))
 ```
 
 ```{r pairwise_tests and fold_change_df}
@@ -958,7 +961,6 @@ fold_change_df <- MC_simpledata %>%
   pivot_wider(names_from=station, values_from=mean_area) %>%
   mutate(fold_change=L1/L2) %>%
   select(feature, fold_change)
-
 ```
 
 ```{r eddy center volcano plot}
@@ -983,19 +985,20 @@ volcanoplot_gp <- pairwise_tests %>%
   ) +
   theme_bw() +
   labs(x="Log-2 fold-change cyclone enrichment", y="Mann-Whitney p-value\n(FDR-corrected)",
-       shape="Metabolite\nstatus", color="k-means\ncluster") +
-  guides(color=guide_legend(order = 2), shape=guide_legend(order=1)) +
+       shape="Metabolite status", color="k-means\ncluster") +
+  guides(color="none", shape=guide_legend(order=1)) +
   theme(axis.text.y = ggtext::element_markdown(),
-        plot.background = element_rect(fill = "white"))
+        plot.background = element_rect(fill = "white"),
+        legend.position = c(0, 1), legend.justification = c(0, 1), 
+        legend.background = element_rect(fill="#FFFFFF88", color=NA),
+        legend.spacing.y=unit(0, "in"),
+        legend.key.size = unit(0, "cm"))
 ```
 
 ```{r kclust volcano plot combine}
 kclust_volcano_gp <- egg::ggarrange(
-  kclust_gp, volcanoplot_gp + theme(legend.position = "none"), 
-  ncol=1, heights = c(2, 1.5)) %>%
-  cowplot::plot_grid(
-    cowplot::get_legend(volcanoplot_gp), rel_widths = c(0.85, 0.15)
-  )
+  kclust_gp, volcanoplot_gp, 
+  ncol=1, heights = c(2, 1.5))
 ggsave("kclust_volcano_gp.png", plot = kclust_volcano_gp, device = "png", 
        path = "figures", width = 6.875, height = 4, units = "in", dpi = 300,
        bg="white")
@@ -1003,7 +1006,7 @@ ggsave("kclust_volcano_gp.png", plot = kclust_volcano_gp, device = "png",
 
 ![](figures/kclust_volcano_gp.png)
 
-*Figure 4: Distribution of metabolites in the high-resolution depth samples from the centers of each eddy. The upper row of plots shows k-means clusters where points denote the average z-scored peak area for both known and unknown metabolites across the samples and are colored by the eddy from which they were taken. Clusters have been ordered by number of metabolites in each group and the total is denoted in the panel titles. Both depth trends (mostly a net decrease in metabolites with depth) and eddy effects (cyclonic enrichment in clusters 1 and 2, anticyclone enrichment in cluster 4) are observable. The lower plot shows the individual known and unknown metabolites where points correspond to the FDR-corrected p-value estimated by the nonparametric Mann-Whitney U test and the log$_2$ fold-change calculated with the average peak area in the cyclone divided by the average peak area in the anticyclone. Colors have been assigned using the k-means clusters and shapes have been assigned based on the status of the mass feature as either a known metabolite that was run with an authentic standard or an unidentified metabolite.*
+*Figure 4: Distribution of metabolites in the high-resolution depth samples from the centers of each eddy. The upper row of plots shows k-means clusters where points denote the average z-scored peak area for both known and unknown metabolites across the samples and are colored by the eddy from which they were taken. Clusters have been ordered by number of metabolites in each group and the total is denoted in the panel titles. Both depth trends (mostly a net decrease in metabolites with depth) and eddy effects (cyclonic enrichment in clusters 1 and 2, anticyclone enrichment in cluster 4) are observable. The lower plot shows the individual known and unknown metabolites where points correspond to the FDR-corrected p-value estimated by the nonparametric Mann-Whitney U test and the log$_2$ fold-change calculated with the average peak area in the cyclone divided by the average peak area in the anticyclone. Colors have been assigned using the k-means clusters and shapes have been assigned based on the status of the mass feature as either a known metabolite that was matched to an authentic standard or an unidentified metabolite.*
 
 ```{r cluster cor w metadata, eval=FALSE}
 filled_file_metadata %>% 
@@ -1019,7 +1022,7 @@ filled_file_metadata %>%
 
 We also investigated the response of individual metabolites in these high-resolution depth profile samples, expecting to find the strongest signal in this data given the extreme SLA values sampled and the large number of compounds with an SLA separation in the k-means analysis. This expectation was substantiated by a majority of the metabolites differing significantly between the two eddies (121/228, α = 0.05). Of those, 15 were enriched in the anticyclone and 106 were more abundant in the cyclone. As expected, all compounds enriched in the anticyclone were part of Cluster 4 and all those enriched in the cyclone belonged to either cluster 1 or 2 (Figure 4).
 
-Many of the known metabolites enriched in the cyclone are expected given the overall higher biomass, particularly as many have functions as osmolytes in the cell. Metabolites enriched in excess of biomass were taurine and isethionic acid, the reduced sulfur osmolytes dimethylsulfoniopropionate (DMSP) and dimethylsulfonioacetate (DMS-Ac), and the isomers homarine and trigonelline. A few metabolites more abundant in the anticyclone were also given putative identifications based on RT and *m/z* matching with internal standards later added. Of these, the putative arsenobetaine was the most significantly different among these with a peak area at the anticyclone DCM nearly quadruple that of the cyclone. Of note, the 173.09211 *m/z* mass feature noted above was among the most significantly different between the two eddies, along with two isomers at an *m/z* of 170.11756 and retention times around 8-9 minutes that increased by a factor of 1.5 in the anticyclone (putative formula C$_7$H$_{14}$N$_4$O).
+Many of the known metabolites enriched in the cyclone are expected given the overall higher biomass, particularly as many function as osmolytes in the cell. Metabolites enriched in excess of biomass were taurine and isethionic acid, the reduced sulfur osmolytes dimethylsulfoniopropionate (DMSP) and dimethylsulfonioacetate (DMS-Ac), and the isomers homarine and trigonelline. A few metabolites more abundant in the anticyclone were also given putative identifications based on RT and *m/z* matching with internal standards later added. Of these, the putative arsenobetaine was the most significantly different among these with a peak area at the anticyclone DCM nearly quadruple that of the cyclone. Of note, the 173.09211 *m/z* mass feature noted above was among the most significantly different between the two eddies, along with two isomers at an *m/z* of 170.11756 and retention times around 8-9 minutes that increased by a factor of 1.5 in the anticyclone (putative formula C$_7$H$_{14}$N$_4$O).
 
 ```{r putative 170.11756 formula, eval=FALSE}
 # Two possible formula: C9H16NO2 and C7H14N4O
@@ -1258,13 +1261,13 @@ The eddy effects, on the other hand, were much less strong during this cruise. O
 
 ## Multivariate approaches reveal metabolome-wide shifts across eddy dipoles
 
-The North Pacific Subtropical Gyre shows significant variation in its particulate composition due to mesoscale eddies. We sampled the metabolome across two sets of eddy dipoles to explore the effect of sea level anomaly (SLA).
+We measured the metabolome of samples collected across two sets of eddy dipoles to explore the effect of sea level anomaly (SLA) on metabolite composition and found that mesoscale eddies explain a significant portion of observed variations in particulate metabolomes.
 
-In all of the datasets analyzed here, we detected a significant difference in the composition of the metabolome between eddies. This effect was strongest in the samples taken during the Lagrangian stations at the center of each eddy in the 2017 MESOSCOPE cruise, with nearly a quarter of the total variance explained by the eddy from which the samples were taken. In the samples taken along the eddy transect, the largest effect was detected in the deepest samples taken from 175 meters and from the DCM, with much less of a response at the surface. In the Falkor samples, however, the opposite was true with a larger SLA response at the surface than that at the DCM. In each case, the differences introduced by SLA were smaller than those of depth when compared directly, with even the high-resolution sampling around the DCM finding slightly more variance explained by the 40 meter difference in sampling depth than the 40 centimeter difference in SLA. This result agrees well with prior research by @Heal2021 and @Kumler2023 showing the large effect of sampling depth on the metabolome. 
+In all of the datasets analyzed here, we detected a significant difference in the composition of the metabolome between eddy dipoles. This effect was strongest in the samples taken during the Lagrangian stations at the center of each eddy in the 2017 MESOSCOPE cruise, with nearly a quarter of the total variance explained by the eddy from which the samples were taken. In the samples taken along the eddy transect, the largest effect was detected in the deepest samples taken from 175 meters and from the DCM, with much less of a response at the surface. In the Falkor samples, however, the opposite was true with a larger SLA response at the surface than that at the DCM. In each case, the differences introduced by SLA were smaller than those of depth when compared directly, with even the high-resolution sampling around the DCM finding slightly more variance explained by the 40 meter difference in sampling depth than the 40 centimeter difference in SLA. This result agrees well with prior research by @Heal2021 and @Kumler2023 showing the large effect of sampling depth on the metabolome. 
 
-Although possible that these differences are due to latitudinal shifts or simply background variation in the gyre environment, the transect data in particular implies that this is more due to eddies given the relative similarity of samples taken outside of the eddies. The transect sampled both outside of each edge and and between the two eddies across a large spatial gradient (~4° latitude and 2° longitude), yet the non-eddy samples from all three locations grouped together, showed similar median metabolite concentrations, and were visually similar in the most abundant metabolite composition. These results imply that strong cyclonic and anticyclonic eddies represent endpoints in NPSG composition, in agreement with results from @Barone2019 which found the most extreme values in the Hawaii Ocean Time series data to be usually detected when eddies passed over Station ALOHA. We also detected the largest differences in the DCM metabolome at the exact center of the eddy, with Station 12 highly distinct from even the nearest stations, while no such stark difference was found in the anticyclone (Figures 1 and 2). This perhaps indicates that the exact center of the eddy at the DCM is a unique metabolome relative to the rest of the transect rather than a smooth continuation of the existing trends.
+Although possible that the observed differences in metabolomes across eddy dipoles are due to latitudinal shifts or simply background variation in the gyre environment, the transect data in particular implies that this is not the case. Samples taken when the absolute value of the SLA was less than 5 cm were more similar to each other than to those samples taken within the eddies despite larger differences in latitude. The transect sampled both outside of each eddy and between the two across a large spatial gradient (~4° latitude and 2° longitude), yet the non-eddy (absolute value of SLA < 5 cm) samples from all three locations grouped together, showed similar median metabolite concentrations, and were visually similar in the most abundant metabolite composition. These results imply that strong cyclonic and anticyclonic eddies represent endpoints in NPSG composition, in agreement with results from @Barone2019 which found the most extreme values in the Hawaii Ocean Time series data typically detected when eddies passed over Station ALOHA. We also detected the largest differences in the DCM metabolome at the exact center of the eddy, with Station 12 highly distinct from even the nearest stations, while no such stark difference was found in the anticyclone (Figures 1 and 2). This perhaps indicates that the exact center of the eddy at the DCM is a unique metabolome relative to the rest of the transect rather than a smooth continuation of the existing trends.
 
-A large portion of this effect was due to differences in biomass, with earlier work in the same location by @Barone2022 showing that particulate carbon (PC), chlorophyll, and beam attenuation were all 20-80% higher in the DCM of the cyclone relative to the anticyclone. We see this reflected particularly well in the targeted metabolites measured here, with clear depth trends and a strong correlation between total metabolite concentration and PC values. However, even after controlling for biomass effects by normalizing each sample to the sum of signal measured within it we still found a significant SLA effect, likely due to shifts in the community composition beyond bulk biomass as species are reduced or replaced entirely by the increased eukaryote presence in the cyclone DCM.
+A large driver of metabolomic differences was shifts in total biomass, with earlier work in the same location by @Barone2022 showing that particulate carbon (PC), chlorophyll, and beam attenuation were all 20-80% higher in the DCM of the cyclone relative to the anticyclone. We see this reflected particularly well in the targeted metabolites measured here, with clear depth trends and a strong correlation between total metabolite concentration and PC values. However, even after controlling for biomass effects by normalizing each sample to the sum of signal measured within it we still found a significant SLA effect, likely due to shifts in the community composition and in particular the increased eukaryote presence in the cyclone DCM.
 
 High-resolution depth sampling around the DCM at the eddy centers allowed us to explore the multivariate interactions between depth and SLA. Given that the difference in DCM depth between the two eddies was approximately 20 meters, our 10-meter sampling resolution allowed us to explore two potential models for metabolites. The first model, one driven largely by pressure or light availability, expects the absolute depth to be a stronger predictor than the difference in depth from the DCM center. The second model is more sensitive to dissolved water column parameters such as salinity or temperature, and predicts that samples equal distances from the DCM will be the most similar. The strong correlation of both depth and SLA with the first principal component of the PCA indicates that the largest variance in the system is best captured by a combined model with largest PC1 values in the deep anticyclone and smallest in the shallow cyclone.
 
@@ -1318,11 +1321,11 @@ vegan::adonis2(
   permutations = 999, method = "manhattan")
 ```
 
-The NMDS plots of the high-resolution depth samples were also illustrative of sample similarity, with clear SLA and depth trends. The anticyclonic samples grouped tightly and showed little variance with depth or triplicate when compared to the cyclonic samples with the exception of DCM triplicate B, which was highly distinct for unknown reasons. In contrast, the cyclonic samples were much more variable as is perhaps expected when the biomass is in the form of larger phytoplankton that are less homogenous in the environment. One notable aspect of their clustering was the way in which the deepest samples (DCM plus 20m) grouped most closely to the anticyclonic samples, perhaps indicating that below the DCM the metabolome rapidly approaches a uniform deep-water signal as seen in the 175 meter samples of the eddy transect in @Kumler2023, which showed that the samples from the deep euphotic zone were more similar to each other than those taken from the surface or DCM were to other surface or DCM samples.
+The NMDS plots of the high-resolution depth samples were also illustrative of sample similarity, with clear SLA and depth trends. The anticyclonic samples grouped tightly and showed little variance with depth or triplicate when compared to the cyclonic samples with the exception of DCM triplicate B, which was highly distinct for unknown reasons. In contrast, the cyclonic samples were much more variable as is perhaps expected when the biomass is in the form of larger phytoplankton that are less homogenous in the environment. One notable aspect of their clustering was the way in which the deepest samples (DCM plus 20m) grouped most closely to the anticyclonic samples, perhaps indicating that below the DCM the metabolome rapidly approaches a uniform deep-water signal. This result was noted previously in the 175 meter samples of the eddy transect in @Kumler2023, where samples from the deep euphotic zone showed greater intra-depth similarity than samples from the DCM or surface.
 
-Given the confluence of both depth and SLA signals and the way that the boxplots of Figure 1 and Supplemental figure 1 would confound the SLA signal with the depth variance, we used k-means clustering to group similar compounds and provide a reduced dimensionality space for visualization. This revealed four major patterns of metabolite response, with a majority of compounds responding to eddy state (Clusters 1, 2, and 4 in Figure 4). It is interesting to note that the sole cluster in which abundances in the anticyclone are greater than those of the cyclone is also the only cluster to generally increase in abundance with depth (Cluster 4), perhaps indicating that compounds more concentrated in the anticyclone are the same kind of degradation products and recalcitrant carbon that is found at depth. Cluster 3, which shows no clear SLA difference and only a slight change with depth, includes compounds which are either unaffected by the environment or simply lack an environmental signal due to large inter-sample variability.
+Given the confluence of both depth and SLA signals and the way that the boxplots of Figure 1 and Supplemental Figure 1 would confound the SLA signal with the depth variance, we used k-means clustering to group similar compounds and provide a reduced dimensionality space for visualization. This revealed four major patterns of metabolite response, with a majority of compounds responding to eddy state (Clusters 1, 2, and 4 in Figure 4). It is interesting to note that the sole cluster in which abundances in the anticyclone are greater than those of the cyclone is also the only cluster to generally increase in abundance with depth (Cluster 4), perhaps indicating that compounds more concentrated in the anticyclone are the same kind of degradation products and recalcitrant carbon that is found at depth. Cluster 3, which shows no clear SLA difference and only a slight change with depth, includes compounds which are either unaffected by the environment or simply lack an environmental signal due to large inter-sample variability.
 
-The Falkor cruise upset many of the expectations we developed during the MESOSCOPE cruise in the previous year. Most surprising was the large difference between the eddies detected at the *surface*, while the DCM samples were functionally indistinguishable. This contrasts directly with the results from MESOSCOPE and the results in @Dugenne2023 and @Gleish2023, in which the largest differences were found at the DCM or below. This was especially surprising given the large inter-replicate differences between the Falkor surface samples, while the DCM samples tended to be much more consistent.
+The Falkor cruise upset many of the expectations we developed during the MESOSCOPE cruise in the previous year. Most surprising was the large difference between the eddies detected at the *surface*, while the DCM samples were functionally indistinguishable. This contrasts directly with the results from MESOSCOPE and the results in @Gleich2024, who found eddy-driven shifts in protistan community composition to be larger at depth than at the surface. However, @Dugenne2023 found differences in nitrogen fixation rate and nitrogen fixer composition varying widely throughout the upper water column. The large surface differences were especially surprising given the large inter-replicate differences between the Falkor surface samples in this study, while the DCM samples tended to be much more consistent.
 
 ## Univariate approaches highlight individual metabolites responding to lifted and depressed isopycnals
 
@@ -1346,9 +1349,9 @@ untarg_feats %>%
 
 ```
 
-Several molecule- or pathway-specific narratives emerged from the metabolomic data described above as well. The untargeted approach used here allowed us to describe and chatacterize signals from small molecules whose identity was unknown, a particularly promising approach in open ocean gyres where the largest fraction of unknowns is found [@Heal2021]. We found that this was especially true in anticyclonic eddies at all depths, with the diversity of the cyclone much better characterized by our list of authentic standards. Many of the trends detected below persisted even after normalizing within each sample, indicating that the shifts discussed have implications beyond simple scaling with biomass.
+Several molecule- or pathway-specific narratives emerged from the metabolomic data. The untargeted approach used here allowed us to describe and characterize signals from small molecules whose identity was unknown, a particularly promising approach in open ocean gyres where the largest fraction of unknowns is found [@Heal2021]. We found that our list of authentic standards covered fewer metabolites in anticyclonic eddies at all depths, with the molecular diversity of the cyclone much better characterized. Many of the trends detected below persisted even after normalizing within each sample, indicating that the shifts discussed have implications beyond simple scaling with biomass.
 
-Of those molecules whose identity was known, the clearest response to SLA was that of the enigmatic osmolyte homarine at the DCM. This abundant compound increased approximately threefold in concentration from < 50 pM in the anticyclone to around 150 pM in the center of the cyclone in both the eddy transect and eddy center datasets. The pattern was weaker in the noisier Falkor data but the largest concentrations were still detected in the cyclone and the median cyclone measurement was greater than the maximum value for the anticyclone. This molecule has a well-established role as an osmolyte in eukaryotic phytoplankton and cyanobacteria [@Gebser2013; @Dawson2020; @Heal2021; @Durham2022] as well as a documented decrease in abundance with depth [@Heal2021], indicating that this shift is potentially due to any combination of differences in location, DCM depth, total biomass, and community composition. Homarine was tightly correlated with trigonelline, and although they have structural similarity they are not known to have a relationship beyond their shared function as osmolytes.
+Of those molecules whose identity was known, the clearest response to SLA was that of the enigmatic osmolyte homarine at the DCM. This abundant compound increased approximately threefold in concentration from < 50 pM in the anticyclone to around 150 pM in the center of the cyclone in both the eddy transect and eddy center datasets. The pattern was weaker in the noisier Falkor data but the largest concentrations were still detected in the cyclone and the median cyclone measurement was greater than the maximum value for the anticyclone. This molecule has a well-established role as an osmolyte in eukaryotic phytoplankton and cyanobacteria [@Gebser2013; @Dawson2020; @Heal2021; @Durham2022] as well as a documented decrease in abundance with depth [@Heal2021], indicating that its response to SLA is potentially due to differences in physical and chemical attributes that in turn control biomass, community composition, and recycling rates. Homarine was also tightly correlated with trigonelline, and although they have structural similarity they are not known to have a relationship beyond their shared function as osmolytes.
 
 ```{r homarine by SLA plot, eval=FALSE}
 targ_hom <- targ_peaks %>%
@@ -1393,15 +1396,13 @@ targ_hom %>%
   geom_hline(yintercept = 0) +
   geom_boxplot(linewidth=0.75) +
   coord_cartesian(ylim = c(0, 0.5), xlim=c(0.5, 2.5), expand = FALSE) +
-  scale_x_discrete(breaks = c("Cyclone", "Anticyclone"), labels = c("Cyclone\ncenter", "Anticyclone\ncenter")) +
   scale_color_manual(values = c(scales::muted("blue"), scales::muted("red")),
                      breaks = c("Cyclone", "Anticyclone")) +
-  theme_bw() +
-  theme(axis.text.y = element_blank(), axis.title.y = element_blank(),
-        legend.position = "none", axis.title.x = element_blank())
+  theme_bw()
+
 ```
 
-Similarly to homarine, isethionate is a known osmolyte thus far found exclusively in eukaryotes [@Durham2022] and strongly associated with a few diatoms in particular [@Heal2021]. This compound was enriched in the cyclone of the DCM in both the MESOSCOPE and Falkor cruises along with its precursor taurine, validating earlier results from @Barone2022 that showed strong enrichment of most eukaryotes at the DCM and *Pseudo-nitzschia* in particular. Taurine was also among the compounds highly enriched in the anomalous surface sample from Station 11 (MS11C215m_A), likely along with its trimethylated form taurine betaine (N-trimethyltaurine). While putative in our analysis, taurine betaine has been previously reported in corals and red algae, where it probably has a destabilizing influence on proteins [@Impellizzeri1975; @Hill2017; @Bruzdziak2018]. Although the distinctive taurine pattern could have been due to a real biological difference, it is difficult to assign much confidence to this hypothesis. While *Trichodesmium* are notoriously patchy [@Rouco2014; @Rouco2016], we did not see a strong match to the cultured cyanobacteria in any of the other metabolites with this pattern and the distinctive homoserine betaine osmolyte was missing [@Pade2016].
+Isethionate is a known osmolyte thus far found exclusively in eukaryotes [@Durham2022] and strongly associated with a few diatoms in particular [@Heal2021]. This compound was enriched in the cyclone of the DCM in both the MESOSCOPE and Falkor cruises along with its precursor taurine, validating earlier results from @Barone2022 that showed strong enrichment of most eukaryotes at the DCM and *Pseudo-nitzschia* in particular. Taurine was also among the compounds highly enriched in the anomalous surface sample from Station 11 (MS11C215m_A), likely along with its trimethylated form taurine betaine (N-trimethyltaurine). While putative in our analysis, taurine betaine has been previously reported in corals and red algae, where it probably has a destabilizing influence on proteins [@Impellizzeri1975; @Hill2017; @Bruzdziak2018]. While *Trichodesmium* are notoriously patchy [@Rouco2014; @Rouco2016], we did not see a strong match to the cultured cyanobacteria in any of the other metabolites with this pattern and the osmolyte homoserine betaine shown by @Pade2016 to be characteristic of *T. erythraeum* strain IMS101 was missing.
 
 
 ```{r isethionate and taurine, eval=FALSE}
@@ -1421,16 +1422,18 @@ targ_peaks %>%
   facet_grid(compound_name~ms_run, scales="free")
 ```
 
-The strong SLA signal detected among the 175 meter samples was partially surprising to us, having expected the effect to be strongest at the DCM where isopycnals are interacting strongly with light from the surface. Instead, we found more compounds overall to be significantly different across the eddy transect in the 175 meter samples than we did at the DCM (α=0.05, 43 compounds at 175 meters vs 22 at the DCM). The enrichment of nucleobases in the 175 meter samples may hint at bacterial biomass enrichment, as nucleobases tend to be highly abundant in bacterial cultures [@Heal2021]. The abundance of a mass feature putatively identified as acetylcholine in the 175 meter cyclone samples followed the same general trend as arsenobetaine, both enriched at depth and in the anticyclone, and may be another compound that's the result of heterotrophic degradation of phytoplankton metabolites [@Heal2021]. These results raise important questions about the depth at which the community is isolated from SLA effects, with additional data from @Barone2022 and @Gleish2023 indicating that even at 250 meters eddy effects are still discernable.
+The strong SLA signal detected among the 175 meter samples was partially surprising to us, having expected the effect to be strongest at the DCM where isopycnals are interacting strongly with light from the surface. Instead, we found more compounds overall to be significantly different across the eddy transect in the 175 meter samples than we did at the DCM (α=0.05, 43 compounds at 175 meters vs 22 at the DCM). The enrichment of nucleobases in the 175 meter samples may hint at bacterial biomass enrichment, as nucleobases tend to be highly abundant in bacterial cultures [@Heal2021]. The abundance of a mass feature putatively identified as acetylcholine in the 175 meter cyclone samples followed the same general trend as arsenobetaine, both enriched at depth and in the anticyclone, and may be another compound that's the result of heterotrophic degradation of phytoplankton metabolites [@Durham2022]. These results raise important questions about the depth at which the community is isolated from SLA effects, with additional data from @Barone2022 and @Gleich2024 indicating that even at 250 meters eddy effects are still discernable.
 
-A final pattern worth noting is the apparent upregulation of metabolites in the urea-ornithine cycle (OUC) among the samples taken during the Falkor cruise. Aspartate, citrulline, ornithine, and malic acid were all found to be more abundant in the Falkor samples relative to MESOSCOPE. The OUC is a staple of metazoan metabolism and is present in stramenopiles as well where it enables rapid response to increases in nitrogen supply [@Allen2011; @Bender2014]. The enrichment of these metabolites in the Falkor cruise may indicate that there was still rapid uptake and turnover of nitrogen in the 2018 eddy pair while the 2017 eddies were more stable, despite both eddies being in a similar state of stable anticyclone and weakening cyclone [@Dugenne2023].
+A final pattern worth noting is the enrichment of metabolites in the urea-ornithine cycle (OUC) among the samples taken during the Falkor cruise. Aspartate, citrulline, ornithine, and malic acid were all found to be more abundant in the Falkor samples relative to MESOSCOPE. The OUC is a staple of metazoan metabolism and is present in stramenopiles as well where it enables rapid response to increases in nitrogen supply [@Allen2011; @Bender2014]. The enrichment of these metabolites in the Falkor cruise may indicate that there was still rapid uptake and turnover of nitrogen in the 2018 eddy pair while the 2017 eddies were more stable, despite both eddies being in a similar state of stable anticyclone and weakening cyclone [@Dugenne2023].
 
-More broadly, differences between the two cruises are most likely due to differences in eddy age and the earlier sampling time of the 2018 cruise (March/April instead of the June/July sampling in 2017) resulting in shifts in community composition and response. @Barone2022 documents the 2017 cruise community composition, reporting abundant Prymnesiophyceae at both the surface and DCM (largely), with other significant contributions from dinoflagellates, diatoms, and green algae. In the 2018 cruise both haptophytes (likely prymnesiophytes?) and dinoflagellates again dominated the eukaryotic fraction, though notably very little was contributed by diatoms [@Gleish2023]. Overall we are inclined to agree with @Dugenne2023 and @Harke2021 in their concerns about generalizing eddy effects due to uncontrolled differences in these crucial factors and will note that many of the difficulties documented there are exacerbated when working with highly multidimensional metabolite data.
+More broadly, differences between the two cruises are most likely due to differences in eddy age and the earlier sampling time of the 2018 cruise (March/April instead of the June/July sampling in 2017) resulting in shifts in community composition and response. @Barone2022 documents the 2017 cruise community composition, reporting abundant Prymnesiophyceae at both the surface and DCM, with other significant contributions from dinoflagellates, diatoms, and green algae. In the 2018 cruise both haptophytes and dinoflagellates again dominated the eukaryotic fraction, though notably very little was contributed by diatoms [@Gleich2024]. @Dugenne2023 and @Harke2021 also cite uncontrolled differences between eddies based on their origin and age.
+
+Missing links between the environment with its associated community and the composition of particulate matter make it difficult to estimate this important control on the marine carbon cycle. This is especially true for dynamic and short-lived environments such as eddies. Metabolites offer a way to bridge this gap in knowledge but the relative impact of eddies on their contribution and fate was not previously estimated. In this manuscript, we have shown the sensitivity of the metabolome to various environmental and community factors and contrasted it to the well-established effect of depth to constrain the importance of including eddy effects in carbon cycle models.
 
 # Methods
 
 ## Cruise information
-Samples were collected from two cruises in the North Pacific Subtropical Gyre near Station ALOHA that targeted strong mesoscale eddy features as described in @Dugenne2023 and @Gleish2023. Briefly, the 2017 MESOSCOPE cruise (KM1709 on the *R/V Kilo Moana*) consisted of a transect across the cyclonic and anticyclonic poles of the eddy dipole as well as two long-term Lagrangian stations at the center of each eddy. The cyclonic pole of the eddy had a maximum negative SLA anomaly of -20 centimeters and the anticyclonic center reached +24 centimeters. The transect samples were taken at various times of day as the ship transected the dipole, and the eddy center samples were all collected between 5 and 8 pm. In 2018, the Falkor cruise (FK180310 on the *R/V Falkor*) targeted a new eddy dipole in approximately the same location with samples taken at the center of each eddy (maximum negative anomaly in the cyclone = -15 cm, maximum positive anomaly in the anticyclone = 26 cm).
+Samples were collected from two cruises in the North Pacific Subtropical Gyre near Station ALOHA that targeted strong mesoscale eddy features as described in @Dugenne2023 and @Gleich2024. Briefly, the 2017 MESOSCOPE cruise (Microbial Ecology of the Surface Ocean-Simons Collaboration on Ocean Processes and Ecology, KM1709 on the *R/V Kilo Moana*) consisted of a transect across the cyclonic and anticyclonic poles of the eddy dipole as well as two long-term Lagrangian stations at the center of each eddy. The cyclonic pole of the eddy had a maximum negative SLA anomaly of -20 centimeters and the anticyclonic center reached +24 centimeters. The transect samples were taken at various times of day as the ship transected the dipole, and the eddy center samples were all collected between 5 and 8 pm. In 2018, the Falkor cruise (FK180310 on the *R/V Falkor*) targeted a new eddy dipole in approximately the same location with samples taken at the center of each eddy (maximum negative anomaly in the cyclone = -15 cm, maximum positive anomaly in the anticyclone = 26 cm).
 
 ## Biogeochemical data
 
@@ -1461,7 +1464,7 @@ All statistics were run in R version `r paste(version$major, version$minor, sep=
 
 # Conclusions
 
-Here, we measure the effect of mesoscale eddies on the metabolome of the North Pacific Subtropical Gyre in both absolute and relative space. [TBD].
+This study reports how changes in the biogeochemical environment and its associated community due to mesoscale eddy-driven mechanisms affect the metabolome and thereby the composition of particulate organic matter. The transect across an oligotrophic eddy dipole shows that many metabolites track closely with metrics of overall biomass, with eddy effects stronger at 175 meters than at the surface or deep chlorophyll maximum (DCM). High-resolution depth sampling of the DCM at the center of each eddy elucidated several known and unknown biomarkers likely corresponding to the well-documented increase in picoeukaryotes in the cyclone. Metabolite clusters aligned well with expected trends in abundance with depth and between the two eddies, with rapid convergence below the DCM towards a general deep-sea metabolite signal. By contrasting these effects with a followup analysis in the centers of a separate dipole the following year, we also learned that the importance of eddies may be an unpredictable interaction between origin and age. Finally, the metabolites with the strongest responses to eddy effects were unknown and a relatively smaller proportion of known metabolites in the anticyclone demonstrates the utility of untargeted metabolomics in exploring environmental variation and the large amount of information that can still be gleaned from such datasets.
 
 # References
 

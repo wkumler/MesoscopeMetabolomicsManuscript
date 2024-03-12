@@ -726,5 +726,19 @@ rfrs %>%
   geom_abline(slope = 1, intercept = 0) +
   lims(x=c(0, NA), y=c(0, NA)) +
   coord_fixed()
+
+
+rfs <- read_csv("made_data/rf_ratios.csv")
+rfs %>%
+  select(compound_name, cruise, rf_matrix) %>%
+  pivot_wider(names_from = cruise, values_from = rf_matrix) %>%
+  ggplot(aes(x=Falkor, y=Mesotransect, label=compound_name)) +
+  geom_point() +
+  geom_abline(slope = 1, intercept = 0) +
+  lims(x=c(0, NA), y=c(0, NA)) +
+  coord_fixed() +
+  scale_y_log10() +
+  scale_x_log10()
+plotly::ggplotly()
 ```
 
