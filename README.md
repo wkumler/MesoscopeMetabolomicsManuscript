@@ -7,6 +7,29 @@ Mesoscale eddies significantly alter open ocean environments such as the North P
 
 ## Repository structure
 
+  - manuscript/
+    - **manuscript.Rmd** R Markdown document containing code for analysis and written text
+    - **figures/** Main text figures for the manuscript (see gallery below)
+  - metadata/
+    - **metadata_control.Rmd** R Markdown document that downloads and collates metadata into filled_file_metadata.csv for use in the analysis
+    - **raw_data/** Raw data downloaded from the SCOPE website (https://scope.soest.hawaii.edu/data/)
+    - **allmeso_metadata.pdf** Simple visualization of metadata columns across cruise track
+    - **clean_stans.csv** Cleaned copy of the [Ingalls Lab Standards Sheet](https://github.com/IngallsLabUW/Ingalls_Standards)
+  - targeted/
+    - **targeted_control.Rmd** Script for running the targeted analyses
+      - Requires metadata/filled_file_metadata.csv, metadata/clean_stans.csv
+      - Produces made_data/longdata.csv
+    - **raw_data/** (ignored by Git)
+      - Falkor/, Mesocenters/, and Mesotransect/ directories with Skyline and MSDIAL outputs
+    - **made_data/**
+      - **longdata.csv** Clean version of all targeted data and values after BMIS and Quant for use in the manuscript analysis
+      - TBD, fill in tomorrow
+  - untargeted/
+    - **untargeted_control.Rmd** Script for running the untargeted analyses
+    - TBD, fill in tomorrow
+  - mzMLs/ (ignored by Git)
+    - neg/, pos/, and tricho_pos/ directories containing the corresponding [mzML files from Metabolomics Workbench](http://dx.doi.org/10.21228/M82719)
+
 ## Deliverables
 
 ## Figure gallery
