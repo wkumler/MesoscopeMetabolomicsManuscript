@@ -9,6 +9,7 @@
 !manuscript/figures/*
 
 !metadata/*
+metadata/secret_keys.txt
 !metadata/figures/*
 !metadata/raw_data/*
 !metadata/made_data/*
