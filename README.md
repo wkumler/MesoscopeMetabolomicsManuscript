@@ -18,19 +18,25 @@ Mesoscale eddies significantly alter open ocean environments such as the North P
   - targeted/
     - **targeted_control.Rmd** Script for running the targeted analyses
       - Requires metadata/filled_file_metadata.csv, metadata/clean_stans.csv
+      - Requires Skyline files and SkylineRunner.exe (MSDIAL output must be manually exported)
       - Produces made_data/longdata.csv
     - **raw_data/** (ignored by Git)
       - Falkor/, Mesocenters/, and Mesotransect/ directories with Skyline and MSDIAL outputs
     - **made_data/**
       - **longdata.csv** Clean version of all targeted data and values after BMIS and Quant for use in the manuscript analysis
-      - TBD, fill in tomorrow
   - untargeted/
     - **untargeted_control.Rmd** Script for running the untargeted analyses
-    - TBD, fill in tomorrow
+    - ***_output** Folders containing intermediate data products from XCMS for Falkor (FK_) and MESOSCOPE (MS_)
+    - **all_feats.csv** Molecular feature information (mzmed, rtmed, compound/structure/class)
+    - **all_peaks.csv** Peak area information (feature, filename, area)
   - mzMLs/ (ignored by Git)
     - neg/, pos/, and tricho_pos/ directories containing the corresponding [mzML files from Metabolomics Workbench](http://dx.doi.org/10.21228/M82719)
 
 ## Deliverables
+
+  - [Exact (nM) concentrations for 68 particulate metabolites](https://github.com/wkumler/MesoscopeMetabolomicsManuscript/blob/master/targeted/Falkor_Targeted_nM.xlsx) in 24 Falkor samples
+  - [Exact (nM) concentrations for 60 particulate metabolites](https://github.com/wkumler/MesoscopeMetabolomicsManuscript/blob/master/targeted/Falkor_Targeted_nM.xlsx) in 99 MESOSCOPE eddy transect samples and 30 MESOSCOPE eddy center samples
+  - [Peak areas for 640 molecular features](https://github.com/wkumler/MesoscopeMetabolomicsManuscript/blob/master/untargeted/all_peaks.csv) (de-adducted and de-isotoped, normalized to BMIS) across Falkor and MESOSCOPE (analyzed separately)
 
 ## Figure gallery
 
