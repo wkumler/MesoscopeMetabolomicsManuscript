@@ -30,7 +30,7 @@ if(!file.exists("../mzMLs/neg/180205_Poo_TruePoo_Full1.mzML")){
   file.remove("../mzMLs/ST002788_HILIC_POS.zip")
   download.file("ftp://www.metabolomicsworkbench.org/Studies/ST002789_HILIC_POS.zip",
                 destfile = "../mzMLs/ST002789_HILIC_POS.zip")
-  stop("File extraction has to be done manually - file too large for R's unzip")
+  unzip("../mzMLs/ST002789_HILIC_POS.zip", exdir = "../mzMLs/pos", unzip="unzip")
   file.remove("../mzMLs/ST002789_HILIC_POS.zip")
   options(timeout=init_timeout)
 }
@@ -82,9 +82,24 @@ if(!file.exists("../untargeted/all_peaks.csv")){
 ```
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, eval = FALSE)
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, eval = TRUE)
 library(tidyverse)
 library(RaMS)
+library(vegan)
+library(cowplot)
+library(viridis)
+library(scales)
+library(ggnewscale)
+library(egg)
+library(broom)
+library(lme4)
+library(openxlsx)
+library(readxl)
+library(ggh4x)
+library(ggtext)
+library(gridExtra)
+
+if(!dir.exists("supplement"))dir.create("supplement")
 
 filled_file_metadata <- read_csv("../metadata/filled_file_metadata.csv") %>%
   filter(polarity=="pos") %>%
