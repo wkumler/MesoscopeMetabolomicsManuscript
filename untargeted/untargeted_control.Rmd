@@ -1,0 +1,687 @@
+---
+title: "output_control_v2"
+author: "William Kumler"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE, purl=TRUE}
+knitr::opts_chunk$set(echo = TRUE, purl=FALSE)
+options(pillar.sigfig=7)
+options(readr.num_columns = 0)
+options(readr.show_col_types = FALSE)
+library(tidyverse)
+library(data.table)
+library(xcms)
+library(RaMS)
+
+# polarity <- "pos"
+# polarity <- "neg"
+# cruise <- "FK"
+# cruise <- "MS"
+
+output_folder <- paste0(c(cruise, polarity, "output/"), collapse = "_")
+if(!dir.exists(output_folder))dir.create(output_folder)
+
+mzML_files <- if(cruise=="FK"){
+  list.files(paste0("../mzMLs/", polarity), full.names=TRUE, 
+             pattern = "190715")
+} else if(cruise=="MS"){
+  list.files(paste0("../mzMLs/", polarity), full.names=TRUE, 
+             pattern = "170706|180821|180205")
+} else {
+  stop("Unsupported cruise!")
+}
+
+parallel_param <- SnowParam(
+  workers = parallel::detectCores()-1, 
+  tasks = length(mzML_files), 
+  progressbar = TRUE
+)
+output_csv_write <- function(object){
+  obj_name <- deparse(substitute(object))
+  write_csv(object, file = paste0(output_folder, obj_name, ".csv"))
+}
+filled_file_metadata <- read_csv("../metadata/filled_file_metadata.csv") %>% filter(polarity==!!polarity)
+```
+
+```{r Make metadata}
+sample_type_vec <- c("Blk", "25mSmp", "DCMSmp", "175mSmp", "15mSmp", "Std", "Poo")
+file_data <- data.frame(filename=mzML_files) %>%
+  mutate(samp_type=str_extract(filename, "Blk|Smp|Std|Poo")) %>%
+  mutate(depth=str_extract(filename, "25m|DCM|175m|15m")) %>%
+  mutate(depth=ifelse(is.na(depth), "", depth)) %>%
+  mutate(samp_group=factor(paste0(depth, samp_type), levels=sample_type_vec))
+output_csv_write(file_data)
+```
+
+```{r Read in MS files}
+register(BPPARAM = SerialParam(progressbar = TRUE))
+msnexp <- readMSData(
+  files = file_data$filename, 
+  pdata = new("NAnnotatedDataFrame", file_data), 
+  msLevel. = 1, 
+  mode = "onDisk"
+)
+```
+
+```{r Perform peakpicking}
+register(BPPARAM = parallel_param)
+cwp <- CentWaveParam(
+  ppm = 5, 
+  peakwidth = c(20, 80), 
+  prefilter = c(3, 1e6), 
+  snthresh = 0, 
+  verboseColumns = TRUE, 
+  extendLengthMSW = TRUE, 
+  integrate = 2
+)
+msnexp_withpeaks <- findChromPeaks(msnexp, cwp)
+```
+
+```{r Perform RT correction}
+register(BPPARAM = SerialParam(progressbar = TRUE))
+obp <- ObiwarpParam(
+  binSize = 0.1, 
+  centerSample = round(nrow(file_data)/2), 
+  response = 1, 
+  distFun = "cor_opt"
+)
+msnexp_rtcor <- adjustRtime(msnexp_withpeaks, obp)
+
+# Extract corrected RTs for later use in feature extraction
+init_rts <- msnexp_rtcor %>%
+  dropAdjustedRtime() %>%
+  rtime() %>%
+  as.data.frame() %>%
+  rownames_to_column() %>%
+  set_names(c("scanid", "init_rt"))
+rt_corrections <- msnexp_rtcor %>%
+  rtime() %>%
+  as.data.frame() %>%
+  rownames_to_column() %>%
+  set_names(c("scanid", "new_rt")) %>%
+  mutate(filename=basename(fileNames(msnexp_rtcor)[as.numeric(str_extract(scanid, "\\d+"))])) %>%
+  left_join(init_rts, by="scanid") %>% 
+  mutate(new_rt=round(new_rt/60, 10), rt=round(init_rt/60, 10)) %>%
+  select(-init_rt, -scanid)
+output_csv_write(rt_corrections)
+```
+
+```{r Correspondence}
+register(BPPARAM = SerialParam(progressbar = TRUE))
+pdp <- PeakDensityParam(
+  sampleGroups = file_data$samp_group, 
+  bw = 12, 
+  minFraction = 0.1, 
+  binSize = 0.001, 
+  minSamples = 2
+)
+msnexp_grouped <- groupChromPeaks(msnexp_rtcor, pdp)
+```
+
+```{r Peak filling}
+register(BPPARAM = parallel_param)
+fpp <- FillChromPeaksParam(ppm = 2.5)
+msnexp_filled <- fillChromPeaks(msnexp_grouped, fpp)
+
+saveRDS(msnexp_filled, paste0(output_folder, "msnexp_filled.rds"))
+```
+
+```{r Organize into useful format}
+msnexp_filled <- readRDS(paste0(output_folder, "msnexp_filled.rds"))
+peak_data_long <- msnexp_filled %>%
+  chromPeaks() %>%
+  as.data.frame() %>%
+  rownames_to_column() %>%
+  mutate(peakidx=row_number())
+peak_data <- msnexp_filled %>%
+  featureDefinitions() %>%
+  as.data.frame() %>%
+  select(mzmed, rtmed, npeaks, peakidx) %>%
+  rownames_to_column("id") %>%
+  unnest_longer(peakidx) %>%
+  rename_with(~paste0("feat_", .x), .cols = -peakidx) %>%
+  dplyr::rename(feature="feat_id") %>%
+  left_join(peak_data_long, by = join_by(peakidx)) %>%
+  mutate(filename=basename(fileNames(msnexp_filled))[sample])
+
+peak_bounds <- peak_data %>%
+  select(feature, filename, mzmin, mzmax, rtmin, rtmax) %>%
+  mutate(rtmin=rtmin/60, rtmax=rtmax/60)
+
+output_csv_write(peak_bounds)
+output_csv_write(peak_data)
+```
+
+```{r Raw data feature extraction}
+file_data <- read_csv(paste0(output_folder, "file_data.csv"))
+peak_bounds <- read_csv(paste0(output_folder, "peak_bounds.csv"))
+rt_corrections <- read_csv(paste0(output_folder, "rt_corrections.csv"))
+qscoreCalculator <- function(dt){
+  rt <- dt$rt
+  int <- dt$int
+  #Check for bogus EICs
+  if(length(rt)<5){
+    return(data.frame(SNR=NA, peak_cor=NA))
+  }
+  #Calculate where each rt would fall on a beta dist (accounts for missed scans)
+  scaled_rts <- (rt-min(rt))/(max(rt)-min(rt))
+  
+  # Create a couple different skews and test fit
+  maybe_skews <- c(2.5,3,4,5) #Add 7 to catch more multipeaks and more noise
+  #Add 2 to catch very slopey peaks and more noise
+  best_skew <- maybe_skews[which.max(sapply(maybe_skews, function(x){
+    cor(dbeta(scaled_rts, shape1 = x, shape2 = 5), int)
+  }))]
+  perf_peak <- dbeta(scaled_rts, shape1 = best_skew, shape2 = 5)
+  peak_cor <- cor(perf_peak, int)
+  
+  
+  #Calculate the normalized residuals
+  residuals <- int/max(int)-perf_peak/max(perf_peak)
+  #Calculate the minimum SD, after normalizing for any shape discrepancy
+  old_res_sd <- sd(residuals)
+  norm_residuals <- diff(residuals)
+  new_res_sd <- sd(norm_residuals)
+  while(new_res_sd<old_res_sd){
+    old_res_sd <- new_res_sd
+    norm_residuals <- diff(residuals)
+    new_res_sd <- sd(residuals)
+  }
+  #Calculate SNR
+  SNR <- (max(int)-min(int))/sd(norm_residuals*max(int))
+  #Return the quality score
+  return(data.frame(SNR=SNR, peak_cor=peak_cor))
+}
+
+library(furrr)
+plan(multisession, workers = parallel::detectCores()-1)
+
+peakshape_rawdata <- future_map(file_data$filename, function(filename_i){
+  msdata_i <- grabMSdata(filename_i, grab_what="MS1", verbosity = 0) %>%
+    pluck("MS1") %>%
+    mutate(rt=round(rt, 10)) %>%
+    left_join(rt_corrections, by=c("filename", "rt")) %>%
+    select(rt=new_rt, mz, int, filename)
+  peak_bounds %>%
+    filter(filename==basename(filename_i)) %>%
+    pmap(function(...){
+      with(list(...), {
+        msdata_i[mz%between%c(mzmin, mzmax)][rt%between%c(rtmin, rtmax)] %>%
+          qscoreCalculator() %>%
+          mutate(feature)
+      })
+    }) %>%
+    bind_rows() %>%
+    mutate(filename=basename(filename_i))
+}, .progress = TRUE) %>%
+  bind_rows()
+peakshape_feature_summary <- peakshape_rawdata %>%
+  group_by(feature) %>%
+  summarise(med_SNR=median(SNR, na.rm=TRUE), med_cor=median(peak_cor, na.rm=TRUE))
+
+output_csv_write(peakshape_rawdata)
+output_csv_write(peakshape_feature_summary)
+```
+
+```{r Choose only quality features and remove blanks and summarize neatly}
+peak_data <- read_csv(paste0(output_folder, "peak_data.csv"))
+peakshape_feature_summary <- read_csv(paste0(output_folder, "peakshape_feature_summary.csv"))
+
+blk_features <- peak_data %>%
+  group_by(feature) %>%
+  summarize(blk_area=mean(into[str_detect(filename, "_Blk_")]),
+            smp_area=mean(into[str_detect(filename, "_Smp_")])) %>%
+  filter(smp_area/blk_area<3)
+
+clean_feat_data <- peak_data %>%
+  filter(!is.na(feat_mzmed)) %>%
+  group_by(feature) %>%
+  summarise(mean_mz=unique(feat_mzmed), mean_rt=unique(feat_rtmed), 
+            mean_area=mean(into)) %>%
+  filter(mean_rt%between%c(30, 1200)) %>%
+  left_join(peakshape_feature_summary, by = join_by(feature))
+if(polarity=="pos"){
+  classified_feats <- read_csv(paste0(output_folder, "classified_feats.csv")) %>%
+    select(feature, feat_class)
+  quality_feat_data <- clean_feat_data %>%
+    left_join(classified_feats, by = join_by(feature))
+} else {
+  quality_model <- read_csv(paste0(cruise, "_pos_output/peakshape_feature_summary.csv")) %>%
+    left_join(read_csv(paste0(cruise, "_pos_output/classified_feats.csv"))) %>%    
+      filter(feat_class%in%c("Good", "Bad")) %>%
+    mutate(feat_class=ifelse(feat_class=="Good", 1, 0)) %>%
+    glm(formula=feat_class~med_cor+med_SNR, family = binomial)
+  quality_feat_data <- clean_feat_data %>%
+    mutate(pred_prob=predict(quality_model, ., type="response")) %>%
+    mutate(feat_class=ifelse(pred_prob>0.5, "Good", "Bad"))
+}
+
+quality_peaks <- quality_feat_data %>%
+  filter(feat_class%in%c("Good", "Stans only")) %>%
+  select(feature) %>%
+  anti_join(blk_features) %>%
+  left_join(peak_data, by=join_by(feature), multiple="all") %>%
+  select(feature, feat_mzmed, feat_rtmed, into, filename) %>%
+  mutate(filename=basename(filename)) %>%
+  arrange(into) %>%
+  group_by(feature, filename) %>%
+  slice(1) %>%
+  ungroup() %>%
+  complete(feature, filename, fill = list(into=0)) %>%
+  group_by(feature, filename) %>%
+  mutate(feat_mzmed=mean(feat_mzmed, na.rm=TRUE),
+         feat_rtmed=mean(feat_rtmed, na.rm=TRUE))
+output_csv_write(quality_peaks)
+```
+
+```{r De-adduct and de-isotope, purl=TRUE}
+quality_peaks <- read_csv(paste0(output_folder, "quality_peaks.csv"))
+
+addiso_df <- tribble(
+  ~polarity, ~addiso_type, ~mz_diff,
+  "both", "C13", 1.003355,
+  "both", "N15", 0.997035,
+  "both", "C13N15", 2.00039,
+  "both", "O18", 2.004244,
+  "pos", "Na", 22.98922-1.007276,
+  "pos", "K", 38.96315-1.007276,
+  "neg", "Cl", 34.96940+1.007276,
+  "neg", "Ac", 59.01385+1.007276
+) %>%
+  filter(polarity%in%c(!!polarity, "both")) %>%
+  select(-polarity)
+
+possible_addisos <- quality_peaks %>%
+  pivot_wider(names_from = filename, values_from = into) %>%
+  select(feature, feat_mzmed, feat_rtmed) %>%
+  cross_join(x=., y=., suffix=c("", "_match")) %>%
+  filter(feature!=feature_match) %>%
+  # filter(feature=="FT0340") %>%
+  filter(feat_rtmed>feat_rtmed_match-10 & feat_rtmed<feat_rtmed_match+10) %>%
+  select(-feat_rtmed, -feat_rtmed_match) %>%
+  expand_grid(addiso_df) %>%
+  mutate(addiso_mz=feat_mzmed+mz_diff) %>%
+  # select(-addiso_type, -mz_diff) %>%
+  group_by(feature) %>%
+  rowwise() %>%
+  filter(feat_mzmed_match%between%pmppm(addiso_mz, 20)) %>%
+  select(feature, addiso=feature_match, addiso_type)
+
+actual_addisos <- possible_addisos %>%
+  left_join(quality_peaks, by=join_by(feature), multiple="all") %>%
+  left_join(quality_peaks, by=join_by(filename, addiso==feature), suffix=c("", "_addiso")) %>%
+  group_by(feature, addiso, addiso_type) %>%
+  summarize(addiso_cor=cor(into, into_addiso, use="complete"), .groups="drop") %>%
+  filter(addiso_cor>0.9) %>%
+  select(feature, addiso, addiso_type)
+deaddiso_peaks <- quality_peaks %>%
+  filter(!feature%in%actual_addisos$addiso)
+output_csv_write(deaddiso_peaks)
+```
+
+```{r Get manual IS integrations from Skyline, eval=!file.exists("IS_integrations/all_is.csv"), purl=TRUE}
+# Check that SkylineRunner.exe is installed
+if(system("IS_integrations/SkylineRunner.exe", show.output.on.console = FALSE)){
+  # Website = https://skyline.ms/wiki/home/software/Skyline/page.view?name=SkylineInstall_64_21-1&submit=false
+  stop("Please grab a copy of SkylineRunner from the website")
+}
+
+skyline_files <- list.files("IS_integrations", pattern = "sky$", full.names = TRUE)
+
+success_vec <- sapply(skyline_files, function(skyfile){
+  polarity <- str_extract(skyfile, "POSITIVE|NEGATIVE")
+  polarity <- switch(polarity, "POSITIVE"="pos", "NEGATIVE"="neg")
+  cruise <- str_extract(skyfile, "Falkor|Mesocenter|Mesotransect")
+  cruise <- tolower(cruise)
+  
+  sky_cmd <- paste0(
+    "IS_integrations/SkylineRunner.exe",
+    " --in=", skyfile,
+    ' --report-name="Ingalls_Lab_QE_Transition Results"', 
+    ' --report-file=IS_integrations/', cruise, "_", polarity, ".csv"
+  )
+  failed <- system(sky_cmd)
+  if(failed){
+    stop(paste("Extraction failed for file", skyfile))
+  }
+  
+  new_csv_name <- paste0("IS_integrations/", cruise, "_", polarity, ".csv")
+  new_csv <- read.csv(new_csv_name)
+  new_csv$polarity <- polarity
+  new_csv$cruise <- cruise
+  write.csv(new_csv, new_csv_name, row.names = FALSE)
+})
+
+csv_pattern <- "falkor|mesotransect|mesocenter_pos|neg.csv"
+new_csvs <- list.files("IS_integrations/", pattern = csv_pattern, full.names = TRUE)
+
+csv_list <- lapply(new_csvs, read.csv)
+csv_master <- do.call(what = "rbind", csv_list) %>%
+  filter(str_detect(Replicate.Name, "Poo|Smp|Blk")) %>%
+  mutate(Area=as.numeric(Area))
+
+# Fix sample 180821_Smp_MS6C315m_C which didn't get extraction standards added
+# Current fix is to replace with median Area of all other sample files
+ext_stans_list <- c(
+  "Isethionic Acid, 13C2",
+  "L-Cysteic Acid, D3",
+  "Sulfoacetic Acid, 13C2",
+  "Sulfolactic Acid, 13C3",
+  "Taurine, D4"
+)
+update_df <- csv_master %>%
+  filter(str_detect(Replicate.Name, "Smp")) %>%
+  filter(polarity=="neg") %>%
+  filter(Precursor.Ion.Name%in%ext_stans_list) %>%
+  mutate(Area=as.numeric(Area)) %>%
+  group_by(Precursor.Ion.Name) %>%
+  summarise(Area=median(Area)) %>%
+  mutate(Replicate.Name="180821_Smp_MS6C315m_C")
+csv_master <- csv_master %>%
+  rows_update(update_df, by = c("Precursor.Ion.Name", "Replicate.Name")) %>%
+  mutate(cruise=case_when(
+    cruise=="falkor" ~"FK", 
+    cruise=="mesotransect" ~ "MT",
+    cruise=="mesocenter" ~ "MC",
+    TRUE ~ "Unknown")) %>%
+  # Drop GMP since the peaks look terrible
+  filter(Precursor.Ion.Name!="Guanosine Monophosphate, 15N5")
+
+write.csv(csv_master, "IS_integrations/all_is.csv", row.names = FALSE)
+```
+
+```{r correct MC triplicate letter shifts, purl=TRUE}
+deaddiso_peaks <- read_csv(paste0(output_folder, "deaddiso_peaks.csv"))
+if(cruise=="MS"){
+  tripl5A_factor <- deaddiso_peaks %>%
+    left_join(filled_file_metadata) %>%
+    filter(ms_run=="MC") %>%
+    arrange(timestamp) %>%
+    filter(tripl=="A") %>%
+    select(feature, filename, into, timestamp) %>%
+    mutate(scale_cat=ifelse(timestamp<as.POSIXct("2018-02-06 18:00:00", tz = "UTC"), "pre", "post")) %>%
+    group_by(feature, scale_cat) %>%
+    summarise(med_area=median(into, na.rm=TRUE)) %>%
+    pivot_wider(names_from = scale_cat, values_from = med_area) %>%
+    mutate(scale_factor=pre/post) %>%
+    select(feature, scale_factor) %>%
+    mutate(scale_factor=ifelse(is.finite(scale_factor), scale_factor, 1))
+  deaddiso_peaks <- deaddiso_peaks %>%
+    left_join(filled_file_metadata %>% select(filename, timestamp)) %>%
+    mutate(scale_cat=ifelse(timestamp<as.POSIXct("2018-02-06 18:00:00", tz = "UTC"), "pre", "post")) %>%
+    left_join(tripl5A_factor) %>%
+    mutate(into=ifelse(scale_cat=="pre", into/scale_factor, into))
+  
+  triplAgBgC_factor <- deaddiso_peaks %>%
+    left_join(filled_file_metadata) %>%
+    filter(ms_run=="MC") %>%
+    filter(samp_type=="Smp") %>%
+    group_by(feature, tripl) %>%
+    summarise(med_area=median(into, na.rm=TRUE)) %>%
+    pivot_wider(names_from = tripl, values_from = med_area) %>%
+    mutate(across(c(A, B, C), ~.x/mean(c(A, B, C)))) %>%
+    # plotly::plot_ly(x=~A, y=~B, z=~C, type="scatter3d", mode="markers", opacity=0.2)
+    pivot_longer(c(A, B, C), names_to = "tripl", values_to = "AgBgC_factor") %>%
+    mutate(AgBgC_factor=ifelse(is.finite(AgBgC_factor), AgBgC_factor, 1)) %>%
+    left_join(filled_file_metadata %>% filter(ms_run=="MC") %>% distinct(filename, tripl),
+              multiple = "all") %>%
+    select(-tripl)
+  deaddiso_peaks <- deaddiso_peaks %>%
+    left_join(filled_file_metadata %>% select(filename, tripl)) %>%
+    left_join(triplAgBgC_factor, by=c("feature", "filename")) %>%
+    mutate(AgBgC_factor=ifelse(is.finite(AgBgC_factor), AgBgC_factor, 1)) %>%
+    mutate(into=into/AgBgC_factor)
+
+}
+
+IS_info <- "https://raw.githubusercontent.com/IngallsLabUW/Ingalls_Standards" %>%
+  paste0("/8fb6679505f692ec7d1cb4bf54ff1c5d4967c9a6/Ingalls_Lab_Standards.csv") %>%
+  read_csv() %>%
+  filter(Column=="HILIC") %>%
+  filter(Compound_Type=="Internal Standard") %>%
+  select(name_new=Compound_Name, name_old=Compound_Name_Original)
+IS_areas <- read_csv("IS_integrations/all_is.csv") %>%
+  select(filename=Replicate.Name, compound_name=Precursor.Ion.Name, area=Area) %>%
+  mutate(filename=paste0(filename, ".mzML")) %>%
+  left_join(IS_info, by=join_by(compound_name==name_old)) %>%
+  select(-compound_name) %>%
+  dplyr::rename(IS_name=name_new, IS_area=area) %>%
+  pivot_wider(names_from=IS_name, values_from = "IS_area") %>%
+  mutate("Inj_vol"=ifelse(str_detect(filename, "Poo.*Half"), 0.5, 1)) %>%
+  pivot_longer(-filename, names_to = "IS_name", values_to = "IS_area") %>%
+  filter(IS_name!="Guanosine monophosphate, 15N5")
+if(cruise=="MS"){
+  tripl5A_factor_IS <- IS_areas %>%
+    left_join(filled_file_metadata) %>%
+    filter(ms_run=="MC") %>%
+    arrange(timestamp) %>%
+    filter(tripl=="A") %>%
+    select(IS_name, filename, IS_area, timestamp) %>%
+    mutate(scale_cat=ifelse(timestamp<as.POSIXct("2018-02-06 18:00:00", tz = "UTC"), "pre", "post")) %>%
+    group_by(IS_name, scale_cat) %>%
+    summarise(med_area=median(IS_area, na.rm=TRUE)) %>%
+    pivot_wider(names_from = scale_cat, values_from = med_area) %>%
+    mutate(scale_factor=pre/post) %>%
+    select(IS_name, scale_factor) %>%
+    mutate(scale_factor=ifelse(is.finite(scale_factor), scale_factor, 1))
+  IS_areas <- IS_areas %>%
+    left_join(filled_file_metadata %>% select(filename, timestamp)) %>%
+    mutate(scale_cat=ifelse(timestamp<as.POSIXct("2018-02-06 18:00:00", tz = "UTC"), "pre", "post")) %>%
+    left_join(tripl5A_factor_IS) %>%
+    mutate(IS_area=ifelse(scale_cat=="pre", IS_area/scale_factor, IS_area))
+  triplAgBgC_factor_IS <- IS_areas %>%
+    left_join(filled_file_metadata) %>%
+    filter(ms_run=="MC") %>%
+    filter(samp_type=="Smp") %>%
+    group_by(IS_name, tripl) %>%
+    summarise(med_area=median(IS_area, na.rm=TRUE)) %>%
+    pivot_wider(names_from = tripl, values_from = med_area) %>%
+    mutate(across(c(A, B, C), ~.x/mean(c(A, B, C)))) %>%
+    # plotly::plot_ly(x=~A, y=~B, z=~C, type="scatter3d", mode="markers", opacity=0.2)
+    pivot_longer(c(A, B, C), names_to = "tripl", values_to = "AgBgC_factor") %>%
+    mutate(AgBgC_factor=ifelse(is.finite(AgBgC_factor), AgBgC_factor, 1)) %>%
+    left_join(filled_file_metadata %>% filter(ms_run=="MC") %>% distinct(filename, tripl),
+              multiple = "all") %>%
+    select(-tripl)
+  IS_areas <- IS_areas %>%
+    left_join(filled_file_metadata %>% select(filename, tripl)) %>%
+    left_join(triplAgBgC_factor_IS, by=c("IS_name", "filename")) %>%
+    mutate(AgBgC_factor=ifelse(is.finite(AgBgC_factor), AgBgC_factor, 1)) %>%
+    mutate(IS_area=IS_area/AgBgC_factor)
+}
+```
+
+```{r BMIS, purl=TRUE}
+pooled_IS_areas <- IS_areas %>%
+  filter(str_detect(filename, "_Poo_"))
+
+BMIS_choices <- deaddiso_peaks %>%
+  filter(str_detect(filename, "_Poo_")) %>%
+  full_join(pooled_IS_areas, multiple = "all", by = join_by(filename)) %>%
+  group_by(feature, IS_name) %>%
+  mutate(plot_area=into/IS_area*mean(IS_area)) %>%
+  summarise(cv=sd(plot_area)/mean(plot_area)) %>% 
+  arrange(cv) %>%
+  slice(1) %>%
+  select(feature, IS_name) %>%
+  filter(!is.na(feature))
+
+clean_peak_data <- deaddiso_peaks %>%
+  group_by(feature) %>%
+  filter(var(into)>0) %>% # Remove all the stans-only for which all samps are zero
+  ungroup() %>%
+  left_join(BMIS_choices, by = join_by(feature)) %>%
+  left_join(IS_areas, by = join_by(filename, IS_name)) %>%
+  group_by(feature) %>%
+  mutate(norm_area=into/IS_area*mean(IS_area)) %>%
+  select(feature, filename, norm_area)
+
+output_csv_write(clean_peak_data)
+output_csv_write(BMIS_choices)
+```
+
+Additional feature-based data below
+
+```{r Annotate standards}
+deaddiso_peaks <- read_csv(paste0(output_folder, "deaddiso_peaks.csv"))
+deaddiso_feats <- deaddiso_peaks %>%
+  group_by(feature) %>%
+  filter(!is.na(feat_mzmed)) %>%
+  summarise(mzmed=unique(feat_mzmed), rtmed=unique(feat_rtmed)/60)
+pol_stans <- read_csv("../metadata/clean_stans.csv") %>%
+  mutate(compound_name=case_when(
+    date_added>180821 & cruise=="MS" ~ paste0(compound_name, "?"),
+    date_added>190715 & cruise=="FK" ~ paste0(compound_name, "?"),
+    TRUE~compound_name
+  )) %>%
+  select(-date_added) %>%
+  filter(polarity==!!polarity)
+
+mass_matched_stans <- pol_stans %>%
+  pmap(function(...){
+    with(list(...), {
+      deaddiso_feats %>%
+        filter(mzmed%between%pmppm(stan_mz, 10)) %>%
+        distinct(feature) %>%
+        mutate(compound_name)
+    })
+  }, .progress=TRUE) %>%
+  bind_rows()
+
+mix_matched_stans <- deaddiso_peaks %>%
+  # filter(feature%in%c("FT0264")) %>%
+  filter(str_detect(filename, "_Std_.*Mix.InH2O")) %>%
+  mutate(mix=str_extract(filename, "Mix(1|2)")) %>%
+  # ggplot() + geom_boxplot(aes(x=mix, y=into, color=mix)) +
+  # ggplot() + geom_col(aes(x=filename, y=into, fill=mix)) +
+  # facet_wrap(~feature, ncol = 1, scales = "free_y")
+  select(feature, mix, into) %>%
+  pivot_wider(names_from = mix, values_from = into, values_fn = mean) %>%
+  left_join(mass_matched_stans, by="feature", multiple="all") %>%
+  left_join(pol_stans, by="compound_name") %>%
+  mutate(mix_pick=log10(Mix1/Mix2)*ifelse(mix=="Mix1", 1, -1)) %>%
+  arrange(desc(mix_pick)) %>%
+  filter(!is.na(compound_name)) %>%
+  group_by(compound_name) %>%
+  slice(1) %>%
+  ungroup() %>%
+  arrange(mix_pick)
+mix_matched_stans %>% 
+  filter(compound_type=="Internal Standard") %>%
+  select(feature, compound_name, stan_mz, stan_rt) %>%
+  mutate(compound_name=str_remove(compound_name, ", .*"))
+
+# mix_matched_stans %>%
+#   group_by(compound_name) %>%
+#   filter(n()>1)
+# mix_matched_stans %>%
+#   arrange(feature) %>%
+#   group_by(feature) %>%
+#   filter(n()>1)
+# mix_matched_stans %>%
+#   select(feature, compound_name, stan_rt) %>%
+#   left_join(deaddiso_feats) %>%
+#   ggplot(aes(label=compound_name)) +
+#   geom_abline(intercept = c(-2:2), slope = 1, color=paste0("grey", c(80, 50, 20, 50, 80))) +
+#   geom_point(aes(x=stan_rt, y=rtmed)) +
+#   coord_fixed() + theme_bw()
+# plotly::ggplotly()
+```
+
+```{r Manual annotation fixes}
+rmAnno <- function(){
+  
+}
+reAnno <- function(){
+  
+}
+
+if(cruise=="FK") {
+  if(polarity=="pos"){
+    stan_annotations <- deaddiso_feats %>%
+      left_join(mix_matched_stans %>% select(feature, compound_name), 
+                by="feature", multiple="all") %>%
+      mutate(compound_name=case_when(
+        feature=="FT0502"~"Pyro from glutamate",
+        feature=="FT0503"~"Pyro from glutamine",
+        compound_name=="5-Oxoproline"~NA,
+        compound_name=="L-Valine"~NA,
+        compound_name=="L-Isoleucine"~NA,
+        feature=="FT0180"~"beta-Alanine",
+        feature=="FT0181"~"Sarcosine",
+        feature=="FT0179"~"L-Alanine",
+        feature=="FT0264"~"Dimethylglycine",
+        feature=="FT0260"~"4-Aminobutyric acid",
+        feature=="FT0357"~"L-Threonine",
+        feature=="FT0356"~"L-Homoserine",
+        compound_name=="Acetylcholine"~NA,
+        feature=="FT0551"~"Allopurinol",
+        feature=="FT0552"~"Hypoxanthine",
+        feature=="FT0568"~"Adenine, 15N2",
+        feature=="FT0565"~NA,
+        TRUE~compound_name
+      )) %>%
+      arrange(compound_name) %>%
+      group_by(compound_name) %>%
+      slice(1)
+    stan_annotations %>%
+      group_by(feature) %>%
+      filter(n()>1) %>%
+      ungroup() %>%
+      arrange(feature)
+  } else if(polarity=="neg") {
+    stan_annotations <- deaddiso_feats %>%
+      left_join(mix_matched_stans %>% select(feature, compound_name), 
+                by="feature", multiple="all")
+  }
+} else if(cruise=="MS") {
+  if(polarity=="pos"){
+    stan_annotations <- deaddiso_feats %>%
+      left_join(mix_matched_stans %>% select(feature, compound_name), 
+                by="feature", multiple="all")
+  } else if(polarity=="neg") {
+    stan_annotations <- deaddiso_feats %>%
+      left_join(mix_matched_stans %>% select(feature, compound_name), 
+                by="feature", multiple="all")
+  }
+}
+output_csv_write(stan_annotations)
+```
+
+```{r Annotate formulae}
+formula_annotations <- distinct(deaddiso_feats, feature, formula=NA)
+output_csv_write(formula_annotations)
+```
+
+```{r Annotate structures and compound classes}
+struct_annotations <- distinct(deaddiso_feats, feature, structure=NA)
+class_annotations <- distinct(deaddiso_feats, feature, class=NA)
+
+output_csv_write(struct_annotations)
+output_csv_write(class_annotations)
+```
+
+```{r Clean up and write out, purl=TRUE}
+peak_data <- read_csv(paste0(output_folder, "peak_data.csv"))
+clean_peak_data <- read_csv(paste0(output_folder, "clean_peak_data.csv"))
+stan_annotations <- read_csv(paste0(output_folder, "stan_annotations.csv")) %>%
+  group_by(feature) %>%
+  summarise(compound_name=paste(compound_name, collapse = "/"))
+formula_annotations <- read_csv(paste0(output_folder, "formula_annotations.csv"))
+class_annotations <- read_csv(paste0(output_folder, "class_annotations.csv"))
+struct_annotations <- read_csv(paste0(output_folder, "struct_annotations.csv"))
+
+clean_feat_data <- peak_data %>%
+  filter(!is.na(feat_mzmed)) %>%
+  group_by(feature) %>%
+  summarise(mzmed=unique(feat_mzmed), rtmed=unique(feat_rtmed)/60) %>%
+  inner_join(clean_peak_data %>% distinct(feature)) %>%
+  left_join(stan_annotations) %>%
+  left_join(struct_annotations) %>%
+  left_join(class_annotations)
+
+output_csv_write(clean_feat_data)
+```
+

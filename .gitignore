@@ -22,8 +22,8 @@ metadata/secret_keys.txt
 !targeted/made_data/longdata.csv
 
 !untargeted/scripts/*
+!untargeted/untargeted_control.Rmd
 !untargeted/all_feats.csv
 !untargeted/all_peaks.csv
-!untargeted/output_control.Rmd
 !untargeted/untargeted.Rproj
 .Rproj.user
