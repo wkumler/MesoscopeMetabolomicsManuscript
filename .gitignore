@@ -27,3 +27,5 @@ metadata/secret_keys.txt
 !untargeted/all_peaks.csv
 !untargeted/untargeted.Rproj
 .Rproj.user
+
+!manuscript/supplement/*
