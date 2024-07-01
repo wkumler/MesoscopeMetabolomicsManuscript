@@ -82,7 +82,7 @@ if(!file.exists("../untargeted/all_peaks.csv")){
 ```
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, eval = FALSE)
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, eval = TRUE)
 library(tidyverse)
 library(RaMS)
 library(vegan)
@@ -407,7 +407,46 @@ filled_file_metadata %>%
   cor()
 ```
 
-This shift in metabolite abundance was largely driven by a corresponding shift in biomass. Particulate carbon and summed metabolite concentration were tightly correlated across all samples and depths ($\beta = 24.9\pm1.82$ (SE), Pearson's $r$ = .813, p-value < 0.001, Supplemental Figure 2). This overall trend was largely driven by higher values at 15 meters and the DCM than at depth, but when analyzed at each depth individually the general correspondence held (Supplemental Figure 2). The DCM and 175 meter samples had the stronger trends ($\beta_{DCM} = 22.6\pm5.53$, $r= .593$, p-value < 0.001; $\beta_{175m} = 23.9\pm7.36$, $r= .503$, p-value = 0.003) while 15 meter samples showed no significant relationship ($\beta_{15m} = 3.4\pm12.9$, $r= .049$, p-value = 0.792). This meant that metabolites contributed a fixed fraction of carbon to the particulate pool with our 53 quantified metabolites representing between 1.5% and 5% of the carbon in the system (Figure 2) [Benedetto: I find this very informative. It would be great to get a ballpark sense of the percentages including the unknown metabolites, but I understand that it might be too uncertain considering the required assumptions on molecular formulas and concentration. I would like to know your wild guess, though]. Particulate nitrogen was tightly correlated with particulate carbon ($r=.933$) but the fraction of particulate nitrogen represented by the quantified metabolites was slightly higher across the transect with contributions typically between 2% and 6%.
+This shift in metabolite abundance was largely driven by a corresponding shift in biomass. Particulate carbon and summed metabolite concentration were tightly correlated across all samples and depths ($\beta = 24.9\pm1.82$ (SE), Pearson's $r$ = .813, p-value < 0.001, Supplemental Figure 2). This overall trend was largely driven by higher values at 15 meters and the DCM than at depth, but when analyzed at each depth individually the general correspondence held (Supplemental Figure 2). The DCM and 175 meter samples had the stronger trends ($\beta_{DCM} = 22.6\pm5.53$, $r= .593$, p-value < 0.001; $\beta_{175m} = 23.9\pm7.36$, $r= .503$, p-value = 0.003) while 15 meter samples showed no significant relationship ($\beta_{15m} = 3.4\pm12.9$, $r= .049$, p-value = 0.792). This meant that metabolites contributed a relatively fixed fraction of carbon to the particulate pool with our 53 quantified metabolites representing between 1.5% and 5% of the carbon in the system (Figure 2). Particulate nitrogen was tightly correlated with particulate carbon ($r=.933$) but the fraction of particulate nitrogen represented by the quantified metabolites was slightly higher across the transect with contributions typically between 2% and 6%. 
+
+Although the untargeted pool contains more molecular features, we expect that a majority of the signal has been captured by our 53 targeted compounds. Of the total peak area that passed quality control, approximately 67% was captured by these 53 molecules. An additional 15% of the total peak area was putatively annotated as various inorganic ions for which no authentic standard was available but could be matched by mass and isotope pattern. Additionally, our targeted list accounted for 13 out of the top 20 largest molecular features by total peak area with an additional 4 features annotated as the inorganic ions for 17/20 of the largest features known. However, these calculations should be taken as estimates because peak area does not correspond directly to environmental concentration and it is entirely possible for abundant environmental compounds to have small peak areas if they ionize poorly on the mass spectrometer or degrade during the sampling and extraction process.
+
+```{r untarg targ comparison, eval=FALSE}
+untarg_peaks %>%
+  select(feature, filename, norm_area) %>%
+  left_join(untarg_feats %>% select(feature, compound_name)) %>%
+  group_by(is.na(compound_name)) %>%
+  summarise(s=sum(norm_area))
+
+summed_labels <- untarg_peaks %>%
+  filter(str_detect(feature, "MS")) %>%
+  group_by(feature) %>%
+  summarise(s=sum(norm_area)) %>%
+  arrange(desc(s)) %>%
+  left_join(untarg_feats %>% select(feature, mzmed, rtmed, compound_name, polarity))
+  mutate(compound_name=ifelse(feature=="MS_NEG_0155", "Bromine79", compound_name)) %>%
+  mutate(compound_name=ifelse(feature=="MS_NEG_0778", "Iodine", compound_name)) %>%
+  mutate(compound_name=ifelse(feature=="MS_NEG_0161", "Sulfite", compound_name)) %>%
+  mutate(compound_name=ifelse(feature=="MS_NEG_0039", "Nitrate", compound_name)) %>%
+  mutate(compound_name=ifelse(feature=="MS_POS_1122", "TMAO [2M+H]", compound_name))
+
+summed_labels %>%
+  group_by(is.na(compound_name)) %>%
+  count()
+summed_labels %>%
+  group_by(is.na(compound_name)) %>%
+  summarize(s=sum(s)/1e9)
+
+summed_labels %>%
+  filter(feature!="MS_NEG_0055") %>%
+  filter(feature!="MS_NEG_0068") %>%
+  head(20) %>%
+  print(n=Inf)
+
+msdata <- grabMSdata(list.files("../tmzMLs/neg/", full.names=TRUE, pattern="180821_Poo"))
+v <- msdata$MS1[mz%between%pmppm(146.0451, 5)]
+qplotMS1data(v)
+```
 
 Samples taken from the DCM of the cyclone center (Station 12, Figure 2) showed especially high particulate carbon (67% increase, rising from 1.71 μM across all other DCM samples to 2.85 μM at Station 12) and the highest measured total metabolite concentrations (73% higher, increasing from 10.0 nM to 17.2 nM). This explains the large separation observed between these samples and the rest of the data in the NMDS plot of Figure 2.
 
@@ -478,6 +517,20 @@ barplot_targ_gp <- avg_targ_concs %>%
         strip.text = element_text(face = "bold"),
         plot.background = element_rect(fill="white"))
 
+pcbarplot <- frac_pc_in_metab_df %>% 
+  distinct(station, depth, PC_um) %>%
+  ggplot(aes(x=station, y=PC_um)) +
+  geom_col(fill="grey30") +
+  facet_grid(~depth, scales="free") +
+  labs(y="Particulate\ncarbon (μM)") +
+  scale_x_discrete(breaks=as.character(seq(4, 14, 2))) +
+  scale_y_continuous(expand = c(0.005, 0.1)) +
+  theme_bw() +
+  theme(strip.background = element_blank(), strip.text = element_blank(),
+        axis.text.x = element_blank(), axis.title.x = element_blank(),
+        plot.margin = margin(0,1,0,0), plot.background = element_rect(fill="white"))
+  
+
 med_frac_df <- frac_pc_in_metab_df %>%
   group_by(depth, station, sla_corr) %>%
   summarize(frac_C_in_metab=mean(frac_C_in_metab)) %>%
@@ -504,16 +557,20 @@ pc_frac_metab_gp <- frac_pc_in_metab_df %>%
         strip.background = element_blank(), strip.text = element_blank(),
         plot.margin = margin(0,1,0,0), plot.background = element_rect(fill="white"))
 
-targ_gp_w_sla_frac <- egg::ggarrange(barplot_targ_gp, pc_frac_metab_gp, draw = FALSE)
-
-ggsave("targ_gp_w_sla_frac.png", plot = targ_gp_w_sla_frac, device = "png", 
-       path = "figures", width = 6.875, height = 4.5, units = "in", dpi = 300, 
+# targ_gp_w_sla_frac <- egg::ggarrange(barplot_targ_gp, pc_frac_metab_gp, draw = FALSE)
+# ggsave("targ_gp_w_sla_frac.png", plot = targ_gp_w_sla_frac, device = "png", 
+#        path = "figures", width = 6.875, height = 4.5, units = "in", dpi = 300, 
+#        bg = "white")
+targ_gp_w_sla_frac <- egg::ggarrange(barplot_targ_gp, pcbarplot, pc_frac_metab_gp,
+                                     draw = FALSE, heights = c(0.4, 0.2, 0.4))
+ggsave("targ_gp_w_sla_frac.png", plot = targ_gp_w_sla_frac, device = "png",
+       path = "figures", width = 6.875, height = 5.5, units = "in", dpi = 300,
        bg = "white")
 ```
 
 ![](figures/targ_gp_w_sla_frac.png)
 
-*Figure 3: Differences in known metabolite concentration across the pair of adjacent eddies in the MESO-SCOPE transect separated by depth. Top panels depict concentrations of known compounds measured, where bar height corresponds to median triplicate concentration for each metabolite with the top 9 shown and the 44 other identified metabolites summed in grey. TMAO = trimethylamine N-oxide, HO-Ile = hydroxyisoleucine, GBT = glycine betaine, DCM = deep chlorophyll maximum. Lower panels depict the fraction of total particulate carbon in the known metabolites, with the mean value of three biological triplicates in color and the raw values in black behind. Colors correspond to corrected sea level anomaly (Corr. SLA), with dark red indicating anticyclonic (positive SLA) and dark blue indicating cyclonic (negative SLA) eddy state.*
+*Figure 3: Differences in known metabolite concentration across the pair of adjacent eddies in the MESO-SCOPE transect separated by depth. Top panels depict concentrations of known compounds measured, where bar height corresponds to median triplicate concentration for each metabolite with the top 9 shown and the 44 other identified metabolites summed in grey. TMAO = trimethylamine N-oxide, HO-Ile = hydroxyisoleucine, GBT = glycine betaine, DCM = deep chlorophyll maximum. Center panels show the corresponding measurements of particulate carbon (PC), while the lower panels depict the fraction of total particulate carbon in the known metabolites. The mean value of three biological triplicates is shown in color and the raw values in black behind. Colors correspond to corrected sea level anomaly (Corr. SLA), with dark red indicating anticyclonic (positive SLA) and dark blue indicating cyclonic (negative SLA) eddy state.*
 
 ```{r avg targ conc values and numbers for text, eval=FALSE}
 avg_targ_concs %>%
@@ -589,192 +646,6 @@ my_pcdata <- filled_file_metadata %>%
 rbind(angie_pcdata, my_pcdata) %>%
   ggplot() +
   geom_point(aes(x=PC_um, y=-abs_depth, color=cruise))
-```
-
-### A single sample highlights a network of related metabolites
-
-One sample, taken from 15 meters at Station 11, was highly distinct from all others (including its paired triplicates) with several metabolites measuring two or more orders of magnitude larger in peak area and concentration both before and after normalization to internal standards (Supplemental Figure 3). Heuristic exploration of potentially related masses identified a total of 14 compounds highly abundant in this one sample alone. The only identified compounds with this trend were taurine and acetyltaurine, though three others with *m/z* ratios of 146.1176, 148.0968, and 206.1388 were discovered to be likely isomers of known compounds (acetylcholine, hydroxyisoleucine, and dexpanthenol, respectively). One feature (*m/z* = 184.0637, RT = 7.0 minutes) was identified as choline sulfate using a second run of standards, while an additional mass feature at 168.0689 and eluting at 8.5 minutes was putatively flagged as taurine betaine. This mass was also one of the most highly enriched in the sample after taurine itself, with a peak area nearly 30 times that of the next largest sample. No clear explanation emerged for why some compounds were hyperabundant in this surface sample, though one possibility was the *Trichodesmium* bloom that was also sampled at this time [@Dugenne2023].
-
-```{r MS11A offenders table}
-ms11_offenders <- untarg_peaks %>%
-  filter(str_detect(filename, "180821")) %>%
-  group_by(feature) %>%
-  filter(sum(norm_area==0)<3) %>%
-  mutate(cursed_area=norm_area[filename=="180821_Smp_MS11C215m_A.mzML"]) %>%
-  filter(cursed_area>0) %>%
-  mutate(rel_area=norm_area/cursed_area) %>%
-  filter(filename!="180821_Smp_MS11C215m_A.mzML") %>%
-  group_by(feature) %>%
-  summarise(mean_rel=mean(rel_area), max_rel=max(rel_area)) %>%
-  # ggplot(aes(x=mean_rel, y=max_rel, label=feature)) + geom_point() + 
-  # scale_y_log10() + scale_x_log10() +
-  # geom_vline(xintercept = 0.25) + geom_hline(yintercept = 0.5)
-  filter(mean_rel<0.25 & max_rel < 0.5) %>%
-  arrange(mean_rel) %>% 
-  add_row(feature="MS_NEG_1123") %>%
-  left_join(untarg_feats %>% select(feature:compound_name)) %>%
-  mutate(mzmed=ifelse(str_detect(feature, "NEG"), mzmed+1.007276*2, mzmed)) %>%
-  filter(feature!="MS_NEG_0768") %>% # Remove taurine duplicate
-  add_row(mzmed=c(198.0794, 184.0637), rtmed=c(5, 7))
-
-# ms11_offenders$mzmed %>% sort() %>% `names<-`(., round(., digits=3)) %>% dist(diag = TRUE) %>% round(digits=4)
-
-stans <- read_csv("https://raw.githubusercontent.com/IngallsLabUW/Ingalls_Standards/master/Ingalls_Lab_Standards.csv") %>%
-  filter(Column=="HILIC" & z>0) %>%
-  select(cmpd_name=Compound_Name, formula=Empirical_Formula) %>%
-  group_by(formula) %>%
-  summarise(cmpd_name=paste(cmpd_name, collapse = ", "))
-base_mz <- 85.089149355+1.007276
-iter_mzs <- expand_grid(CH2=0:6, O=2:6) %>%
-  mutate(mz=base_mz+CH2*14.01565+O*15.994915) %>%
-  mutate(mz=round(mz, digits=5)) %>%
-  mutate(cmd=paste0("mz%between%pmppm(", mz, ", 10)")) %>%
-  mutate(formula=paste0("C", 5+CH2, "H", 11+CH2*2, "NO", O)) %>%
-  left_join(stans) %>%
-  mutate(label=ifelse(is.na(cmpd_name), formula, paste0(formula, " (", cmpd_name, ")")))
-ms11_df <- c("C11H23NO6", "C11H23NO6", "C9H19NO5", "C8H17NO5", "C6H13NO6", "C8H17NO4") %>%
-  data.frame(formula=., rtmed=c(8.5, 10, 8.5, 10.2, 5.2, 9.2)) %>%
-  left_join(iter_mzs) %>%
-  select(mzmed=mz, rtmed, formula, cmpd_name) %>%
-  bind_rows(ms11_offenders) %>%
-  arrange(mzmed) %>%
-  select(mzmed, rtmed, formula, compound_name, feature) %>%
-  mutate(formula=case_when(
-    compound_name=="Taurine"~"C2H8NO3S",
-    feature=="MS_POS_1050"~"C7H16NO2",
-    compound_name=="Hydroxyisoleucine"~"C6H14NO3",
-    compound_name=="N-Acetyltaurine"~"C4H10NO4S",
-    feature=="MS_POS_1340"~"C5H14NO3S",
-    feature=="MS_POS_1419"~"C8H18NO3",
-    mzmed%between%pmppm(184.0637, 10)~"C5H14NO4S",
-    mzmed%between%pmppm(198.0794, 10)~"C6H16NO4S",
-    compound_name=="Dexpanthenol"~"C9H20NO4",
-    TRUE~formula
-  )) %>%
-  mutate(compound_name=case_when(
-    compound_name=="(3-Carboxypropyl)trimethylammonium?"~NA,
-    compound_name=="Hydroxyisoleucine"~NA,
-    compound_name=="Dexpanthenol"~NA,
-    formula=="C5H14NO4S"~"Choline sulfate",
-    formula=="C5H14NO3S"~"Taurine betaine?",
-    TRUE~compound_name
-  )) %>%
-  mutate(rtmed=round(rtmed, 1)) %>%
-  mutate(exact_mass=str_replace(formula, "N", "N1")) %>%
-  mutate(exact_mass=str_replace(exact_mass, "S", "S1")) %>%
-  separate(exact_mass, into = c("drop", "C", "H", "N", "O", "S"), sep = "[A-Z]") %>%
-  mutate(across(C:S, as.numeric)) %>%
-  mutate(S=ifelse(is.na(S), 0, 1)) %>%
-  mutate(calc_mass=C*12+H*1.007825+N*14.003074+O*15.994915+S*31.972072) %>%
-  mutate(calc_mass=ifelse(abs(calc_mass-mzmed)>1, calc_mass+1.007276, calc_mass)) %>%
-  mutate(delta_ppm=ifelse(is.na(feature), 0, round((mzmed-calc_mass)*1e6/mzmed, 2))) %>%
-  mutate(compound_name=ifelse(is.na(compound_name), "", compound_name)) %>%
-  select(-feature) %>%
-  select(`Median m/z`=mzmed, `Median RT (min)`=rtmed, `Putative formula`=formula,
-         `Delta mz (ppm)`=delta_ppm, `Compound name`=compound_name)
-
-# knitr::kable(ms11_df)
-```
-
-| Median m/z| Median RT (min)|Putative formula | Delta mz (ppm)|Compound name    |
-|----------:|---------------:|:----------------|--------------:|:----------------|
-|   126.0221|            11.1|C2H8NO3S         |          -3.35|Taurine          |
-|   146.1176|             8.5|C7H16NO2         |          -3.63|                 |
-|   148.0968|             8.5|C6H14NO3         |          -3.88|                 |
-|   168.0317|             4.9|C4H10NO4S        |          -7.87|N-Acetyltaurine  |
-|   168.0689|             8.5|C5H14NO3S        |          -3.33|Taurine betaine? |
-|   176.1282|             8.1|C8H18NO3         |          -2.88|                 |
-|   184.0637|             7.0|C5H14NO4S        |           0.00|Choline sulfate  |
-|   192.1230|             9.2|C8H17NO4         |           0.00|                 |
-|   196.0816|             5.2|C6H13NO6         |           0.00|                 |
-|   198.0794|             5.0|C6H16NO4S        |           0.00|                 |
-|   206.1388|             7.1|C9H20NO4         |          -1.93|                 |
-|   208.1180|            10.2|C8H17NO5         |           0.00|                 |
-|   222.1336|             8.5|C9H19NO5         |           0.00|                 |
-|   266.1598|             8.5|C11H23NO6        |           0.00|                 |
-|   266.1598|            10.0|C11H23NO6        |           0.00|                 |
-
-*Table 1: Detected mass features that were enriched in the 15 meter surface sample from MESO-SCOPE Station 11. RT = retention time in minutes. Taurine betaine is followed by a ? to denote that this identification is putative. Mass difference between the median m/z and putative formula is reported in parts-per-million.*
-
-```{r trichobloomsamples comparison, eval=FALSE}
-library(RaMS)
-trichodata <- list.files("../mzMLs/tricho_pos", pattern=".mzML", full.names = TRUE) %>%
-  grabMSdata()
-tricho_eics <- ms11_df %>%
-  pmap(function(...){
-  row_data <- list(...)
-  peak_data <- trichodata$MS1[mz%between%pmppm(row_data$mzmed, 10)]
-  cbind(peak_data, formula=row_data$formula)
-}) %>%
-  bind_rows()
-
-tricho_eics %>%
-  filter(rt%between%c(2, 15)) %>%
-  arrange(mz) %>%
-  mutate(formula=fct_inorder(formula)) %>%
-  ggplot() +
-  geom_line(aes(x=rt, y=int, group=filename)) +
-  facet_wrap(~formula, scales="free", ncol=2) +
-  geom_vline(aes(xintercept = rtmed), color="red", data=ms11_df)
-
-trichodata$MS1[mz%between%pmppm(162.1125, 10)] %>%
-  mutate(samp_type=str_extract(filename, "Smp|Poo|Mix1|Mix2|Mat")) %>%
-  filter(samp_type!="Mat") %>%
-  ggplot() +
-  geom_line(aes(x=rt, y=int, group=filename, color=samp_type)) +
-  ggtitle("Homoserine betaine in Tricho bloom samples")
-```
-
-We explored the possibility that a nearby *Trichodesmium* bloom was responsible for the unusual composition of this one sample by analyzing additional samples taken directly from the bloom to see whether compounds abundant in hand-picked *Trichodesmium* colonies were also abundant in the Station 11 sample. After searching for the 14 mass features above in the environmental sample, 7 had good-quality peaks when viewed in the bloom samples as extracted ion chromatograms, though only 4 of these matched closely in retention time. We also performed a search of the untargeted data for homoserine betaine, a known *T. erythraeum* (strain IMS101) osmolyte [@Pade2016]. Although this compound was not run in water alongside the sample to confirm a retention time match due to a lack of authentic standards, we identified three mass features in the 162.1125 *m/z* window with retention times of 7.1, 8.4, and 9.9 minutes. The feature at RT 9.9 matched our carnitine standard's retention time, leaving the two earlier peaks with putative identifications of threonine betaine at 7.1 and homoserine betaine at 8.4 given the elution order of threonine before homoserine in our authentic standards. This order is the reverse of that in @Pade2016, which showed homoserine betaine eluting prior to carnitine. This elution order is expected given our use of a normal phase HILIC column and their use of a reversed phase Hypercarb column. They did not report an additional peak detected at this mass, leaving our putative identification of the homoserine and threonine betaines as low-confidence. None of the three 162.1125 features showed the same degree of enrichment in the anomalous sample as taurine or the other 13 compounds listed in Table 1, though the anomalous sample contained the largest, second-largest, and third-largest peak for carnitine, threonine betaine, and homoserine betaine, respectively. These results are fairly inconclusive but we are inclined to believe that a *Trichodesmium* colony is not likely to be the cause of the inflated values in this particular sample.
-
-```{r homoserinebetaine search, eval=FALSE}
-library(arrow)
-dset <- open_dataset("../tmzMLs/MT_all_file_arr_pqds/")
-hmb_eic <- dset %>%
-  filter(mz%between%pmppm(162.1125, 10)) %>%
-  # filter(mz%between%pmppm(120.0655, 10)) %>%
-  collect()
-hmb_eic %>%
-  filter(rt%between%c(6, 11)) %>%
-  # filter(rt%between%c(9, 13)) %>%
-  mutate(samp_type=str_extract(filename, "Poo|Smp|InH2O|Mat")) %>%
-  # distinct(filename, samp_type) %>%
-  # filter(samp_type!="Smp")
-  mutate(plotcol=ifelse(str_detect(filename, "180821_Smp_MS11C215m_A.mzML"), 
-                          "MS11C215m_A", samp_type)) %>%
-  ggplot() +
-  geom_line(aes(x=rt, y=int, group=filename, color=plotcol)) +
-  facet_wrap(~samp_type, ncol=1, scales="free_y")
-
-untarg_feats %>% 
-  filter(cruise=="MS") %>%
-  filter(mzmed%between%pmppm(162.1125))
-untarg_peaks %>%
-  filter(feature%in%c("MS_POS_1246", "MS_POS_1247", "MS_POS_1248")) %>%
-  mutate(feature=factor(feature, levels=c("MS_POS_1248", "MS_POS_1246", "MS_POS_1247"),
-                        labels=c("Threonine betaine (RT=7.1)", 
-                                 "Homoserine betaine (RT=8.4)",
-                                 "Carnitine (RT=9.9)"))) %>%
-  left_join(filled_file_metadata) %>%
-  filter(ms_run=="MT") %>%
-  mutate(station=factor(station, levels=as.character(4:14))) %>%
-  mutate(depth=factor(depth, levels=c("Surface", "DCM", "Deep"))) %>%
-  mutate(plotcol=ifelse(filename=="180821_Smp_MS11C215m_A.mzML", "red", "black")) %>%
-  ggplot(aes(x=station, y=norm_area, label=filename, color=plotcol)) +
-  geom_point() +
-  facet_grid(feature~depth, scales="free_y") +
-  geom_hline(yintercept = 0) +
-  scale_color_identity()
-
-untarg_peaks %>%
-  filter(feature%in%c("MS_POS_1246", "MS_POS_1247", "MS_POS_1248")) %>%
-  left_join(filled_file_metadata) %>%
-  filter(ms_run=="MT") %>%
-  group_by(feature) %>%
-  mutate(norm_area=norm_area/norm_area[filename=="180821_Smp_MS11C215m_A.mzML"]) %>%
-  group_by(feature, depth) %>%
-  summarise(mean_area=max(norm_area)) %>%
-  pivot_wider(names_from = "depth", values_from = mean_area)
 ```
 
 ## Particulate organic matter compositional shifts across eddy transect
@@ -1520,7 +1391,7 @@ targ_hom %>%
 
 ```
 
-Isethionate is a known osmolyte thus far found exclusively in eukaryotes [@Durham2022] and strongly associated with a few diatoms in particular [@Heal2021]. This compound was enriched in the cyclone of the DCM in both the MESO-SCOPE and HEE cruises along with its precursor taurine, validating earlier results from @Barone2022 that showed strong enrichment of eukaryotic phytoplankton at the DCM and *Pseudo-nitzschia* in particular. Taurine was also among the compounds highly enriched in the anomalous 15 meter sample from Station 11, likely along with its N-trimethylated form taurine betaine (N-trimethyltaurine). While putative in our analysis, taurine betaine has been previously reported in corals and red algae, where it probably has a destabilizing influence on proteins [@Impellizzeri1975; @Hill2017; @Bruzdziak2018]. While *Trichodesmium* are notoriously patchy [@Rouco2014; @Rouco2016], we did not see a strong match to the cultured cyanobacteria in any of the other metabolites with this pattern and the osmolyte homoserine betaine shown by @Pade2016 to be characteristic of *T. erythraeum* strain IMS101 was missing.
+Isethionate is a known osmolyte thus far found exclusively in eukaryotes [@Durham2022] and strongly associated with a few diatoms in particular [@Heal2021]. This compound was enriched in the cyclone of the DCM in both the MESO-SCOPE and HEE cruises along with its precursor taurine, validating earlier results from @Barone2022 that showed strong enrichment of eukaryotic phytoplankton at the DCM and *Pseudo-nitzschia* in particular.
 
 ```{r isethionate and taurine, eval=FALSE}
 targ_peaks %>%
@@ -1541,9 +1412,7 @@ targ_peaks %>%
 
 The strong SLA signal detected among the 175 meter samples was partially surprising to us given our expectation about the strongest effect at the DCM where eddy effects lift large concentrations of nutrients above the 1% light level. Instead, we found more compounds overall to be significantly different across the eddy transect in the 175 meter samples than we did at the DCM (α=0.05, 43 compounds at 175 meters vs 22 at the DCM). This was likely driven by the enhancement of organic matter and heterotrophic picoplankton below the DCM as seen in @Barone2019, with the enrichment of nucleobases in the 175 meter samples additionally hint at increases in bacterial biomass given that nucleobases tend to be highly abundant in bacterial cultures [@Heal2021]. The abundance of a mass feature putatively identified as acetylcholine in the 175 meter cyclone samples followed the same general trend as arsenobetaine, both enriched at depth and in the anticyclone, and may be another compound that results from heterotrophic degradation of phytoplankton metabolites [@Durham2022]. These results raise important questions about the depth at which the community is isolated from SLA effects, with additional data from @Barone2022 and @Gleich2024 indicating that even at 250 meters eddy effects are still discernable.
 
-A final pattern worth noting is the enrichment of metabolites in the urea-ornithine cycle (OUC) among the samples taken during the HEE cruise. Aspartate, citrulline, ornithine, and malic acid were all found to be more abundant in the HEE samples relative to MESO-SCOPE. The OUC is a staple of metazoan metabolism and is present in stramenopiles as well where it enables rapid response to increases in nitrogen supply [@Allen2011; @Bender2014]. The enrichment of these metabolites in the HEE cruise may indicate that there was still rapid uptake and turnover of nitrogen in the 2018 eddy pair while the 2017 eddies were less active, despite both eddy pairs being in a similar state of stable anticyclone and weakening cyclone [@Dugenne2023].
-
-Differences between the two cruises could also be due to differences in eddy age and/or the different period of the year when sampling took place during the two cruises (March/April in 2018 instead of the June/July sampling in 2017) resulting in shifts in community composition and response. @Barone2022 documents the 2017 cruise community composition, reporting abundant Prymnesiophyceae at both 15 meters and the DCM, with other significant contributions from dinoflagellates, diatoms, and green algae. In the 2018 cruise both haptophytes and dinoflagellates again dominated the eukaryotic fraction, though surprisingly little was contributed by diatoms [@Gleich2024]. @Dugenne2023 and @Harke2021 also highlight uncontrolled differences between the two sets of eddies based on their origin and age.
+Differences between the two cruises could be due to differences in eddy age and/or the different period of the year when sampling took place during the two cruises (March/April in 2018 instead of the June/July sampling in 2017) resulting in shifts in community composition and response. @Barone2022 documents the 2017 cruise community composition, reporting abundant Prymnesiophyceae at both 15 meters and the DCM, with other significant contributions from dinoflagellates, diatoms, and green algae. In the 2018 cruise both haptophytes and dinoflagellates again dominated the eukaryotic fraction, though surprisingly little was contributed by diatoms [@Gleich2024]. @Dugenne2023 and @Harke2021 also highlight uncontrolled differences between the two sets of eddies based on their origin and age.
 
 Missing links between the environment with its associated community and the composition of particulate matter make it difficult to estimate this important control on the marine carbon cycle. This is especially true for dynamic and short-lived environments such as eddies. Metabolites offer a way to bridge this gap in knowledge but the relative impact of eddies on their contribution and fate was not previously estimated. In this work, we have shown the sensitivity of the metabolome to various environmental and community factors and contrasted it to the well-established effect of depth to constrain the importance of including eddy effects in models of elemental cycling.
 
@@ -1637,7 +1506,7 @@ Samples were also processed via the untargeted workflow detailed in @Kumler2023.
 
 ## Statistics
 
-All statistics were run in R version 4.3.3. We used multivariate statistics provided by the vegan package [@R-vegan] to assess the overall impact of various metrics across the metabolome followed by univariate statistics to investigate individually significant responses. Non-parametric tests were used when data were unlikely to obey parametric assumptions and permutational statistics were preferred wherever possible. Multiple comparison problems were controlled where necessary using a false-discovery rate correction [@Benjamini1995]. For the analyses involving the eddy transect samples, sea level anomaly was treated as a continuous variable with the exception of the PERMANOVA, for which SLA was categorized as cyclonic if less than -5 cm and anticyclonic if greater than 5 cm, with a third category for stations in between [@Anderson2001]. Both the MESO-SCOPE eddy center and HEE data treated SLA as a categorical variable.
+All statistics were run in R version 4.3.3. We used multivariate statistics provided by the vegan package [@R-vegan] to assess the overall impact of various metrics across the metabolome followed by univariate statistics to investigate individually significant responses. Non-parametric tests were used when data were unlikely to obey parametric assumptions and permutational statistics were preferred wherever possible. Multiple comparison problems were controlled where necessary using a false-discovery rate correction [@Benjamini1995]. For the analyses involving the eddy transect samples, sea level anomaly was treated as a continuous variable with the exception of the PERMANOVA, for which SLA was categorized as cyclonic if less than -5 cm and anticyclonic if greater than 5 cm, with a third category for stations in between [@Anderson2001]. Both the MESO-SCOPE eddy center and HEE analyses treated SLA as a categorical variable.
 
 # References
 
@@ -1656,6 +1525,192 @@ knitr::write_bib(packages_used[nchar(packages_used)>0], file = "r-packages.bib")
 <div id="refs"></div>
 
 # Supplement
+## Supplemental methods: Trichodesmium bloom in MS11C215mA
+
+One sample, taken from 15 meters at Station 11, was highly distinct from all others (including its paired triplicates) with several metabolites measuring two or more orders of magnitude larger in peak area and concentration both before and after normalization to internal standards (Supplemental Figure 3). Heuristic exploration of potentially related masses identified a total of 14 compounds highly abundant in this one sample alone. The only identified compounds with this trend were taurine and acetyltaurine, though three others with *m/z* ratios of 146.1176, 148.0968, and 206.1388 were discovered to be likely isomers of known compounds (acetylcholine, hydroxyisoleucine, and dexpanthenol, respectively). One feature (*m/z* = 184.0637, RT = 7.0 minutes) was identified as choline sulfate using a second run of standards, while an additional mass feature at 168.0689 and eluting at 8.5 minutes was putatively flagged as taurine betaine. This mass was also one of the most highly enriched in the sample after taurine itself, with a peak area nearly 30 times that of the next largest sample. No clear explanation emerged for why some compounds were hyperabundant in this surface sample, though one possibility was the *Trichodesmium* bloom that was also sampled at this time [@Dugenne2023].
+
+```{r MS11A offenders table}
+ms11_offenders <- untarg_peaks %>%
+  filter(str_detect(filename, "180821")) %>%
+  group_by(feature) %>%
+  filter(sum(norm_area==0)<3) %>%
+  mutate(cursed_area=norm_area[filename=="180821_Smp_MS11C215m_A.mzML"]) %>%
+  filter(cursed_area>0) %>%
+  mutate(rel_area=norm_area/cursed_area) %>%
+  filter(filename!="180821_Smp_MS11C215m_A.mzML") %>%
+  group_by(feature) %>%
+  summarise(mean_rel=mean(rel_area), max_rel=max(rel_area)) %>%
+  # ggplot(aes(x=mean_rel, y=max_rel, label=feature)) + geom_point() + 
+  # scale_y_log10() + scale_x_log10() +
+  # geom_vline(xintercept = 0.25) + geom_hline(yintercept = 0.5)
+  filter(mean_rel<0.25 & max_rel < 0.5) %>%
+  arrange(mean_rel) %>% 
+  add_row(feature="MS_NEG_1123") %>%
+  left_join(untarg_feats %>% select(feature:compound_name)) %>%
+  mutate(mzmed=ifelse(str_detect(feature, "NEG"), mzmed+1.007276*2, mzmed)) %>%
+  filter(feature!="MS_NEG_0768") %>% # Remove taurine duplicate
+  add_row(mzmed=c(198.0794, 184.0637), rtmed=c(5, 7))
+
+# ms11_offenders$mzmed %>% sort() %>% `names<-`(., round(., digits=3)) %>% dist(diag = TRUE) %>% round(digits=4)
+
+stans <- read_csv("https://raw.githubusercontent.com/IngallsLabUW/Ingalls_Standards/master/Ingalls_Lab_Standards.csv") %>%
+  filter(Column=="HILIC" & z>0) %>%
+  select(cmpd_name=Compound_Name, formula=Empirical_Formula) %>%
+  group_by(formula) %>%
+  summarise(cmpd_name=paste(cmpd_name, collapse = ", "))
+base_mz <- 85.089149355+1.007276
+iter_mzs <- expand_grid(CH2=0:6, O=2:6) %>%
+  mutate(mz=base_mz+CH2*14.01565+O*15.994915) %>%
+  mutate(mz=round(mz, digits=5)) %>%
+  mutate(cmd=paste0("mz%between%pmppm(", mz, ", 10)")) %>%
+  mutate(formula=paste0("C", 5+CH2, "H", 11+CH2*2, "NO", O)) %>%
+  left_join(stans) %>%
+  mutate(label=ifelse(is.na(cmpd_name), formula, paste0(formula, " (", cmpd_name, ")")))
+ms11_df <- c("C11H23NO6", "C11H23NO6", "C9H19NO5", "C8H17NO5", "C6H13NO6", "C8H17NO4") %>%
+  data.frame(formula=., rtmed=c(8.5, 10, 8.5, 10.2, 5.2, 9.2)) %>%
+  left_join(iter_mzs) %>%
+  select(mzmed=mz, rtmed, formula, cmpd_name) %>%
+  bind_rows(ms11_offenders) %>%
+  arrange(mzmed) %>%
+  select(mzmed, rtmed, formula, compound_name, feature) %>%
+  mutate(formula=case_when(
+    compound_name=="Taurine"~"C2H8NO3S",
+    feature=="MS_POS_1050"~"C7H16NO2",
+    compound_name=="Hydroxyisoleucine"~"C6H14NO3",
+    compound_name=="N-Acetyltaurine"~"C4H10NO4S",
+    feature=="MS_POS_1340"~"C5H14NO3S",
+    feature=="MS_POS_1419"~"C8H18NO3",
+    mzmed%between%pmppm(184.0637, 10)~"C5H14NO4S",
+    mzmed%between%pmppm(198.0794, 10)~"C6H16NO4S",
+    compound_name=="Dexpanthenol"~"C9H20NO4",
+    TRUE~formula
+  )) %>%
+  mutate(compound_name=case_when(
+    compound_name=="(3-Carboxypropyl)trimethylammonium?"~NA,
+    compound_name=="Hydroxyisoleucine"~NA,
+    compound_name=="Dexpanthenol"~NA,
+    formula=="C5H14NO4S"~"Choline sulfate",
+    formula=="C5H14NO3S"~"Taurine betaine?",
+    TRUE~compound_name
+  )) %>%
+  mutate(rtmed=round(rtmed, 1)) %>%
+  mutate(exact_mass=str_replace(formula, "N", "N1")) %>%
+  mutate(exact_mass=str_replace(exact_mass, "S", "S1")) %>%
+  separate(exact_mass, into = c("drop", "C", "H", "N", "O", "S"), sep = "[A-Z]") %>%
+  mutate(across(C:S, as.numeric)) %>%
+  mutate(S=ifelse(is.na(S), 0, 1)) %>%
+  mutate(calc_mass=C*12+H*1.007825+N*14.003074+O*15.994915+S*31.972072) %>%
+  mutate(calc_mass=ifelse(abs(calc_mass-mzmed)>1, calc_mass+1.007276, calc_mass)) %>%
+  mutate(delta_ppm=ifelse(is.na(feature), 0, round((mzmed-calc_mass)*1e6/mzmed, 2))) %>%
+  mutate(compound_name=ifelse(is.na(compound_name), "", compound_name)) %>%
+  select(-feature) %>%
+  select(`Median m/z`=mzmed, `Median RT (min)`=rtmed, `Putative formula`=formula,
+         `Delta mz (ppm)`=delta_ppm, `Compound name`=compound_name)
+
+# knitr::kable(ms11_df)
+```
+
+| Median m/z| Median RT (min)|Putative formula | Delta mz (ppm)|Compound name    |
+|----------:|---------------:|:----------------|--------------:|:----------------|
+|   126.0221|            11.1|C2H8NO3S         |          -3.35|Taurine          |
+|   146.1176|             8.5|C7H16NO2         |          -3.63|                 |
+|   148.0968|             8.5|C6H14NO3         |          -3.88|                 |
+|   168.0317|             4.9|C4H10NO4S        |          -7.87|N-Acetyltaurine  |
+|   168.0689|             8.5|C5H14NO3S        |          -3.33|Taurine betaine? |
+|   176.1282|             8.1|C8H18NO3         |          -2.88|                 |
+|   184.0637|             7.0|C5H14NO4S        |           0.00|Choline sulfate  |
+|   192.1230|             9.2|C8H17NO4         |           0.00|                 |
+|   196.0816|             5.2|C6H13NO6         |           0.00|                 |
+|   198.0794|             5.0|C6H16NO4S        |           0.00|                 |
+|   206.1388|             7.1|C9H20NO4         |          -1.93|                 |
+|   208.1180|            10.2|C8H17NO5         |           0.00|                 |
+|   222.1336|             8.5|C9H19NO5         |           0.00|                 |
+|   266.1598|             8.5|C11H23NO6        |           0.00|                 |
+|   266.1598|            10.0|C11H23NO6        |           0.00|                 |
+
+*Table 1: Detected mass features that were enriched in the 15 meter surface sample from MESO-SCOPE Station 11. RT = retention time in minutes. Taurine betaine is followed by a ? to denote that this identification is putative. Mass difference between the median m/z and putative formula is reported in parts-per-million.*
+
+```{r trichobloomsamples comparison, eval=FALSE}
+library(RaMS)
+trichodata <- list.files("../mzMLs/tricho_pos", pattern=".mzML", full.names = TRUE) %>%
+  grabMSdata()
+tricho_eics <- ms11_df %>%
+  pmap(function(...){
+  row_data <- list(...)
+  peak_data <- trichodata$MS1[mz%between%pmppm(row_data$mzmed, 10)]
+  cbind(peak_data, formula=row_data$formula)
+}) %>%
+  bind_rows()
+
+tricho_eics %>%
+  filter(rt%between%c(2, 15)) %>%
+  arrange(mz) %>%
+  mutate(formula=fct_inorder(formula)) %>%
+  ggplot() +
+  geom_line(aes(x=rt, y=int, group=filename)) +
+  facet_wrap(~formula, scales="free", ncol=2) +
+  geom_vline(aes(xintercept = rtmed), color="red", data=ms11_df)
+
+trichodata$MS1[mz%between%pmppm(162.1125, 10)] %>%
+  mutate(samp_type=str_extract(filename, "Smp|Poo|Mix1|Mix2|Mat")) %>%
+  filter(samp_type!="Mat") %>%
+  ggplot() +
+  geom_line(aes(x=rt, y=int, group=filename, color=samp_type)) +
+  ggtitle("Homoserine betaine in Tricho bloom samples")
+```
+
+We explored the possibility that a nearby *Trichodesmium* bloom was responsible for the unusual composition of this one sample by analyzing additional samples taken directly from the bloom to see whether compounds abundant in hand-picked *Trichodesmium* colonies were also abundant in the Station 11 sample. After searching for the 14 mass features above in the environmental sample, 7 had good-quality peaks when viewed in the bloom samples as extracted ion chromatograms, though only 4 of these matched closely in retention time. We also performed a search of the untargeted data for homoserine betaine, a known *T. erythraeum* (strain IMS101) osmolyte [@Pade2016]. Although this compound was not run in water alongside the sample to confirm a retention time match due to a lack of authentic standards, we identified three mass features in the 162.1125 *m/z* window with retention times of 7.1, 8.4, and 9.9 minutes. The feature at RT 9.9 matched our carnitine standard's retention time, leaving the two earlier peaks with putative identifications of threonine betaine at 7.1 and homoserine betaine at 8.4 given the elution order of threonine before homoserine in our authentic standards. This order is the reverse of that in @Pade2016, which showed homoserine betaine eluting prior to carnitine. This elution order is expected given our use of a normal phase HILIC column and their use of a reversed phase Hypercarb column. They did not report an additional peak detected at this mass, leaving our putative identification of the homoserine and threonine betaines as low-confidence. None of the three 162.1125 features showed the same degree of enrichment in the anomalous sample as taurine or the other 13 compounds listed in Table 1, though the anomalous sample contained the largest, second-largest, and third-largest peak for carnitine, threonine betaine, and homoserine betaine, respectively. These results are fairly inconclusive but we are inclined to believe that a *Trichodesmium* colony is not likely to be the cause of the inflated values in this particular sample.
+
+```{r homoserinebetaine search, eval=FALSE}
+library(arrow)
+dset <- open_dataset("../tmzMLs/MT_all_file_arr_pqds/")
+hmb_eic <- dset %>%
+  filter(mz%between%pmppm(162.1125, 10)) %>%
+  # filter(mz%between%pmppm(120.0655, 10)) %>%
+  collect()
+hmb_eic %>%
+  filter(rt%between%c(6, 11)) %>%
+  # filter(rt%between%c(9, 13)) %>%
+  mutate(samp_type=str_extract(filename, "Poo|Smp|InH2O|Mat")) %>%
+  # distinct(filename, samp_type) %>%
+  # filter(samp_type!="Smp")
+  mutate(plotcol=ifelse(str_detect(filename, "180821_Smp_MS11C215m_A.mzML"), 
+                          "MS11C215m_A", samp_type)) %>%
+  ggplot() +
+  geom_line(aes(x=rt, y=int, group=filename, color=plotcol)) +
+  facet_wrap(~samp_type, ncol=1, scales="free_y")
+
+untarg_feats %>% 
+  filter(cruise=="MS") %>%
+  filter(mzmed%between%pmppm(162.1125))
+untarg_peaks %>%
+  filter(feature%in%c("MS_POS_1246", "MS_POS_1247", "MS_POS_1248")) %>%
+  mutate(feature=factor(feature, levels=c("MS_POS_1248", "MS_POS_1246", "MS_POS_1247"),
+                        labels=c("Threonine betaine (RT=7.1)", 
+                                 "Homoserine betaine (RT=8.4)",
+                                 "Carnitine (RT=9.9)"))) %>%
+  left_join(filled_file_metadata) %>%
+  filter(ms_run=="MT") %>%
+  mutate(station=factor(station, levels=as.character(4:14))) %>%
+  mutate(depth=factor(depth, levels=c("Surface", "DCM", "Deep"))) %>%
+  mutate(plotcol=ifelse(filename=="180821_Smp_MS11C215m_A.mzML", "red", "black")) %>%
+  ggplot(aes(x=station, y=norm_area, label=filename, color=plotcol)) +
+  geom_point() +
+  facet_grid(feature~depth, scales="free_y") +
+  geom_hline(yintercept = 0) +
+  scale_color_identity()
+
+untarg_peaks %>%
+  filter(feature%in%c("MS_POS_1246", "MS_POS_1247", "MS_POS_1248")) %>%
+  left_join(filled_file_metadata) %>%
+  filter(ms_run=="MT") %>%
+  group_by(feature) %>%
+  mutate(norm_area=norm_area/norm_area[filename=="180821_Smp_MS11C215m_A.mzML"]) %>%
+  group_by(feature, depth) %>%
+  summarise(mean_area=max(norm_area)) %>%
+  pivot_wider(names_from = "depth", values_from = mean_area)
+```
+
 ## Supp fig 1: PCA axes 1-3 vs SLA by depth
 
 ```{r supp figure/table prcomp vs SLA}
