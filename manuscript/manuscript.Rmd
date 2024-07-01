@@ -82,7 +82,7 @@ if(!file.exists("../untargeted/all_peaks.csv")){
 ```
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, eval = TRUE)
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, eval = FALSE)
 library(tidyverse)
 library(RaMS)
 library(vegan)
@@ -423,7 +423,7 @@ summed_labels <- untarg_peaks %>%
   group_by(feature) %>%
   summarise(s=sum(norm_area)) %>%
   arrange(desc(s)) %>%
-  left_join(untarg_feats %>% select(feature, mzmed, rtmed, compound_name, polarity))
+  left_join(untarg_feats %>% select(feature, mzmed, rtmed, compound_name, polarity)) %>%
   mutate(compound_name=ifelse(feature=="MS_NEG_0155", "Bromine79", compound_name)) %>%
   mutate(compound_name=ifelse(feature=="MS_NEG_0778", "Iodine", compound_name)) %>%
   mutate(compound_name=ifelse(feature=="MS_NEG_0161", "Sulfite", compound_name)) %>%
@@ -440,7 +440,7 @@ summed_labels %>%
 summed_labels %>%
   filter(feature!="MS_NEG_0055") %>%
   filter(feature!="MS_NEG_0068") %>%
-  head(20) %>%
+  head(30) %>%
   print(n=Inf)
 
 msdata <- grabMSdata(list.files("../tmzMLs/neg/", full.names=TRUE, pattern="180821_Poo"))
@@ -1313,9 +1313,9 @@ vegan::adonis2(
 
 The NMDS plots of the high-resolution depth samples were also illustrative of sample dissimilarity with clear SLA and depth trends. The anticyclonic samples grouped tightly and showed little variance with depth or triplicate when compared to the cyclonic samples with the exception of DCM triplicate B, which was highly distinct for unknown reasons. In contrast, the cyclonic samples were much more variable as is perhaps expected when the biomass is in the form of larger phytoplankton that are less homogenous in the environment. One notable aspect of their clustering was the way in which the deepest samples (DCM plus 20m) grouped most closely to the anticyclonic samples, perhaps indicating that below the DCM the metabolome rapidly approaches a uniform deep-water signal. This result was noted previously in the 175 meter samples of the eddy transect in @Kumler2023, where samples from the deep euphotic zone showed greater intra-depth similarity than samples from the DCM or 25 meters.
 
-Given the confluence of both depth and SLA signals and the way that the boxplots of Figure 2 would confound the SLA signal with the depth variance, we used k-means clustering to group similar compounds and provide a reduced dimensionality space for visualization. This revealed four major patterns of metabolite response, with a majority of compounds responding to eddy state (Clusters 1, 2, and 4 in Figure 5). It is interesting to note that the sole cluster in which abundances in the anticyclone are greater than those of the cyclone is also the only cluster to generally increase in abundance with depth (Cluster 4), perhaps indicating that compounds more concentrated in the anticyclone are the same kind of degradation products and recalcitrant carbon typically found at depth. Cluster 3, which shows no clear SLA difference and only a slight change with depth, includes compounds which are either unaffected by the environment or simply lack an environmental signal due to large inter-sample variability.
+Given the confluence of both depth and SLA signals and the way that the boxplots of Figure 2 would confound the SLA signal with the depth variance, we used k-means clustering to group similar compounds and provide a reduced dimensionality space for visualization. This revealed four major patterns of metabolite response, with a majority of compounds responding to eddy state (Clusters 1, 2, and 4 in Figure 5). It is interesting to note that the sole cluster in which abundances in the anticyclone are greater than those of the cyclone is also the only cluster to generally increase in abundance with depth (Cluster 4), perhaps indicating that compounds more concentrated in the anticyclone are the same kind of degradation products and recalcitrant carbon typically found at depth.
 
-The Hawaiian Eddy Experiment (HEE) data upset many of the expectations [Wei: consider calculating the effect size, as mentioned above. Will: Not sure what Wei means by this. Should I do effect size calculations here? Or just above when we didn't see an effect?] we developed during the MESO-SCOPE cruise in the previous year. Most surprising was the large difference between the eddies detected at the *surface*, while the DCM samples were functionally indistinguishable. This contrasts directly with the results from MESO-SCOPE and the results in @Gleich2024, who found eddy-driven shifts in protistan community composition to be larger at depth than at the surface. However, @Dugenne2023 found differences in nitrogen fixation rate and nitrogen fixer composition varying widely throughout the upper water column. The large surface differences were especially surprising given the large inter-replicate differences between the HEE surface samples in this study, while the DCM samples tended to be much more consistent.
+The Hawaiian Eddy Experiment (HEE) data upset many of the expectations we developed during the MESO-SCOPE cruise in the previous year. Most surprising was the large difference between the eddies detected at the *surface*, while the DCM samples were functionally indistinguishable. This contrasts directly with the results from MESO-SCOPE and the results in @Gleich2024, who found eddy-driven shifts in protistan community composition to be larger at depth than at the surface. However, @Dugenne2023 found differences in nitrogen fixation rate and nitrogen fixer composition varying widely throughout the upper water column. The large surface differences were especially surprising given the large inter-replicate differences between the HEE surface samples in this study, while the DCM samples tended to be much more consistent.
 
 ## Univariate approaches highlight individual metabolites responding to lifted and depressed isopycnals
 
@@ -1525,7 +1525,7 @@ knitr::write_bib(packages_used[nchar(packages_used)>0], file = "r-packages.bib")
 <div id="refs"></div>
 
 # Supplement
-## Supplemental methods: Trichodesmium bloom in MS11C215mA
+## Supplemental methods: Trichodesmium bloom in MS11C215mA?
 
 One sample, taken from 15 meters at Station 11, was highly distinct from all others (including its paired triplicates) with several metabolites measuring two or more orders of magnitude larger in peak area and concentration both before and after normalization to internal standards (Supplemental Figure 3). Heuristic exploration of potentially related masses identified a total of 14 compounds highly abundant in this one sample alone. The only identified compounds with this trend were taurine and acetyltaurine, though three others with *m/z* ratios of 146.1176, 148.0968, and 206.1388 were discovered to be likely isomers of known compounds (acetylcholine, hydroxyisoleucine, and dexpanthenol, respectively). One feature (*m/z* = 184.0637, RT = 7.0 minutes) was identified as choline sulfate using a second run of standards, while an additional mass feature at 168.0689 and eluting at 8.5 minutes was putatively flagged as taurine betaine. This mass was also one of the most highly enriched in the sample after taurine itself, with a peak area nearly 30 times that of the next largest sample. No clear explanation emerged for why some compounds were hyperabundant in this surface sample, though one possibility was the *Trichodesmium* bloom that was also sampled at this time [@Dugenne2023].
 
