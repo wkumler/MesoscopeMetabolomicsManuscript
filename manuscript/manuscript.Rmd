@@ -8,7 +8,7 @@ output:
 bibliography:
 - Exported Items.bib
 - r-packages.bib
-csl: limnology-and-oceanography.csl
+csl: msystems.csl
 ---
 
 ```{r Run analysis, include=FALSE}
