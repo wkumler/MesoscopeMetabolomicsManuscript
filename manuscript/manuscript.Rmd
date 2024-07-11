@@ -1,7 +1,7 @@
 ---
 title: "Metabolites reflect variability introduced by mesoscale eddies in the North Pacific Subtropical Gyre"
 author:
-  - William Kumler^[School of Oceanography, University of Washington, Seattle, WA, USA], Wei Qin^[School of Biological Sciences, Institute for Environmental Genomics, University of Oklahoma, Norman, OK, USA], Rachel A. Lundeen$^1$, Benedetto Barone^[Daniel K. Inouye Center for Microbial Oceanography, Research and Education and Department of Oceanography, University of Hawai'i at Mānoa, Honolulu, HI, USA], Laura T. Carlson$^1$, Anitra E. Ingalls$^{1*}$ (aingalls@uw.edu)
+  - William Kumler,$^a$ Wei Qin,$^{a*}$ Rachel A. Lundeen,$^a$ Benedetto Barone,$^b$ Laura T. Carlson,$^a$ Anitra E. Ingalls$^a$#
 output: 
   word_document:
     reference_docx: template.docx
@@ -10,6 +10,22 @@ bibliography:
 - r-packages.bib
 csl: limnology-and-oceanography.csl
 ---
+
+$^a$School of Oceanography, University of Washington, Seattle, WA, USA
+
+$^b$Daniel K. Inouye Center for Microbial Oceanography: Research and Education and Department of Oceanography, University of Hawai'i at Mānoa, Honolulu, HI, USA
+
+Running head: Metabolites reflect variability introduced by eddies
+
+\#Address correspondence to Anitra E. Ingalls, aingalls\@uw.edu
+
+\*Present Address: School of Biological Sciences, Institute for Environmental Genomics, University of Oklahoma, Norman, OK, USA
+
+Word counts:
+
+  - Abstract: 216
+  - Importance: 123
+  - Main text (excluding Methods, figure captions, references, etc.): 5453
 
 ```{r Run analysis, include=FALSE}
 if(!file.exists("../mzMLs/neg/180205_Poo_TruePoo_Full1.mzML")){
