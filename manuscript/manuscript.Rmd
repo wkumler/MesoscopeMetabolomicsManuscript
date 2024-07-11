@@ -1,7 +1,7 @@
 ---
 title: "Metabolites reflect variability introduced by mesoscale eddies in the North Pacific Subtropical Gyre"
-author: "William Kumler, Wei Qin, Rachel A. Lundeen, Benedetto Barone, Laura T. Carlson, and Anitra E. Ingalls"
-date: "`r Sys.Date()`"
+author:
+  - William Kumler^[School of Oceanography, University of Washington, Seattle, WA, USA], Wei Qin^[School of Biological Sciences, Institute for Environmental Genomics, University of Oklahoma, Norman, OK, USA], Rachel A. Lundeen$^1$, Benedetto Barone^[Daniel K. Inouye Center for Microbial Oceanography, Research and Education and Department of Oceanography, University of Hawai'i at Mānoa, Honolulu, HI, USA], Laura T. Carlson$^1$, Anitra E. Ingalls$^{1*}$ (aingalls@uw.edu)
 output: 
   word_document:
     reference_docx: template.docx
