@@ -4,11 +4,11 @@ author:
   - William Kumler,$^a$ Wei Qin,$^{a*}$ Rachel A. Lundeen,$^a$ Benedetto Barone,$^b$ Laura T. Carlson,$^a$ Anitra E. Ingalls$^a$#
 output: 
   word_document:
-    reference_docx: template.docx
+    reference_docx: Frontiers_Template.docx
 bibliography:
 - Exported Items.bib
 - r-packages.bib
-csl: limnology-and-oceanography.csl
+csl: frontiers-in-marine-science.csl
 ---
 
 $^a$School of Oceanography, University of Washington, Seattle, WA, USA
