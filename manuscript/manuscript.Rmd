@@ -23,9 +23,9 @@ Running head: Metabolites reflect variability introduced by eddies
 
 Word counts:
 
-  - Abstract: 216
-  - Importance: 123
-  - Main text (excluding Methods, figure captions, references, etc.): 5453
+  - Main text (excludes the abstract, section titles, figure and table captions, funding statement, acknowledgments, and references): 7,236
+  - Number of figures: 6
+  - Number of tables: 0
 
 ```{r Run analysis, include=FALSE}
 if(!file.exists("../mzMLs/neg/180205_Poo_TruePoo_Full1.mzML")){
