@@ -1,7 +1,7 @@
 ---
 title: "Metabolites reflect variability introduced by mesoscale eddies in the North Pacific Subtropical Gyre"
 author:
-  - William Kumler,$^a$ Wei Qin,$^{a*}$ Rachel A. Lundeen,$^a$ Benedetto Barone,$^b$ Laura T. Carlson,$^a$ Anitra E. Ingalls$^a$#
+  - William Kumler,$^1$ Wei Qin,$^{1+}$ Rachel A. Lundeen,$^1$ Benedetto Barone,$^2$ Laura T. Carlson,$^1$ Anitra E. Ingalls$^{1*}$
 output: 
   word_document:
     reference_docx: Frontiers_Template.docx
@@ -11,21 +11,21 @@ bibliography:
 csl: frontiers-in-marine-science.csl
 ---
 
-$^a$School of Oceanography, University of Washington, Seattle, WA, USA
+$^1$School of Oceanography, University of Washington, Seattle, WA, USA
 
-$^b$Daniel K. Inouye Center for Microbial Oceanography: Research and Education and Department of Oceanography, University of Hawai'i at Mānoa, Honolulu, HI, USA
+$^2$Daniel K. Inouye Center for Microbial Oceanography: Research and Education and Department of Oceanography, University of Hawai'i at Mānoa, Honolulu, HI, USA
 
-Running head: Metabolites reflect variability introduced by eddies
+$^*$Correspondence: Anitra E. Ingalls, aingalls\@uw.edu
 
-\#Address correspondence to Anitra E. Ingalls, aingalls\@uw.edu
-
-\*Present Address: School of Biological Sciences, Institute for Environmental Genomics, University of Oklahoma, Norman, OK, USA
+$^+$Present Address: School of Biological Sciences, Institute for Environmental Genomics, University of Oklahoma, Norman, OK, USA
 
 Word counts:
 
   - Main text (excludes the abstract, section titles, figure and table captions, funding statement, acknowledgments, and references): 7,236
   - Number of figures: 6
   - Number of tables: 0
+
+Running head: Metabolites reflect variability introduced by eddies
 
 ```{r Run analysis, include=FALSE}
 if(!file.exists("../mzMLs/neg/180205_Poo_TruePoo_Full1.mzML")){
