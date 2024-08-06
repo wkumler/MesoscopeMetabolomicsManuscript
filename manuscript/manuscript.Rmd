@@ -203,13 +203,101 @@ This shift in community structure and productivity should result in a correspond
 
 In this work, we directly tested for differences in the chemical composition of particulate matter due to changes in eddy state in the NPSG. We sampled from cyclonic and anticyclonic eddies spatially near each other and used targeted and untargeted mass spectrometry to explore changes in the composition of small, polar molecules. We expected to find that overall metabolite abundance would reflect shifts in biomass over multiple depths. We also expected to see enrichment in the deep chlorophyll maximum of cyclonic features for those metabolites especially abundant in eukaryotic organisms. Finally, we predicted that these patterns would be robust across years and sampling regimes for a reliable way to link these ocean features with the chemical composition of organic matter in the open ocean.
 
-# Results
+# Materials and Methods
 
-We explored the impacts of isopycnal uplift and depression on the composition of particulate organic matter across pairs of mesoscale eddies of opposite polarity in the North Pacific Subtropical Gyre (NPSG). The first eddy pair was the focus of the July 2017 cruise, Microbial Ecology of the Surface Ocean-Simons Collaboration on Ocean Processes and Ecology (MESO-SCOPE, KM1709 aboard the R/V *Kilo Moana*). During the first phase of our two-phase expedition, a transect was taken from the north to the south consisting of 11 stations across a pair of eddies (the same sampling sites as in @Barone2022 and @Dugenne2023, Figure 1). Samples for particulate metabolomic analysis were collected from 15 meters, the deep chlorophyll maximum (DCM), and 175 meters at each station onto 0.2 µm filters. The next phase of the MESO-SCOPE cruise focused on Lagrangian sampling in the two eddy centers, starting with the cyclone (SLA = -14 cm) before progressing to the anticyclone (SLA = 24 cm). There, metabolomics samples were taken from the DCM as well as 10 and 20 meters above and below it. The second eddy pair was targeted during the March 2018 Hawaiian Eddy Experiment (HEE, FK180310 aboard the R/V *Falkor*). During this followup cruise, a strong anticyclone (SLA = 21 cm) and a nearby cyclone (SLA = -13 cm) were targeted for a similar set of biogeochemical measurements described in @Dugenne2023 and @Gleich2024 (Figure 1). Metabolomics samples were taken from the center of each eddy as described above at both 25 meters and the DCM. We analyzed these three different datasets separately and discuss the findings from each in sequence below.
+## Cruise information
+Samples were collected from two cruises in the North Pacific Subtropical Gyre near Station ALOHA that targeted strong mesoscale eddy features as described in @Dugenne2023 and @Gleich2024 (Figure 1). Briefly, the 2017 MESO-SCOPE cruise (Microbial Ecology of the Surface Ocean-Simons Collaboration on Ocean Processes and Ecology, KM1709 on the R/V *Kilo Moana*) consisted of a transect across adjacent cyclonic and anticyclonic eddies as well as two long-term Lagrangian stations at the center of each eddy. The cyclonic eddy had a maximum negative sea level anomaly (SLA) of -20 centimeters and the anticyclonic eddy reached +24 centimeters. The transect samples were taken at various times of day as the ship transected the adjacent eddies while the eddy center samples were all collected between 5 and 8 pm. In 2018, the Hawaiian Eddy Experiment (HEE, FK180310 on the R/V *Falkor*) targeted new cyclonic and anticyclonic eddies in approximately the same location with samples taken at the center of each eddy (maximum negative anomaly in the cyclone = -15 cm, maximum positive anomaly in the anticyclone = +26 cm) (Figure 1).
 
 ![](figures/MapForWill_v3.jpg)
 
 *Figure 1: Sampling during MESO-SCOPE and the Hawaiian Eddy Experiment (HEE). Cruise bounds are shown in the large central map with Station ALOHA colored as a point in red near the Hawaiian Islands. Yellow stars denote sampling locations and station numbers relative to the sea level anomaly contours in the background during 28 June 2017 for the MESO-SCOPE cruise (left) and the 6 April 2018 for the HEE cruise (right). Lagrangian sampling near the eddy centers of the MESO-SCOPE cruise was performed by following drifters deployed in proximity of Stations 6 and 12.*
+
+## Biogeochemical data
+
+Biogeochemical measurements were collected as described in @Barone2022 and @Dugenne2023 mostly following protocols used by the HOT program (http://hahana.soest.hawaii.edu/hot/methods/results.html). Briefly, all environmental data was collected via CTD rosette except SLA which was measured via satellite. Particulate carbon and particulate nitrogen were measured using an elemental analyzer. Nitrate + nitrite (N+N) was measured on an autoanalyzer except where concentrations were below 100 nM in which case they were measured using chemiluminescence. Soluble reactive phosphorus (phosphate, PO$_4^{3-}$) was measured on an autoanalyzer or following the magnesium induced coprecipitation method. Values were interpolated linearly to the depths at which metabolite samples were taken using all data collected at the given station. Two particulate carbon values were determined to be spurious, with concentrations 2-3 times higher than typical Station ALOHA values, and were instead estimated using a best-fit linear regression against beam attenuation.
+
+## Sample collection for particulate metabolites
+Samples were obtained using the onboard CTD rosette to collect water from 15 meters, the deep chlorophyll maximum (DCM), and 175 meters during the MESO-SCOPE eddy transect and from the DCM ±10 and ±20 meters during the eddy center sampling in the MESO-SCOPE cruise and from 25 meters and the DCM during the HEE cruise. The DCM was determined visually from fluorometer data during the CTD downcast and Niskin bottles were tripped during the return trip to the surface. Seawater from each depth was sampled in triplicate by firing one Niskin bottle for each sample. Samples were brought to the surface and decanted into prewashed (3x with DI, 3x with sampled seawater) polycarbonate bottles for filtration. 10L samples were filtered by peristaltic pump onto 142mm 0.2 µm Durapore filters held by polycarbonate filter holders on a Masterflex tubing line. Pressures were kept as low as possible while still producing a reasonable rate of flow through the filter, approximately 250-500 mL per minute. Samples were then removed from the filter holder using solvent-washed tweezers and placed into pre-combusted aluminum foil packets that were then flash-frozen in liquid nitrogen before being stored at -80 °C until extraction. A methodological blank was also collected by running filtrate through a new filter and then treated identically to the samples.
+
+## Metabolite sample extraction
+Extraction followed a modified Bligh & Dyer approach as detailed in @Boysen2018. Briefly, filters were randomized and added to PTFE centrifuge tubes with a 1:1 mix of 100 µm and 400 µm silica beads, approximately 2 mL -20 °C Optima-grade dichloromethane, and approximately 3 mL -20 °C 1:1 methanol/water solution (both also Optima-grade). Isotope labeled extraction standards were also added during this step (Supplemental Table 1). The samples were then bead-beaten three times, followed by triplicate extraction of the aqueous layer and addition with fresh methanol/water mixture with additional bead-beatings in between. Samples were then dried down under ultrapure nitrogen gas and warmed using a Fisher-Scientific Reacti-Therm module. Dried aqueous fractions were reconstituted in 380 µL Optima-grade water and amended with 20 µL isotope-labeled injection standards (Supplemental Table 1) to measure the variability introduced by chromatography and ionization. The reconstituted fraction was syringe-filtered into precombusted glass inserts in HPLC vials to remove any potential clogging material. Samples were then additionally diluted 1:1 with Optima-grade water to prevent overloading on the column and reduce salt effects. 
+
+A pooled sample was created by combining 20 µL of each sample into the same HPLC vial, and a 1:1 dilution with water created a half-strength pooled sample from that to assess matrix effects and obscuring variation [@Boysen2018]. Also run alongside the environmental samples were samples of authentic standards split into two mixes (Supplemental Table 2). Standards were dissolved in Optima-grade water to help with identification and into an aliquot of the pooled sample to quantify matrix response factors. HPLC vials containing the samples were frozen at -80 °C until thawing shortly before injection.
+
+## HPLC-MS methods
+Separate HPLC-MS runs were used for the MESO-SCOPE eddy transect, the MESO-SCOPE eddy center, and the HEE cruise data. Eddy center samples were run in February 2018, eddy transect samples were run later during August of that year, and the HEE samples were run in July 2019. Each run was treated as a single batch and injected in sequence while maintaining the randomization that had occurred during extraction to minimize chromatographic shifts from solvent or column switching.
+
+For each run, a Waters Acquity I-Class UPLC with a SeQuant ZIC-pHILIC column (5 µm particle size, 2.1 mm x 150 mm, from Millipore) was used with 10 mM ammonium carbonate in 85:15 acetonitrile to water (Solvent A) and 10 mM ammonium carbonate in 85:15 water to acetonitrile (Solvent B) at a flow rate of 0.15 mL/min. The column was held at 100% A for 2 minutes, ramped to 64% B over 18 minutes, ramped to 100% B over 1 minute, held at 100% B for 5 minutes, and equilibrated at 100% A for 25 minutes (50 minutes total). The column was maintained at 30 °C. The injection volume was 2 µL for samples and standard mixes. When starting a batch, the column was equilibrated at the starting conditions for at least 30 minutes. To improve the performance of the HILIC column, we maintained the same injection volume, kept the instrument running water blanks between samples as necessary, and injected standards in a representative matrix (the pooled sample) in addition to standards in water. After each batch, the column was flushed with 10 mM ammonium carbonate in 85:15 water to acetonitrile for 20 to 30 minutes.
+
+The Waters Acquity UPLC was coupled to a Thermo Q Exactive HF hybrid Orbitrap high resolution mass spectrometer equipped with a heated electrospray ionization source (H-ESI). The H-ESI voltage was set to 3.3 kV and sheath gas, auxiliary gas, and sweep gas flow rates were set at 16, 3, and 1, respectively. The capillary and auxiliary gas heater temperatures were maintained at 320°C and 100°C, respectively. Full scan analyses were performed with polarity switching and a scan range of 60 to 900 *m/z* at a resolution of 60,000. The instrument was mass calibrated at 200 *m/z* before each run began and once again during the eddy transect sample set to ensure calibrations were always performed within 3-4 days. All data files were then converted to an open-source mzML format and vendor centroided via Proteowizard’s msConvert tool. All mzML files have been uploaded to Metabolomics Workbench under Project ID PR001738.
+
+## Targeted metabolomic methods
+
+Compounds for which we had an authentic standard (Supplemental Table 2) were manually integrated using Skyline and MSDIAL with the standard mixes used to ensure the correct peak was integrated by matching retention time. Compounds that were visually determined to have poor peak quality in the samples were removed from the downstream analysis. Skyline was used for both the eddy center samples and the HEE cruise data while MSDIAL was used for the eddy transect data due to the larger number of files in that dataset. Raw peak areas were then normalized to their best-matched internal standard (Supplemental Table 1) per @Boysen2018 except that all compounds were normalized to their best match no matter how minimal the improvement. Normalized peaks were then calibrated via a single-point standard curve as determined uniquely for each compound from the authentic standard mixes and used to convert normalized peak area into moles per µL injected and scaled to the amount of seawater filtered to provide a final estimate of environmental concentration for each compound in moles per liter of seawater filtered.
+
+```{r supp table 1 standards list}
+clean_stans <- read_csv("../metadata/clean_stans.csv")
+raafay_notes <- read_csv("../targeted/raw_data/Raafay_HILIC_notes.csv") %>%
+  select(compound_name, in_samps)
+
+IS_table <- clean_stans %>%
+  filter(compound_type=="Internal Standard") %>%
+  select(compound_name, formula, stan_mz, stan_rt, conc_um, date_added, polarity) %>%
+  mutate(ms_run=case_when(
+    date_added<180205~"All",
+    date_added<=180821~"MESO-SCOPE Eddy Transect and HEE",
+    date_added<=190715~"HEE only",
+    TRUE~"None"
+  )) %>%
+  filter(ms_run!="None") %>%
+  mutate(polarity=ifelse(polarity=="pos", "Positive", "Negative")) %>% 
+  mutate(stan_type=case_when(
+    compound_name%in%c("L-Cysteic acid, 2H3", "3-Sulfolactate, 13C3", "Sulfoacetic acid, 13C2", "Isethionic acid, 13C2", "Taurine, 2H4")~"Extraction",
+    TRUE~"Internal"
+  )) %>%
+  arrange(stan_mz) %>%
+  select(`Compound name`=compound_name, `Molecular formula`=formula,
+         `m/z ratio`=stan_mz, `Retention time (min)`=stan_rt,
+         `Concentration (uM)`=conc_um, `Polarity integrated`=polarity,
+         `Which runs`=ms_run, `Extraction or internal`=stan_type)
+
+Auth_table <- clean_stans %>%
+  mutate(ms_run=case_when(
+    date_added<180205~"All",
+    date_added<=180821~"MESO-SCOPE Eddy Transect and HEE",
+    date_added<=190715~"HEE only",
+    TRUE~"None"
+  )) %>%
+  filter(ms_run!="None") %>%
+  left_join(raafay_notes) %>%
+  mutate(polarity=ifelse(polarity=="pos", "Positive", "Negative")) %>%
+  arrange(stan_mz) %>%
+  select(`Compound name`=compound_name, `Molecular formula`=formula,
+         `m/z ratio`=stan_mz, `Retention time (min)`=stan_rt,
+         `Concentration (uM)`=conc_um, `Polarity integrated`=polarity,
+         `Standard mix`=mix, `Which runs`=ms_run, `Good quality`=in_samps)
+
+wb <- createWorkbook(creator = "William Kumler, wkumler@uw.edu")
+addWorksheet(wb, sheetName = "Table 1 Internal Standards")
+writeData(x=IS_table, wb = wb, sheet = "Table 1 Internal Standards")
+
+addWorksheet(wb, sheetName = "Table 2 Authentic Standards")
+writeData(x=Auth_table, wb = wb, sheet = "Table 2 Authentic Standards")
+
+saveWorkbook(wb, file = "supplement/Supplemental Tables.xlsx", overwrite = TRUE)
+```
+
+## Untargeted metabolomic methods
+
+Samples were also processed via the untargeted workflow detailed in @Kumler2023. In short, XCMS [@R-xcms] was used for feature detection with CentWave peakpicking, Obiwarp alignment, and peak density correspondence/grouping. This was followed by manual inspection of the extracted ion chromatogram for each mass feature by an expert for quality with only those peaks classified as "Good" used in the analysis here. Features were then matched with and normalized to an internal standard (Supplemental Table 1) as described above.
+
+## Statistics
+
+All statistics were run in R version 4.3.3. We used multivariate statistics provided by the vegan package [@R-vegan] to assess the overall impact of various metrics across the metabolome followed by univariate statistics to investigate individually significant responses. Non-parametric tests were used when data were unlikely to obey parametric assumptions and permutational statistics were preferred wherever possible. Multiple comparison problems were controlled where necessary using a false-discovery rate correction [@Benjamini1995]. For the analyses involving the eddy transect samples, sea level anomaly was treated as a continuous variable with the exception of the PERMANOVA, for which SLA was categorized as cyclonic if less than -5 cm and anticyclonic if greater than 5 cm, with a third category for stations in between [@Anderson2001]. Both the MESO-SCOPE eddy center and HEE analyses treated SLA as a categorical variable.
+
+# Results
+
+We explored the impacts of isopycnal uplift and depression on the composition of particulate organic matter across pairs of mesoscale eddies of opposite polarity in the North Pacific Subtropical Gyre (NPSG). The first eddy pair was the focus of the July 2017 cruise, Microbial Ecology of the Surface Ocean-Simons Collaboration on Ocean Processes and Ecology (MESO-SCOPE, KM1709 aboard the R/V *Kilo Moana*). During the first phase of our two-phase expedition, a transect was taken from the north to the south consisting of 11 stations across a pair of eddies (the same sampling sites as in @Barone2022 and @Dugenne2023, Figure 1). Samples for particulate metabolomic analysis were collected from 15 meters, the deep chlorophyll maximum (DCM), and 175 meters at each station onto 0.2 µm filters. The next phase of the MESO-SCOPE cruise focused on Lagrangian sampling in the two eddy centers, starting with the cyclone (SLA = -14 cm) before progressing to the anticyclone (SLA = 24 cm). There, metabolomics samples were taken from the DCM as well as 10 and 20 meters above and below it. The second eddy pair was targeted during the March 2018 Hawaiian Eddy Experiment (HEE, FK180310 aboard the R/V *Falkor*). During this followup cruise, a strong anticyclone (SLA = 21 cm) and a nearby cyclone (SLA = -13 cm) were targeted for a similar set of biogeochemical measurements described in @Dugenne2023 and @Gleich2024 (Figure 1). Metabolomics samples were taken from the center of each eddy as described above at both 25 meters and the DCM. We analyzed these three different datasets separately and discuss the findings from each in sequence below.
 
 ## Metabolome variability across adjacent mesoscale eddies of opposing polarity during MESO-SCOPE explained by sea level anomaly variations
 
@@ -1449,94 +1537,6 @@ The authors have no conflicts of interest to declare.
 # Data availability
 
 Data and code used for this manuscript are all available online. Biogeochemical data can be sourced from the Simons SCOPE website at https://scope.soest.hawaii.edu/data/ and metabolomics data has been uploaded to Metabolomics Workbench under Project ID PR001738, where the data can be accessed directly via its DOI: 10.21228/M82719. Scripts used to process metabolomics data are available on GitHub at https://github.com/wkumler/MesoscopeMetabolomicsManuscript.
-
-# Methods
-
-## Cruise information
-Samples were collected from two cruises in the North Pacific Subtropical Gyre near Station ALOHA that targeted strong mesoscale eddy features as described in @Dugenne2023 and @Gleich2024. Briefly, the 2017 MESO-SCOPE cruise (Microbial Ecology of the Surface Ocean-Simons Collaboration on Ocean Processes and Ecology, KM1709 on the R/V *Kilo Moana*) consisted of a transect across adjacent cyclonic and anticyclonic eddies as well as two long-term Lagrangian stations at the center of each eddy. The cyclonic eddy had a maximum negative sea level anomaly (SLA) of -20 centimeters and the anticyclonic eddy reached +24 centimeters. The transect samples were taken at various times of day as the ship transected the adjacent eddies while the eddy center samples were all collected between 5 and 8 pm. In 2018, the Hawaiian Eddy Experiment (HEE, FK180310 on the R/V *Falkor*) targeted new cyclonic and anticyclonic eddies in approximately the same location with samples taken at the center of each eddy (maximum negative anomaly in the cyclone = -15 cm, maximum positive anomaly in the anticyclone = +26 cm) (Figure 1).
-
-## Biogeochemical data
-
-Biogeochemical measurements were collected as described in @Barone2022 and @Dugenne2023 mostly following protocols used by the HOT program (http://hahana.soest.hawaii.edu/hot/methods/results.html). Briefly, all environmental data was collected via CTD rosette except SLA which was measured via satellite. Particulate carbon and particulate nitrogen were measured using an elemental analyzer. Nitrate + nitrite (N+N) was measured on an autoanalyzer except where concentrations were below 100 nM in which case they were measured using chemiluminescence. Soluble reactive phosphorus (phosphate, PO$_4^{3-}$) was measured on an autoanalyzer or following the magnesium induced coprecipitation method. Values were interpolated linearly to the depths at which metabolite samples were taken using all data collected at the given station. Two particulate carbon values were determined to be spurious, with concentrations 2-3 times higher than typical Station ALOHA values, and were instead estimated using a best-fit linear regression against beam attenuation.
-
-## Sample collection for particulate metabolites
-Samples were obtained using the onboard CTD rosette to collect water from 15 meters, the deep chlorophyll maximum (DCM), and 175 meters during the MESO-SCOPE eddy transect and from the DCM ±10 and ±20 meters during the eddy center sampling in the MESO-SCOPE cruise and from 25 meters and the DCM during the HEE cruise. The DCM was determined visually from fluorometer data during the CTD downcast and Niskin bottles were tripped during the return trip to the surface. Seawater from each depth was sampled in triplicate by firing one Niskin bottle for each sample. Samples were brought to the surface and decanted into prewashed (3x with DI, 3x with sampled seawater) polycarbonate bottles for filtration. 10L samples were filtered by peristaltic pump onto 142mm 0.2 µm Durapore filters held by polycarbonate filter holders on a Masterflex tubing line. Pressures were kept as low as possible while still producing a reasonable rate of flow through the filter, approximately 250-500 mL per minute. Samples were then removed from the filter holder using solvent-washed tweezers and placed into pre-combusted aluminum foil packets that were then flash-frozen in liquid nitrogen before being stored at -80 °C until extraction. A methodological blank was also collected by running filtrate through a new filter and then treated identically to the samples.
-
-## Metabolite sample extraction
-Extraction followed a modified Bligh & Dyer approach as detailed in @Boysen2018. Briefly, filters were randomized and added to PTFE centrifuge tubes with a 1:1 mix of 100 µm and 400 µm silica beads, approximately 2 mL -20 °C Optima-grade dichloromethane, and approximately 3 mL -20 °C 1:1 methanol/water solution (both also Optima-grade). Isotope labeled extraction standards were also added during this step (Supplemental Table 1). The samples were then bead-beaten three times, followed by triplicate extraction of the aqueous layer and addition with fresh methanol/water mixture with additional bead-beatings in between. Samples were then dried down under ultrapure nitrogen gas and warmed using a Fisher-Scientific Reacti-Therm module. Dried aqueous fractions were reconstituted in 380 µL Optima-grade water and amended with 20 µL isotope-labeled injection standards (Supplemental Table 1) to measure the variability introduced by chromatography and ionization. The reconstituted fraction was syringe-filtered into precombusted glass inserts in HPLC vials to remove any potential clogging material. Samples were then additionally diluted 1:1 with Optima-grade water to prevent overloading on the column and reduce salt effects. 
-
-A pooled sample was created by combining 20 µL of each sample into the same HPLC vial, and a 1:1 dilution with water created a half-strength pooled sample from that to assess matrix effects and obscuring variation [@Boysen2018]. Also run alongside the environmental samples were samples of authentic standards split into two mixes (Supplemental Table 2). Standards were dissolved in Optima-grade water to help with identification and into an aliquot of the pooled sample to quantify matrix response factors. HPLC vials containing the samples were frozen at -80 °C until thawing shortly before injection.
-
-## HPLC-MS methods
-Separate HPLC-MS runs were used for the MESO-SCOPE eddy transect, the MESO-SCOPE eddy center, and the HEE cruise data. Eddy center samples were run in February 2018, eddy transect samples were run later during August of that year, and the HEE samples were run in July 2019. Each run was treated as a single batch and injected in sequence while maintaining the randomization that had occurred during extraction to minimize chromatographic shifts from solvent or column switching.
-
-For each run, a Waters Acquity I-Class UPLC with a SeQuant ZIC-pHILIC column (5 µm particle size, 2.1 mm x 150 mm, from Millipore) was used with 10 mM ammonium carbonate in 85:15 acetonitrile to water (Solvent A) and 10 mM ammonium carbonate in 85:15 water to acetonitrile (Solvent B) at a flow rate of 0.15 mL/min. The column was held at 100% A for 2 minutes, ramped to 64% B over 18 minutes, ramped to 100% B over 1 minute, held at 100% B for 5 minutes, and equilibrated at 100% A for 25 minutes (50 minutes total). The column was maintained at 30 °C. The injection volume was 2 µL for samples and standard mixes. When starting a batch, the column was equilibrated at the starting conditions for at least 30 minutes. To improve the performance of the HILIC column, we maintained the same injection volume, kept the instrument running water blanks between samples as necessary, and injected standards in a representative matrix (the pooled sample) in addition to standards in water. After each batch, the column was flushed with 10 mM ammonium carbonate in 85:15 water to acetonitrile for 20 to 30 minutes.
-
-The Waters Acquity UPLC was coupled to a Thermo Q Exactive HF hybrid Orbitrap high resolution mass spectrometer equipped with a heated electrospray ionization source (H-ESI). The H-ESI voltage was set to 3.3 kV and sheath gas, auxiliary gas, and sweep gas flow rates were set at 16, 3, and 1, respectively. The capillary and auxiliary gas heater temperatures were maintained at 320°C and 100°C, respectively. Full scan analyses were performed with polarity switching and a scan range of 60 to 900 *m/z* at a resolution of 60,000. The instrument was mass calibrated at 200 *m/z* before each run began and once again during the eddy transect sample set to ensure calibrations were always performed within 3-4 days. All data files were then converted to an open-source mzML format and vendor centroided via Proteowizard’s msConvert tool. All mzML files have been uploaded to Metabolomics Workbench under Project ID PR001738.
-
-## Targeted metabolomic methods
-
-Compounds for which we had an authentic standard (Supplemental Table 2) were manually integrated using Skyline and MSDIAL with the standard mixes used to ensure the correct peak was integrated by matching retention time. Compounds that were visually determined to have poor peak quality in the samples were removed from the downstream analysis. Skyline was used for both the eddy center samples and the HEE cruise data while MSDIAL was used for the eddy transect data due to the larger number of files in that dataset. Raw peak areas were then normalized to their best-matched internal standard (Supplemental Table 1) per @Boysen2018 except that all compounds were normalized to their best match no matter how minimal the improvement. Normalized peaks were then calibrated via a single-point standard curve as determined uniquely for each compound from the authentic standard mixes and used to convert normalized peak area into moles per µL injected and scaled to the amount of seawater filtered to provide a final estimate of environmental concentration for each compound in moles per liter of seawater filtered.
-
-```{r supp table 1 standards list}
-clean_stans <- read_csv("../metadata/clean_stans.csv")
-raafay_notes <- read_csv("../targeted/raw_data/Raafay_HILIC_notes.csv") %>%
-  select(compound_name, in_samps)
-
-IS_table <- clean_stans %>%
-  filter(compound_type=="Internal Standard") %>%
-  select(compound_name, formula, stan_mz, stan_rt, conc_um, date_added, polarity) %>%
-  mutate(ms_run=case_when(
-    date_added<180205~"All",
-    date_added<=180821~"MESO-SCOPE Eddy Transect and HEE",
-    date_added<=190715~"HEE only",
-    TRUE~"None"
-  )) %>%
-  filter(ms_run!="None") %>%
-  mutate(polarity=ifelse(polarity=="pos", "Positive", "Negative")) %>% 
-  mutate(stan_type=case_when(
-    compound_name%in%c("L-Cysteic acid, 2H3", "3-Sulfolactate, 13C3", "Sulfoacetic acid, 13C2", "Isethionic acid, 13C2", "Taurine, 2H4")~"Extraction",
-    TRUE~"Internal"
-  )) %>%
-  arrange(stan_mz) %>%
-  select(`Compound name`=compound_name, `Molecular formula`=formula,
-         `m/z ratio`=stan_mz, `Retention time (min)`=stan_rt,
-         `Concentration (uM)`=conc_um, `Polarity integrated`=polarity,
-         `Which runs`=ms_run, `Extraction or internal`=stan_type)
-
-Auth_table <- clean_stans %>%
-  mutate(ms_run=case_when(
-    date_added<180205~"All",
-    date_added<=180821~"MESO-SCOPE Eddy Transect and HEE",
-    date_added<=190715~"HEE only",
-    TRUE~"None"
-  )) %>%
-  filter(ms_run!="None") %>%
-  left_join(raafay_notes) %>%
-  mutate(polarity=ifelse(polarity=="pos", "Positive", "Negative")) %>%
-  arrange(stan_mz) %>%
-  select(`Compound name`=compound_name, `Molecular formula`=formula,
-         `m/z ratio`=stan_mz, `Retention time (min)`=stan_rt,
-         `Concentration (uM)`=conc_um, `Polarity integrated`=polarity,
-         `Standard mix`=mix, `Which runs`=ms_run, `Good quality`=in_samps)
-
-wb <- createWorkbook(creator = "William Kumler, wkumler@uw.edu")
-addWorksheet(wb, sheetName = "Table 1 Internal Standards")
-writeData(x=IS_table, wb = wb, sheet = "Table 1 Internal Standards")
-
-addWorksheet(wb, sheetName = "Table 2 Authentic Standards")
-writeData(x=Auth_table, wb = wb, sheet = "Table 2 Authentic Standards")
-
-saveWorkbook(wb, file = "supplement/Supplemental Tables.xlsx", overwrite = TRUE)
-```
-
-## Untargeted metabolomic methods
-
-Samples were also processed via the untargeted workflow detailed in @Kumler2023. In short, XCMS [@R-xcms] was used for feature detection with CentWave peakpicking, Obiwarp alignment, and peak density correspondence/grouping. This was followed by manual inspection of the extracted ion chromatogram for each mass feature by an expert for quality with only those peaks classified as "Good" used in the analysis here. Features were then matched with and normalized to an internal standard (Supplemental Table 1) as described above.
-
-## Statistics
-
-All statistics were run in R version 4.3.3. We used multivariate statistics provided by the vegan package [@R-vegan] to assess the overall impact of various metrics across the metabolome followed by univariate statistics to investigate individually significant responses. Non-parametric tests were used when data were unlikely to obey parametric assumptions and permutational statistics were preferred wherever possible. Multiple comparison problems were controlled where necessary using a false-discovery rate correction [@Benjamini1995]. For the analyses involving the eddy transect samples, sea level anomaly was treated as a continuous variable with the exception of the PERMANOVA, for which SLA was categorized as cyclonic if less than -5 cm and anticyclonic if greater than 5 cm, with a third category for stations in between [@Anderson2001]. Both the MESO-SCOPE eddy center and HEE analyses treated SLA as a categorical variable.
 
 # References
 
