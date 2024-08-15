@@ -98,7 +98,7 @@ if(!file.exists("../untargeted/all_peaks.csv")){
 ```
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, eval = FALSE)
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, eval = TRUE)
 library(tidyverse)
 library(RaMS)
 library(vegan)
@@ -233,11 +233,11 @@ The Waters Acquity UPLC was coupled to a Thermo Q Exactive HF hybrid Orbitrap hi
 Compounds for which we had an authentic standard (Supplemental Table 2) were manually integrated using Skyline and MSDIAL with the standard mixes used to ensure the correct peak was integrated by matching retention time. Compounds that were visually determined to have poor peak quality in the samples were removed from the downstream analysis. Skyline was used for both the eddy center samples and the HEE cruise data while MSDIAL was used for the eddy transect data due to the larger number of files in that dataset. Raw peak areas were then normalized to their best-matched internal standard (Supplemental Table 1) per @Boysen2018 except that all compounds were normalized to their best match no matter how minimal the improvement. Normalized peaks were then calibrated via a single-point standard curve as determined uniquely for each compound from the authentic standard mixes and used to convert normalized peak area into moles per µL injected and scaled to the amount of seawater filtered to provide a final estimate of environmental concentration for each compound in moles per liter of seawater filtered.
 
 ```{r supp table 1 standards list}
-clean_stans <- read_csv("../metadata/clean_stans.csv")
+clean_stans_supp <- read_csv("../metadata/clean_stans.csv")
 raafay_notes <- read_csv("../targeted/raw_data/Raafay_HILIC_notes.csv") %>%
   select(compound_name, in_samps)
 
-IS_table <- clean_stans %>%
+IS_table <- clean_stans_supp %>%
   filter(compound_type=="Internal Standard") %>%
   select(compound_name, formula, stan_mz, stan_rt, conc_um, date_added, polarity) %>%
   mutate(ms_run=case_when(
@@ -258,7 +258,7 @@ IS_table <- clean_stans %>%
          `Concentration (uM)`=conc_um, `Polarity integrated`=polarity,
          `Which runs`=ms_run, `Extraction or internal`=stan_type)
 
-Auth_table <- clean_stans %>%
+Auth_table <- clean_stans_supp %>%
   mutate(ms_run=case_when(
     date_added<180205~"All",
     date_added<=180821~"MESO-SCOPE Eddy Transect and HEE",
@@ -467,7 +467,7 @@ targ_peaks %>%
   mutate(perc_increase=St12/Other)
 ```
 
-```{r PC_vs_totnM regression values, include=FALSE}
+```{r frac_pc_in_metab_df creation}
 frac_pc_in_metab_df <- targ_peaks %>%
   filter(str_detect(filename, "180821_Smp")) %>%
   left_join(clean_stans %>% select(compound_name, formula, polarity, n_C, n_N)) %>%
@@ -480,7 +480,9 @@ frac_pc_in_metab_df <- targ_peaks %>%
   mutate(depth=str_extract(depth, "DCM|Deep|Surface")) %>%
   mutate(depth=factor(depth, levels=c("Surface", "DCM", "Deep"))) %>%
   mutate(station=factor(station, levels=c(as.character(4:14))))
+```
 
+```{r PC_vs_totnM regression values, include=FALSE}
 no_outlier_frac_pc_in_metab_df <- frac_pc_in_metab_df %>%
   filter(!(station=="11" & tripl=="A" & depth=="Surface")) %>%
   ungroup()
@@ -512,7 +514,7 @@ filled_file_metadata %>%
   cor()
 ```
 
-This shift in metabolite abundance was largely driven by a corresponding shift in biomass. Particulate carbon and summed metabolite concentration were tightly correlated across all samples and depths ($\beta = 24.9\pm1.82$ (SE), Pearson's $r$ = .813, p-value < 0.001, Supplemental Figure 2). This overall trend was largely driven by higher values at 15 meters and the DCM than at depth, but when analyzed at each depth individually the general correspondence held (Supplemental Figure 2). The DCM and 175 meter samples had the stronger trends ($\beta_{DCM} = 22.6\pm5.53$, $r= .593$, p-value < 0.001; $\beta_{175m} = 23.9\pm7.36$, $r= .503$, p-value = 0.003) while 15 meter samples showed no significant relationship ($\beta_{15m} = 3.4\pm12.9$, $r= .049$, p-value = 0.792). This meant that metabolites contributed a relatively fixed fraction of carbon to the particulate pool with our 53 quantified metabolites representing between 1.5% and 5% of the carbon in the system (Figure 2). Particulate nitrogen was tightly correlated with particulate carbon ($r=.933$) but the fraction of particulate nitrogen represented by the quantified metabolites was slightly higher across the transect with contributions typically between 2% and 6%. 
+This shift in metabolite abundance was largely driven by a corresponding shift in biomass. Particulate carbon and summed metabolite concentration were tightly correlated across all samples and depths ($\beta = 24.9\pm1.82$ (SE), Pearson's $r$ = .813, p-value < 0.001, Supplemental Figure 2). This overall trend was largely driven by higher values at 15 meters and the DCM than at depth, but when analyzed at each depth individually the general correspondence held (Supplemental Figure 2). The DCM and 175 meter samples had the stronger trends ($\beta_{DCM} = 22.6\pm5.53$, $r= .593$, p-value < 0.001; $\beta_{175m} = 23.9\pm7.36$, $r= .503$, p-value = 0.003) while 15 meter samples showed no significant relationship ($\beta_{15m} = 3.4\pm12.9$, $r= .049$, p-value = 0.792). This meant that metabolites contributed a relatively fixed fraction of carbon to the particulate pool with our 53 quantified metabolites representing between 1.5% and 5% of the carbon in the system (Figure 3). Particulate nitrogen was tightly correlated with particulate carbon ($r=.933$) but the fraction of particulate nitrogen represented by the quantified metabolites was slightly higher across the transect with contributions typically between 2% and 6%. 
 
 Although the untargeted pool contains more molecular features, we expect that a majority of the signal has been captured by our 53 targeted compounds. Of the total peak area that passed quality control, approximately 67% was captured by these 53 molecules. An additional 15% of the total peak area was putatively annotated as various inorganic ions for which no authentic standard was available but could be matched by mass and isotope pattern. Additionally, our targeted list accounted for 13 out of the top 20 largest molecular features by total peak area with an additional 4 features annotated as the inorganic ions for 17/20 of the largest features known. However, these calculations should be taken as estimates because peak area does not correspond directly to environmental concentration and it is entirely possible for abundant environmental compounds to have small peak areas if they ionize poorly on the mass spectrometer or are removed during the sampling and extraction process.
 
@@ -704,7 +706,7 @@ avg_targ_concs %>%
   count(depth_class)
 ```
 
-The most abundant intracellular metabolite quantified in the eddy transect samples was trimethylamine N-oxide, with an average concentration of 1.38 nM and a distinct DCM maximum (Figure 2), though a few samples had concentrations an order of magnitude higher for unknown reasons (Supplemental Figure 3). A majority of the known molecules (37/53) had a similar pattern with a subsurface maximum at the DCM, including glycine betaine, glutamate, and guanine. Thirteen molecules obeyed a different pattern and decreased monotonically with depth, including the molecules hydroxyisoleucine, gonyol, and dimethylsulfoniopropionate. Two known molecules (arsenobetaine and O-acetylcarnitine) increased with depth, potentially representing particle degradation during export.
+The most abundant intracellular metabolite quantified in the eddy transect samples was trimethylamine N-oxide, with an average concentration of 1.38 nM and a distinct DCM maximum (Figure 3), though a few samples had concentrations an order of magnitude higher for unknown reasons (Supplemental Figure 3). A majority of the known molecules (37/53) had a similar pattern with a subsurface maximum at the DCM, including glycine betaine, glutamate, and guanine. Thirteen molecules obeyed a different pattern and decreased monotonically with depth, including the molecules hydroxyisoleucine, gonyol, and dimethylsulfoniopropionate. Two known molecules (arsenobetaine and O-acetylcarnitine) increased with depth, potentially representing particle degradation during export.
 
 ```{r PC vs total_nM ANOVA by depth, eval=FALSE}
 # More carbon in metabolites at DCM when outliers removed?
@@ -840,9 +842,9 @@ arrow_data <- ms11_df %>%
       filter(mz%between%pmppm(row_data$mzmed, 20)) %>%
       collect() %>%
       mutate(formula=row_data$formula)
-  }, .progress = TRUE)
+  })
 Nacetyl_row <- ms11_df %>% filter(formula=="C4H10NO4S")
-neg_msdata <- grabMSdata(list.files("../tmzMLs/neg", pattern = "180821_Smp", full.names = TRUE))
+neg_msdata <- grabMSdata(list.files("../tmzMLs/neg", pattern = "180821_Smp", full.names = TRUE), verbosity = 0)
 Nacetyldata <- neg_msdata$MS1[mz%between%pmppm(Nacetyl_row$mzmed-1.007276*2, 10)] %>%
   mutate(formula=Nacetyl_row$formula) %>%
   mutate(filename=str_replace(filename, "tmzML", "mzML"))
@@ -872,11 +874,11 @@ mass_diffs <- peak_lims %>%
   mutate(calc_mass=ifelse(formula=="C4H10NO4S", calc_mass-2*1.007276, calc_mass)) %>%
   mutate(delta_ppm=round((mean_mz-calc_mass)*1e6/mzmed, 2)) %>%
   select(-calc_mass)
-ms11_df %>%
+final_ms11_df <- ms11_df %>%
   left_join(mass_diffs) %>%
   select(`Median m/z`=mzmed, `Median RT (min)`=rtmed, `Putative formula`=formula,
-         `Delta m/z (ppm)`=delta_ppm, `Compound name`=compound_name) %>%
-  knitr::kable()
+         `Delta m/z (ppm)`=delta_ppm, `Compound name`=compound_name)
+# knitr::kable(final_ms11_df)
 ```
 
 | Median m/z| Median RT (min)|Putative formula | Delta m/z (ppm)|Compound name    |
@@ -902,7 +904,7 @@ ms11_df %>%
 ```{r trichobloomsamples comparison, eval=FALSE}
 library(RaMS)
 trichodata <- list.files("../mzMLs/tricho_pos", pattern=".mzML", full.names = TRUE) %>%
-  grabMSdata()
+  grabMSdata(verbosity = 0)
 tricho_eics <- ms11_df %>%
   pmap(function(...){
   row_data <- list(...)
@@ -1641,7 +1643,7 @@ vegan::adonis2(
 
 The NMDS plots of the high-resolution depth samples were also illustrative of sample dissimilarity with clear SLA and depth trends. The anticyclonic samples grouped tightly and showed little variance with depth or triplicate when compared to the cyclonic samples with the exception of DCM triplicate B, which was highly distinct for unknown reasons. In contrast, the cyclonic samples were much more variable as is perhaps expected when the biomass is in the form of larger phytoplankton that are less homogenous in the environment. One notable aspect of their clustering was the way in which the deepest samples (DCM plus 20m) grouped most closely to the anticyclonic samples, perhaps indicating that below the DCM the metabolome rapidly approaches a uniform deep-water signal. This result was noted previously in the 175 meter samples of the eddy transect in @Kumler2023, where samples from the deep euphotic zone showed greater intra-depth similarity than samples from the DCM or 25 meters.
 
-Given the confluence of both depth and SLA signals and the way that the boxplots of Figure 2 would confound the SLA signal with the depth variance, we used k-means clustering to group similar compounds and provide a reduced dimensionality space for visualization. This revealed four major patterns of metabolite response, with a majority of compounds responding to eddy state (Clusters 1, 2, and 4 in Figure 5). It is interesting to note that the sole cluster in which abundances in the anticyclone are greater than those of the cyclone is also the only cluster to generally increase in abundance with depth (Cluster 4), perhaps indicating that compounds more concentrated in the anticyclone are the same kind of degradation products and recalcitrant carbon typically found at depth.
+Given the confluence of both depth and SLA signals and the way that the median metabolite plots of Figure 2 would confound the SLA signal with the depth variance, we used k-means clustering to group similar compounds and provide a reduced dimensionality space for visualization. This revealed four major patterns of metabolite response, with a majority of compounds responding to eddy state (Clusters 1, 2, and 4 in Figure 5). It is interesting to note that the sole cluster in which abundances in the anticyclone are greater than those of the cyclone is also the only cluster to generally increase in abundance with depth (Cluster 4), perhaps indicating that compounds more concentrated in the anticyclone are the same kind of degradation products and recalcitrant carbon typically found at depth.
 
 The Hawaiian Eddy Experiment (HEE) data upset many of the expectations we developed during the MESO-SCOPE cruise in the previous year. Most surprising was the large difference between the eddies detected at the *surface*, while the DCM samples were functionally indistinguishable. This contrasts directly with the results from MESO-SCOPE and the results in @Gleich2024, who found eddy-driven shifts in protistan community composition to be larger at depth than at the surface. However, @Dugenne2023 found differences in nitrogen fixation rate and nitrogen fixer composition varying widely throughout the upper water column. The large surface differences were especially surprising given the large inter-replicate differences between the HEE surface samples in this study, while the DCM samples tended to be much more consistent.
 
