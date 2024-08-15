@@ -21,7 +21,7 @@ $^+$Present Address: School of Biological Sciences, Institute for Environmental 
 
 Word counts:
 
-  - Main text (excludes the abstract, section titles, figure and table captions, funding statement, acknowledgments, and references): 7,XXX
+  - Main text (excludes the abstract, section titles, figure and table captions, funding statement, acknowledgments, and references): 7,750
   - Number of figures: 6
   - Number of tables: 1
 
