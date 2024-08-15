@@ -205,7 +205,7 @@ In this work, we directly tested for differences in the chemical composition of 
 ## Cruise information
 Samples were collected from two cruises in the North Pacific Subtropical Gyre near Station ALOHA that targeted strong mesoscale eddy features as described in @Dugenne2023 and @Gleich2024 (Figure 1). Briefly, the 2017 MESO-SCOPE cruise (Microbial Ecology of the Surface Ocean-Simons Collaboration on Ocean Processes and Ecology, KM1709 on the R/V *Kilo Moana*) consisted of a transect across adjacent cyclonic and anticyclonic eddies as well as two long-term Lagrangian stations at the center of each eddy. The cyclonic eddy had a maximum negative sea level anomaly (SLA) of -20 centimeters and the anticyclonic eddy reached +24 centimeters. The transect samples were taken at various times of day as the ship transected the adjacent eddies while the eddy center samples were all collected between 5 and 8 pm. In 2018, the Hawaiian Eddy Experiment (HEE, FK180310 on the R/V *Falkor*) targeted new cyclonic and anticyclonic eddies in approximately the same location with samples taken at the center of each eddy (maximum negative anomaly in the cyclone = -15 cm, maximum positive anomaly in the anticyclone = +26 cm) (Figure 1).
 
-![](figures/MapForWill_v3.jpg)
+![](figures/fig_1_MapForWill_v3.jpg)
 
 *Figure 1: Sampling during MESO-SCOPE and the Hawaiian Eddy Experiment (HEE). Cruise bounds are shown in the large central map with Station ALOHA colored as a point in red near the Hawaiian Islands. Yellow stars denote sampling locations and station numbers relative to the sea level anomaly contours in the background during 28 June 2017 for the MESO-SCOPE cruise (left) and the 6 April 2018 for the HEE cruise (right). Lagrangian sampling near the eddy centers of the MESO-SCOPE cruise was performed by following drifters deployed in proximity of Stations 6 and 12.*
 
@@ -432,12 +432,12 @@ nolegend_plot <- ggarrange(nmds_sla_gp+theme(legend.position = "none"),
 library(cowplot)
 nmds_and_med_metab <- plot_grid(nolegend_plot, get_legend(nmds_sla_gp), 
                                 nrow=1, rel_widths = c(0.9, 0.1))
-ggsave("nmds_and_med_metab.png", plot = nmds_and_med_metab, device = "png", 
+ggsave("fig_2_nmds_and_med_metab.tif", plot = nmds_and_med_metab, device = "tiff", 
        path = "figures", width = 6.875, height = 4.5, units = "in", dpi = 300,
        bg="white")
 ```
 
-![](figures/nmds_and_med_metab.png)
+![](figures/fig_2_nmds_and_med_metab.tif)
 
 *Figure 2: Distribution of metabolites in multivariate space across adjacent eddies of opposite polarity during the MESO-SCOPE transect, broken down by depth. Top panels depict non-metric multidimensional scaling (NMDS) plots with individual samples colored based on their corrected sea level anomaly. NMDS stress values (s) have been reported in the bottom left corner, while PERMANOVA R$^2$ and p-values are reported in the top left. SLA trends are visible in the DCM and 175 meter samples, with dark blue circles consistently discriminating from the dark red circles along the first multidimensional axis. Bottom panels depict the direction and magnitude of this effect by plotting the mean value of all z-scored metabolites across three biological triplicates in color with the raw values in black behind.*
 
@@ -668,12 +668,12 @@ pc_frac_metab_gp <- frac_pc_in_metab_df %>%
 #        bg = "white")
 targ_gp_w_sla_frac <- egg::ggarrange(barplot_targ_gp, pcbarplot, pc_frac_metab_gp,
                                      draw = FALSE, heights = c(0.4, 0.2, 0.4))
-ggsave("targ_gp_w_sla_frac.png", plot = targ_gp_w_sla_frac, device = "png",
+ggsave("fig_3_targ_gp_w_sla_frac.tif", plot = targ_gp_w_sla_frac, device = "tif",
        path = "figures", width = 6.875, height = 5.5, units = "in", dpi = 300,
        bg = "white")
 ```
 
-![](figures/targ_gp_w_sla_frac.png)
+![](figures/fig_3_targ_gp_w_sla_frac.tif)
 
 *Figure 3: Differences in known metabolite concentration across the pair of adjacent eddies in the MESO-SCOPE transect separated by depth. Top panels depict concentrations of known compounds measured, where bar height corresponds to median triplicate concentration for each metabolite with the top 9 shown and the 44 other identified metabolites summed in grey. TMAO = trimethylamine N-oxide, HO-Ile = hydroxyisoleucine, GBT = glycine betaine, DCM = deep chlorophyll maximum. Center panels show the corresponding measurements of particulate carbon (PC), while the lower panels depict the fraction of total particulate carbon in the known metabolites. The mean value of three biological triplicates is shown in color and the raw values in black behind. Colors correspond to corrected sea level anomaly (Corr. SLA), with dark red indicating anticyclonic (positive SLA) and dark blue indicating cyclonic (negative SLA) eddy state.*
 
@@ -1130,11 +1130,11 @@ MC_nmds_gp <- multivar_analysis_MC$nmds_output %>%
   annotate("label", x=-Inf, y=-Inf, label=multivar_analysis_MC$nmds_stress, 
            hjust=0, vjust=-2, label.r = unit(0, "in"))
 
-ggsave("MC_nmds_gp.png", plot = MC_nmds_gp, device = "png", 
+ggsave("fig_4_MC_nmds_gp.tif", plot = MC_nmds_gp, device = "tif", 
        path = "figures", width = 6.875, height = 4.5, units = "in", dpi = 300)
 ```
 
-![](figures/MC_nmds_gp.png)
+![](figures/fig_4_MC_nmds_gp.tif)
 
 *Figure 4: NMDS plot of high-resolution depth sampling around the deep chlorophyll maximum (DCM, ~115 meters) at the two eddy centers during MESO-SCOPE. Red upward-pointed triangles are from the anticyclone and blue downward-pointed ones are from the cyclone. Shading intensity reflects the depth above or below the DCM. PERMANOVA estimates of the variance explained by depth and sea level anomaly (SLA) are noted in the upper left corner and the NMDS stress value is reported in the bottom left.*
 
@@ -1310,12 +1310,12 @@ volcanoplot_gp <- pairwise_tests %>%
 kclust_volcano_gp <- egg::ggarrange(
   kclust_gp, volcanoplot_gp, 
   ncol=1, heights = c(1.5, 2), draw = FALSE)
-ggsave("kclust_volcano_gp.png", plot = kclust_volcano_gp, device = "png", 
+ggsave("fig_5_kclust_volcano_gp.tif", plot = kclust_volcano_gp, device = "tif", 
        path = "figures", width = 6.875, height = 5, units = "in", dpi = 300,
        bg="white")
 ```
 
-![](figures/kclust_volcano_gp.png)
+![](figures/fig_5_kclust_volcano_gp.tif)
 
 *Figure 5: Distribution of metabolites in the high-resolution depth samples from the centers of each MESO-SCOPE eddy. The upper row of plots shows k-means clusters where points denote the average z-scored peak area for both known and unknown metabolites across the samples and are colored by the eddy from which they were taken. Clusters have been ordered by number of metabolites in each group and the total is denoted in the panel titles. Both depth trends (mostly a net decrease in metabolites with depth) and eddy effects (cyclonic enrichment in clusters 1 and 2, anticyclone enrichment in cluster 4) are observable. The lower plot shows the individual known and unknown metabolites where points correspond to the FDR-corrected p-value estimated by the nonparametric Mann-Whitney U test and the log$_2$ fold-change calculated with the average peak area in the cyclone divided by the average peak area in the anticyclone. Colors have been assigned using the k-means clusters and shapes have been assigned based on the status of the mass feature as either a known metabolite that was matched to an authentic standard or an unidentified metabolite. The dashed line across the figure represents the 0.05 level of significance as a visual cue for metabolites above which the differences between the eddies are unlikely to be due to chance. DMSP = dimethylsulfoniopropionate, DMS-Ac = dimethylsulfonioacetate.*
 
@@ -1468,14 +1468,14 @@ fk_nmdsplot <- nmds_fk$points%*%rot_mat %>%
   theme(legend.key.spacing.y = unit(6, "pt")) +
   coord_fixed()
 
-ggsave("fk_nmdsplot.png", plot = fk_nmdsplot, device = "png",
+ggsave("fig_6_fk_nmdsplot.tif", plot = fk_nmdsplot, device = "tif",
        path = "figures", width = 6.875, height = 4, units = "in", dpi = 300,
        bg="white")
 ```
 
 The HEE data was characterized by high inter-replicate variability relative to the samples from the MESO-SCOPE cruise, with 25 meter samples in particular highly variable in multivariate space (Figure 6). Despite this, we still saw the importance of sea level anomaly as a significant explanatory factor in the dataset (R$^2_{SLA} = 0.090$, p-value = 0.017) as well as the larger depth differences between the surface (25 meters) and DCM (110 - 120 meters) (R$^2_{depth} = 0.251$, p-value << 0.001).
 
-![](figures/fk_nmdsplot.png)
+![](figures/fig_6_fk_nmdsplot.tif)
 
 *Figure 6: Non-metric multidimensional scaling (NMDS) plot from the Hawaiian Eddy Experiment cruise data, in which points correspond to individual samples and have been colored and shaped by their source eddy status and shaded by the depth from which they were collected. The NMDS stress value has been reported in the bottom left corner, while PERMANOVA R$^2$ and p-values are reported in the top left. Samples from 25 meters deep are visibly distinct from the deep chlorophyll maximum (DCM) samples and an SLA signal is visible in the 25 meter samples only.*
 
