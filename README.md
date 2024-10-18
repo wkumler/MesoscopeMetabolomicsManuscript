@@ -44,22 +44,22 @@ Mesoscale eddies significantly alter open ocean environments such as those found
 
 *Figure 1: Sampling during MESO-SCOPE and the Hawaiian Eddy Experiment (HEE). Cruise bounds are shown in the large central map with Station ALOHA colored as a point in red near the Hawaiian Islands. Yellow stars denote sampling locations and station numbers relative to the sea level anomaly contours in the background during both the June 2017 MESO-SCOPE cruise (left) and the April 2018 HEE cruise (right).*
 
-![](manuscript/figures/lowres/fig_2_nmds_and_med_metab.tif)
+![](manuscript/figures/lowres/fig_2_nmds_and_med_metab.png)
 
 *Figure 2: Distribution of metabolites in multivariate space across adjacent eddies of opposite polarity during the MESO-SCOPE transect, broken down by depth. Top panels depict non-metric multidimensional scaling (NMDS) plots with individual samples colored based on their corrected sea level anomaly. NMDS stress values (s) have been reported in the bottom left corner, while PERMANOVA R$^2$ and p-values are reported in the top left. SLA trends are visible in the DCM and 175 meter samples, with dark blue circles consistently discriminating from the dark red circles along the first multidimensional axis. Bottom panels depict the direction and magnitude of this effect by plotting the grand mean value of three biological triplicates in color and the raw values in black behind.*
 
-![](manuscript/figures/lowres/fig_3_targ_gp_w_sla_frac.tif)
+![](manuscript/figures/lowres/fig_3_targ_gp_w_sla_frac.png)
 
 *Figure 3: Differences in known metabolite concentration across the pair of adjacent eddies in the MESO-SCOPE transect separated by depth. Top panels depict concentrations of known compounds measured, where bar height corresponds to median triplicate concentration for each metabolite with the top 9 shown and the 44 other identified metabolites summed in grey. TMAO = trimethylamine N-oxide, HO-Ile = hydroxyisoleucine, GBT = glycine betaine, DCM = deep chlorophyll maximum. Lower panels depict the fraction of total particulate carbon in the known metabolites, with the mean value of three biological triplicates in color and the raw values in black behind. Colors correspond to corrected sea level anomaly (Corr. SLA), with dark red indicating anticyclonic (positive SLA) and dark blue indicating cyclonic (negative SLA) eddy state.*
 
-![](manuscript/figures/lowres/fig_4_MC_nmds_gp.tif)
+![](manuscript/figures/lowres/fig_4_MC_nmds_gp.png)
 
 *Figure 4: NMDS plot of high-resolution depth sampling around the deep chlorophyll maximum (DCM, ~115 meters) at the two eddy centers during MESO-SCOPE. Red upward-pointed triangles are from the anticyclone and blue downward-pointed ones are from the cyclone. Shading intensity reflects the depth above or below the DCM. PERMANOVA estimates of the variance explained by depth and sea level anomaly (SLA) are noted in the upper left corner and the NMDS stress value is reported in the bottom left.*
 
-![](manuscript/figures/lowres/fig_5_kclust_volcano_gp.tif)
+![](manuscript/figures/lowres/fig_5_kclust_volcano_gp.png)
 
 *Figure 5: Distribution of metabolites in the high-resolution depth samples from the centers of each MESO-SCOPE eddy. The upper row of plots shows k-means clusters where points denote the average z-scored peak area for both known and unknown metabolites across the samples and are colored by the eddy from which they were taken. Clusters have been ordered by number of metabolites in each group and the total is denoted in the panel titles. Both depth trends (mostly a net decrease in metabolites with depth) and eddy effects (cyclonic enrichment in clusters 1 and 2, anticyclone enrichment in cluster 4) are observable. The lower plot shows the individual known and unknown metabolites where points correspond to the FDR-corrected p-value estimated by the nonparametric Mann-Whitney U test and the log$_2$ fold-change calculated with the average peak area in the cyclone divided by the average peak area in the anticyclone. Colors have been assigned using the k-means clusters and shapes have been assigned based on the status of the mass feature as either a known metabolite that was matched to an authentic standard or an unidentified metabolite. The dashed line across the figure represents the 0.05 level of significance as a visual cue for metabolites above which the differences between the eddies are unlikely to be due to chance. DMSP = dimethylsulfoniopropionate, DMS-Ac = dimethylsulfonioacetate*
 
-![](manuscript/figures/lowres/fig_6_fk_nmdsplot.tif)
+![](manuscript/figures/lowres/fig_6_fk_nmdsplot.png)
 
 *Figure 6: Non-metric multidimensional scaling (NMDS) plot from the Hawaiian Eddy Experiment cruise data, in which points correspond to individual samples and have been colored and shaped by their source eddy status and shaded by the depth from which they were collected. The NMDS stress value has been reported in the bottom left corner, while PERMANOVA R$^2$ and p-values are reported in the top left. Samples from 25 meters deep are visibly distinct from the deep chlorophyll maximum (DCM) samples and an SLA signal is visible in the 25 meter samples only.*
