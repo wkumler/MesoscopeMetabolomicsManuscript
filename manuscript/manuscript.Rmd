@@ -436,7 +436,7 @@ ggsave("fig_2_nmds_and_med_metab.tif", plot = nmds_and_med_metab, device = "tiff
        path = "figures", width = 6.875, height = 4.5, units = "in", dpi = 300,
        bg="white")
 ggsave("fig_2_nmds_and_med_metab.png", plot = nmds_and_med_metab, device = "png", 
-       path = "figures/lowres", width = 6.875, height = 4.5, units = "in", dpi = 72,
+       path = "figures/lowres", width = 6.875, height = 4.5, units = "in", dpi = 144,
        bg="white")
 ```
 
@@ -677,7 +677,7 @@ ggsave("fig_3_targ_gp_w_sla_frac.tif", plot = targ_gp_w_sla_frac, device = "tif"
        path = "figures", width = 6.875, height = 5.5, units = "in", dpi = 300,
        bg = "white")
 ggsave("fig_3_targ_gp_w_sla_frac.png", plot = targ_gp_w_sla_frac, device = "png",
-       path = "figures/lowres", width = 6.875, height = 5.5, units = "in", dpi = 72,
+       path = "figures/lowres", width = 6.875, height = 5.5, units = "in", dpi = 144,
        bg = "white")
 ```
 
@@ -1141,7 +1141,7 @@ MC_nmds_gp <- multivar_analysis_MC$nmds_output %>%
 ggsave("fig_4_MC_nmds_gp.tif", plot = MC_nmds_gp, device = "tif", 
        path = "figures", width = 6.875, height = 4.5, units = "in", dpi = 300)
 ggsave("fig_4_MC_nmds_gp.png", plot = MC_nmds_gp, device = "png", 
-       path = "figures/lowres", width = 6.875, height = 4.5, units = "in", dpi = 72)
+       path = "figures/lowres", width = 6.875, height = 4.5, units = "in", dpi = 144)
 ```
 
 ![](figures/fig_4_MC_nmds_gp.tif)
@@ -1324,7 +1324,7 @@ ggsave("fig_5_kclust_volcano_gp.tif", plot = kclust_volcano_gp, device = "tif",
        path = "figures", width = 6.875, height = 5, units = "in", dpi = 300,
        bg="white")
 ggsave("fig_5_kclust_volcano_gp.png", plot = kclust_volcano_gp, device = "png", 
-       path = "figures/lowres", width = 6.875, height = 5, units = "in", dpi = 72,
+       path = "figures/lowres", width = 6.875, height = 5, units = "in", dpi = 144,
        bg="white")
 ```
 
@@ -1485,7 +1485,7 @@ ggsave("fig_6_fk_nmdsplot.tif", plot = fk_nmdsplot, device = "tif",
        path = "figures", width = 6.875, height = 4, units = "in", dpi = 300,
        bg="white")
 ggsave("fig_6_fk_nmdsplot.png", plot = fk_nmdsplot, device = "png",
-       path = "figures/lowres", width = 6.875, height = 4, units = "in", dpi = 72,
+       path = "figures/lowres", width = 6.875, height = 4, units = "in", dpi = 144,
        bg="white")
 ```
 
