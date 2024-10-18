@@ -435,6 +435,9 @@ nmds_and_med_metab <- plot_grid(nolegend_plot, get_legend(nmds_sla_gp),
 ggsave("fig_2_nmds_and_med_metab.tif", plot = nmds_and_med_metab, device = "tiff", 
        path = "figures", width = 6.875, height = 4.5, units = "in", dpi = 300,
        bg="white")
+ggsave("fig_2_nmds_and_med_metab.tif", plot = nmds_and_med_metab, device = "tiff", 
+       path = "figures/lowres", width = 6.875, height = 4.5, units = "in", dpi = 72,
+       bg="white")
 ```
 
 ![](figures/fig_2_nmds_and_med_metab.tif)
@@ -672,6 +675,9 @@ targ_gp_w_sla_frac <- egg::ggarrange(barplot_targ_gp, pcbarplot, pc_frac_metab_g
                                      draw = FALSE, heights = c(0.4, 0.2, 0.4))
 ggsave("fig_3_targ_gp_w_sla_frac.tif", plot = targ_gp_w_sla_frac, device = "tif",
        path = "figures", width = 6.875, height = 5.5, units = "in", dpi = 300,
+       bg = "white")
+ggsave("fig_3_targ_gp_w_sla_frac.tif", plot = targ_gp_w_sla_frac, device = "tif",
+       path = "figures/lowres", width = 6.875, height = 5.5, units = "in", dpi = 72,
        bg = "white")
 ```
 
@@ -1134,6 +1140,8 @@ MC_nmds_gp <- multivar_analysis_MC$nmds_output %>%
 
 ggsave("fig_4_MC_nmds_gp.tif", plot = MC_nmds_gp, device = "tif", 
        path = "figures", width = 6.875, height = 4.5, units = "in", dpi = 300)
+ggsave("fig_4_MC_nmds_gp.tif", plot = MC_nmds_gp, device = "tif", 
+       path = "figures/lowres", width = 6.875, height = 4.5, units = "in", dpi = 72)
 ```
 
 ![](figures/fig_4_MC_nmds_gp.tif)
@@ -1315,6 +1323,9 @@ kclust_volcano_gp <- egg::ggarrange(
 ggsave("fig_5_kclust_volcano_gp.tif", plot = kclust_volcano_gp, device = "tif", 
        path = "figures", width = 6.875, height = 5, units = "in", dpi = 300,
        bg="white")
+ggsave("fig_5_kclust_volcano_gp.tif", plot = kclust_volcano_gp, device = "tif", 
+       path = "figures/lowres", width = 6.875, height = 5, units = "in", dpi = 72,
+       bg="white")
 ```
 
 ![](figures/fig_5_kclust_volcano_gp.tif)
@@ -1472,6 +1483,9 @@ fk_nmdsplot <- nmds_fk$points%*%rot_mat %>%
 
 ggsave("fig_6_fk_nmdsplot.tif", plot = fk_nmdsplot, device = "tif",
        path = "figures", width = 6.875, height = 4, units = "in", dpi = 300,
+       bg="white")
+ggsave("fig_6_fk_nmdsplot.tif", plot = fk_nmdsplot, device = "tif",
+       path = "figures/lowres", width = 6.875, height = 4, units = "in", dpi = 72,
        bg="white")
 ```
 
