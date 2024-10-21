@@ -1297,7 +1297,7 @@ fk_nmdsplot <- nmds_fk$points%*%rot_mat %>%
   annotate("label", x=-Inf, y=-Inf, hjust=0, vjust=0, label.r = unit(0, "in"),
            label=paste("Stress =", round(nmds_fk$stress, digits = 3))) +
   annotate("label", x=-Inf, y=Inf, hjust=0, vjust=1, label.r = unit(0, "in"),
-           label=expression(atop(paste("R"[sla]^2, "=.090, p=0.017"),
+           label=expression(atop(paste("R"[SLA]^2, "=.090, p=0.017"),
                                  paste("R"[depth]^2, "=.251, p<0.001")))) +
   guides(fill=guide_legend(title = NULL, override.aes = list(
     fill=c("#8989c1", "#b57c7c", "#343489", "#762020"), color="white",
