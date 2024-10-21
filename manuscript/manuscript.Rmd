@@ -211,15 +211,34 @@ Samples were collected from two cruises in the North Pacific Subtropical Gyre ne
 
 ## Biogeochemical data
 
-Biogeochemical measurements were collected as described in @Barone2022 and @Dugenne2023 mostly following protocols used by the HOT program (http://hahana.soest.hawaii.edu/hot/methods/results.html). Briefly, all environmental data was collected via CTD rosette except SLA which was measured via satellite. Particulate carbon and particulate nitrogen were measured using an elemental analyzer. Nitrate + nitrite (N+N) was measured on an autoanalyzer except where concentrations were below 100 nM in which case they were measured using chemiluminescence. Soluble reactive phosphorus (phosphate, PO$_4^{3-}$) was measured on an autoanalyzer or following the magnesium induced coprecipitation method. Values were interpolated linearly to the depths at which metabolite samples were taken using all data collected at the given station. Two particulate carbon values were determined to be spurious, with concentrations 2-3 times higher than typical Station ALOHA values, and were instead estimated using a best-fit linear regression against beam attenuation.
+Biogeochemical measurements were collected as described in @Barone2022 and @Dugenne2023 mostly following protocols used by the HOT program (http://hahana.soest.hawaii.edu/hot/methods/results.html). Briefly, all environmental data was collected via CTD rosette except SLA which was measured via satellite. Particulate carbon and particulate nitrogen were measured using an elemental analyzer. Nitrate + nitrite (N+N) was measured on an autoanalyzer except where concentrations were below 100 nM in which case they were measured using chemiluminescence. Soluble reactive phosphorus (phosphate, PO$_4^{3-}$) was measured on an autoanalyzer or following the magnesium induced coprecipitation method. Values were interpolated linearly to the depths at which metabolite samples were taken using all data collected at the given station. Two particulate carbon values were determined to be spurious, with concentrations 2-3 times higher than typical Station ALOHA values, and were instead estimated using a best-fit linear regression against beam attenuation. CTD data is available here in Supplemental Tables 1 and 2.
+
+```{r supplemental CTD data}
+wb <- createWorkbook(creator = "William Kumler, wkumler@uw.edu")
+addWorksheet(wb, sheetName = "Table 1 CTD Cast list")
+ctd_cast_list <- read_csv("../metadata/complete_ctddata.csv") %>%
+  mutate(cruise=ifelse(time<"2018-01-01", "MESOSCOPE", "HEE")) %>%
+  select(cruise, everything())
+writeData(x=ctd_cast_list, wb = wb, sheet = "Table 1 CTD Cast list")
+
+addWorksheet(wb, sheetName = "Table 2 CTD Cast data by bottle")
+ctd_cast_data <- read_csv("../metadata/all_core_gof.csv") %>%
+  mutate(cruise=ifelse(cruise=="FK", "HEE", "MESOSCOPE")) %>%
+  select(cruise, everything())
+writeData(x=ctd_cast_data, wb = wb, sheet = "Table 2 CTD Cast data by bottle")
+
+addWorksheet(wb, sheetName = "Table 3 Interpolated CTD data")
+writeData(x=filled_file_metadata, wb = wb, sheet = "Table 3 Interpolated CTD data")
+saveWorkbook(wb, file = "supplement/Supplemental Tables.xlsx", overwrite = TRUE)
+```
 
 ## Sample collection for particulate metabolites
 Samples were obtained using the onboard CTD rosette to collect water from 15 meters, the deep chlorophyll maximum (DCM), and 175 meters during the MESO-SCOPE eddy transect and from the DCM ±10 and ±20 meters during the eddy center sampling in the MESO-SCOPE cruise and from 25 meters and the DCM during the HEE cruise. The DCM was determined visually from fluorometer data during the CTD downcast and Niskin bottles were tripped during the return trip to the surface. Seawater from each depth was sampled in triplicate by firing one Niskin bottle for each sample. Samples were brought to the surface and decanted into prewashed (3x with DI, 3x with sampled seawater) polycarbonate bottles for filtration. 10L samples were filtered by peristaltic pump onto 142mm 0.2 µm Durapore filters held by polycarbonate filter holders on a Masterflex tubing line. Pressures were kept as low as possible while still producing a reasonable rate of flow through the filter, approximately 250-500 mL per minute. Samples were then removed from the filter holder using solvent-washed tweezers and placed into pre-combusted aluminum foil packets that were then flash-frozen in liquid nitrogen before being stored at -80 °C until extraction. A methodological blank was also collected by running filtrate through a new filter and then treated identically to the samples.
 
 ## Metabolite sample extraction
-Extraction followed a modified Bligh & Dyer approach as detailed in @Boysen2018. Briefly, filters were randomized and added to PTFE centrifuge tubes with a 1:1 mix of 100 µm and 400 µm silica beads, approximately 2 mL -20 °C Optima-grade dichloromethane, and approximately 3 mL -20 °C 1:1 methanol/water solution (both also Optima-grade). Isotope labeled extraction standards were also added during this step (Supplemental Table 1). The samples were then bead-beaten three times, followed by triplicate extraction of the aqueous layer into a separate vial after spontaneous separation and replacement with fresh methanol/water mixture using a glass Pasteur pipette with additional bead-beatings in between. The aqueous fraction was then dried down under ultrapure nitrogen gas and warmed using a Fisher-Scientific Reacti-Therm module. Dry samples were reconstituted in 380 µL Optima-grade water and amended with 20 µL isotope-labeled injection standards (Supplemental Table 1) to measure the variability introduced by chromatography and ionization. The reconstituted fraction was syringe-filtered into precombusted glass inserts in HPLC vials to remove any potential clogging material. Samples were then additionally diluted 1:1 with Optima-grade water to prevent overloading on the column and to reduce salt effects. 
+Extraction followed a modified Bligh & Dyer approach as detailed in @Boysen2018. Briefly, filters were randomized and added to PTFE centrifuge tubes with a 1:1 mix of 100 µm and 400 µm silica beads, approximately 2 mL -20 °C Optima-grade dichloromethane, and approximately 3 mL -20 °C 1:1 methanol/water solution (both also Optima-grade). Isotope labeled extraction standards were also added during this step (Supplemental Table 4). The samples were then bead-beaten three times, followed by triplicate extraction of the aqueous layer into a separate vial after spontaneous separation and replacement with fresh methanol/water mixture using a glass Pasteur pipette with additional bead-beatings in between. The aqueous fraction was then dried down under ultrapure nitrogen gas and warmed using a Fisher-Scientific Reacti-Therm module. Dry samples were reconstituted in 380 µL Optima-grade water and amended with 20 µL isotope-labeled injection standards (Supplemental Table 4) to measure the variability introduced by chromatography and ionization. The reconstituted fraction was syringe-filtered into precombusted glass inserts in HPLC vials to remove any potential clogging material. Samples were then additionally diluted 1:1 with Optima-grade water to prevent overloading on the column and to reduce salt effects. 
 
-A pooled sample was created by combining 20 µL of each sample into the same HPLC vial, and a 1:1 dilution with water created a half-strength pooled sample from that to assess matrix effects and obscuring variation [@Boysen2018]. Also run alongside the environmental samples were samples of authentic standards split into two mixes (Supplemental Table 2). Standards were dissolved in Optima-grade water to help with identification and into an aliquot of the pooled sample to quantify matrix response factors. HPLC vials containing the samples were frozen at -80 °C until thawing shortly before injection.
+A pooled sample was created by combining 20 µL of each sample into the same HPLC vial, and a 1:1 dilution with water created a half-strength pooled sample from that to assess matrix effects and obscuring variation [@Boysen2018]. Also run alongside the environmental samples were samples of authentic standards split into two mixes (Supplemental Table 5). Standards were dissolved in Optima-grade water to help with identification and into an aliquot of the pooled sample to quantify matrix response factors. HPLC vials containing the samples were frozen at -80 °C until thawing shortly before injection.
 
 ## HPLC-MS methods
 Separate HPLC-MS runs were used for the MESO-SCOPE eddy transect, the MESO-SCOPE eddy center, and the HEE cruise data. Eddy center samples were run in February 2018, eddy transect samples were run later during August of that year, and the HEE samples were run in July 2019. Each run was treated as a single batch and injected in sequence while maintaining the randomization that had occurred during extraction to minimize chromatographic shifts from solvent or column switching.
@@ -230,7 +249,7 @@ The Waters Acquity UPLC was coupled to a Thermo Q Exactive HF hybrid Orbitrap hi
 
 ## Targeted metabolomic methods
 
-Compounds for which we had an authentic standard (Supplemental Table 2) were manually integrated using Skyline and MSDIAL with the standard mixes used to ensure the correct peak was integrated by matching retention time. Compounds were removed from the analysis if they were visually assessed to have poor peak quality in the samples or peak areas in the samples similar to those in the methodological blanks. Skyline was used for both the eddy center samples and the HEE cruise data while MSDIAL was used for the eddy transect data due to the larger number of files in that dataset. Raw peak areas were then normalized to their best-matched internal standard (Supplemental Table 1) per @Boysen2018 except that all compounds were normalized to their best match no matter how minimal the improvement. Normalized peaks were then calibrated via a single-point standard curve as determined uniquely for each compound from the authentic standard mixes and used to convert normalized peak area into moles per µL injected and scaled to the amount of seawater filtered to provide a final estimate of environmental concentration for each compound in moles per liter of seawater filtered.
+Compounds for which we had an authentic standard (Supplemental Table 5) were manually integrated using Skyline and MSDIAL with the standard mixes used to ensure the correct peak was integrated by matching retention time. Compounds were removed from the analysis if they were visually assessed to have poor peak quality in the samples or peak areas in the samples similar to those in the methodological blanks. Skyline was used for both the eddy center samples and the HEE cruise data while MSDIAL was used for the eddy transect data due to the larger number of files in that dataset. Raw peak areas were then normalized to their best-matched internal standard (Supplemental Table 4) per @Boysen2018 except that all compounds were normalized to their best match no matter how minimal the improvement. Normalized peaks were then calibrated via a single-point standard curve as determined uniquely for each compound from the authentic standard mixes and used to convert normalized peak area into moles per µL injected and scaled to the amount of seawater filtered to provide a final estimate of environmental concentration for each compound in moles per liter of seawater filtered.
 
 ```{r supp table 1 standards list}
 clean_stans_supp <- read_csv("../metadata/clean_stans.csv")
@@ -274,12 +293,12 @@ Auth_table <- clean_stans_supp %>%
          `Concentration (uM)`=conc_um, `Polarity integrated`=polarity,
          `Standard mix`=mix, `Which runs`=ms_run, `Good quality`=in_samps)
 
-wb <- createWorkbook(creator = "William Kumler, wkumler@uw.edu")
-addWorksheet(wb, sheetName = "Table 1 Internal Standards")
-writeData(x=IS_table, wb = wb, sheet = "Table 1 Internal Standards")
+wb <- loadWorkbook("supplement/Supplemental Tables.xlsx")
+addWorksheet(wb, sheetName = "Table 4 Internal Standards")
+writeData(x=IS_table, wb = wb, sheet = "Table 4 Internal Standards")
 
-addWorksheet(wb, sheetName = "Table 2 Authentic Standards")
-writeData(x=Auth_table, wb = wb, sheet = "Table 2 Authentic Standards")
+addWorksheet(wb, sheetName = "Table 5 Authentic Standards")
+writeData(x=Auth_table, wb = wb, sheet = "Table 5 Authentic Standards")
 
 saveWorkbook(wb, file = "supplement/Supplemental Tables.xlsx", overwrite = TRUE)
 ```
