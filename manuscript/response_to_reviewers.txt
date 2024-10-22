@@ -1,0 +1,162 @@
+
+> Reviewer 1 | 04 Sep 2024 | 01:18
+> #1
+> This study examines the impact of mesoscale eddies on the metabolome and composition 
+> of particulate organic matter in the North Pacific Subtropical Gyre. It fills a gap 
+> in previous research by exploring the molecular composition of particulate organic 
+> matter. The use both of targeted and untargeted metabolomics mass spectrometry to 
+> detect molecules sensitive to environmental perturbation. The study finds that many 
+> metabolites track biomass trends. Metabolites linked to eukaryotic phytoplankton are 
+> enriched at the deep chlorophyll maximum of cyclonic features, while degradation 
+> products are enriched in anticyclones. Additionally, depth variability and vertical 
+> displacement of isopycnal layer constrain the importance of mesoscale eddies in 
+> shaping particulate matter composition. Based on these results, we can infer the 
+> biological communities and biogeochemical processes driven by mesoscale eddies at 
+> both spatial and temporal scales. Viewing this complex dynamic process from the 
+> chemical molecular scale is a perspective that sets this article apart from other 
+> traditional methods in examining the changes in this system.
+This is an accurate assessment of the manuscript.
+
+> However, I still have some questions.
+> Currently, the process of the entire system seems to be predictable. Although the 
+> author has introduced and discussed some gaps, especially from the perspective of 
+> chemical composition, and this article provides detailed data and reliable analysis, 
+> it is not prominent enough from the perspective of the entire system. Perhaps the 
+> transformation from space to time and the use of chemical composition to observe the 
+> aging process of vortices is a great highlight. It is very difficult to focus on 
+> scale eddies and the ecosystem evolution driven by them using traditional methods. 
+> If that's the case, the structure and writing style of the paper may need to be 
+> adjusted.
+
+
+> This article focuses on the differences in chemical composition to understand this 
+> process, but I always want to connect it with specific biological processes, such 
+> as structural changes in biological communities, primary production rates, 
+> zooplankton grazing rates, or bacterial production and respiration rates etc. 
+> The author also mentioned these. I don't know if the author can add more relevant 
+> evidence or discussion to allow readers to connect with these specific biological 
+> groups and/or processes. I know it's difficult to integrate these data together, 
+> but relevant discussions are possible.
+
+
+> We already know that mesoscale eddies are complex and dynamic multidimensional 
+> processes. The three-dimensional space combined with the temporal evolution of 
+> ecosystem structure and function. The changes in the density surface driven by 
+> physics during this process lead to the coupling reaction of physics chemistry 
+> biology, which is the main thread. In fact, many other physical biological coupling 
+> processes are similar, such as upwelling, internal waves/tides. Using the author's 
+> method, I think similar situations can also be seen in such processes.
+
+
+> Specific suggestions,
+> Table 1, the format is not appropriate
+Table 1 has been removed entirely.
+
+> Figures 4, and 6 can be placed together.
+While we agree that the data presented in Figures 4 and 6 can be placed side-by-side
+for ease of comparison, we believe that keeping these figures in their separate
+locations within the manuscript allows for better narrative flow (since the HEE
+results are not discussed until several sections later) and graphical design (as
+proper visualization of NMDS requires that the x- and y- axes share units). We are
+happy to combine the two plots if the editor deems it necessary or helpful.
+
+
+
+
+> Reviewer 2 | 04 Oct 2024 | 12:20
+> #1
+> Kumler et al. report in their manuscript “Metabolites reflect variability introduced 
+> by mesoscale eddies in the North Pacific Subtropical Gyre” on a very impressive 
+> dataset, investigating the polar part of the meta-metabolome of a > 0.2 µm fraction 
+> of the plankton. They investigate samples taken at the Meso-scope and HEE experiment 
+> and discuss their data in light of the eddies found during sampling.
+> It is clearly a high-quality study that opens new perspectives. Publication after 
+> revision is highly recommended.
+This is an accurate assessment of the manuscript.
+
+> Sampling:
+> The metabolome at different depths can be strongly affected by the sampling time. 
+> Day / night variations are substantial, mainly due to diel vertical migration but 
+> also to photosynthetic state of the phytoplankton. Discussing the results sampling 
+> times during the transect and during sampling of the HEE should be specified and 
+> statistical analysis on the impact (or lack of impact) on the data should be provided.
+
+
+> Analytics:
+> The high-quality analytics is appreciated. It should be verified if the variations 
+> between biological replicates could be caused by the order of measurements in the 
+> sequence. If >100 samples of 15 min are run in a row there could be a drift that would 
+> be hidden because of the randomization. It would be easy to have a look at the outliers 
+> (e.g. Fig. 2 lower panels) are measured early / late during the sequence.
+
+
+> Blanks are mentioned but it is not shown how these were used for the data analysis.
+We have added a note about how we used the methodological blanks to visually assess 
+whether sample peak areas were above the background signal.
+
+> In line 142 the method for the evaluation of the matrix effect is mentioned, but no 
+> results are given.
+The Boysen et al. (2018) paper details the method for identifying the magnitude of the 
+matrix effect by using a full-strength and water-diluted pooled sample and we believe 
+that the reader is best suited to the detailed analysis presented there than a
+brief review of it in this manuscript. We have confirmed that references to
+this method are cited immediately after its mention here.
+
+> The experimental could be clearer in line 132 ff “The samples were then bead-beaten 
+> three times, followed by triplicate extraction of the aqueous layer...” Was the 
+> organic layer collected or was the aqueous layer collected (as suggested by the rest 
+> of the sentence?). Was phase separation occurring spontaneously or was a 
+> centrifugation required? Was separation done by pipetting?
+We have added additional text to this line to clarify the requested points of confusion.
+
+> Line 177: I would rather state “targeted analytical methods”. Metabolomics is by 
+> definition rather untargeted.
+While the exact definition of "targeted" vs "untargeted" metabolomics remains an 
+active topic of debate, we believe that the methods used here are sufficiently
+targeted (use of authentic standards and manual integration via Skyline/MSDIAL) to 
+warrant the use of the term, especially in direct contrast to the automated/untargeted 
+pipeline described immediately afterward and thus we have not made this change.
+
+> Line 185: The data are discussed quantitatively but for some compounds no standard 
+> was available. The claim that results were normalized “to the best match standard”. 
+> How was this decided? Are the different response-factors in the MS considered?
+As above, the Boysen et al. (2018) paper describes how internal standards are matched
+to compounds for which no authentic standard was available based on the difference
+in their response factor between a full-strength and half-strength pooled sample.
+The only data presented quantitatively (i.e. as concentrations instead of relative
+or absolute peak area) are those for which an authentic standard was available,
+ensuring that each quantified compound's response factor was known.
+
+> Chapter 4.1.1 It is strange to read an entire chapter on an outlier. It is really 
+> one measurement that could be easily contaminated (e.g. one single zooplankton 
+> organism on the filter would change everything) and I would not recommend to write 
+> an entire chapter about the metabolome, risking to discuss artifacts and not data 
+> important for the large picture. Is table 1 required.
+We appreciate the reviewer's identification of this as an unhelpful distraction
+from the main narrative and have removed chapter 4.1.1 entirely.
+
+> Minor concerns:
+> Could the CTD data be given in the supporting material, this would provide a view of 
+> the eddies in a depth profiles.
+The CTD data has been added to the Supplemental Tables in 3 forms - first, containing
+a list of all the stations and their locations with the number of bottles fired. Second,
+with all the associated metadata compiled from Barone 2022. Finally, the values used
+in the manuscript's analysis after interpolation to the locations in space and time
+from which metabolite samples were collected.
+
+> Software: Give the version number of the software used (e.g. Proteowizard, msConvert, 
+> XCMS...)
+Done. Software versions for Proteowizard, Skyline, MSDIAL, R, XCMS, and vegan have been
+added to the manuscript.
+
+> Statistics: It would facilitate better interpretation if the statistical method used 
+> for comparisons would be mentioned in the respective sections of results.
+
+
+> Line 239 Typo r = 0.697
+
+
+> Line 266: From the figures in the supporting material, it does not become evident that 
+> Particulate caron and metabolite concentrations are connected. There could be nested 
+> effects due to the selection of data points.
+
