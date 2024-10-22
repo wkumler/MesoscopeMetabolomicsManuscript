@@ -88,7 +88,10 @@ This is an accurate assessment of the manuscript.
 > sequence. If >100 samples of 15 min are run in a row there could be a drift that would 
 > be hidden because of the randomization. It would be easy to have a look at the outliers 
 > (e.g. Fig. 2 lower panels) are measured early / late during the sequence.
-
+We have double-checked that our normalization to internal standards removed any
+analytical drift and can confirm that while significant drift occurred over
+the course of the eddy transect sample run, the normalization removed this
+effect and is not a major factor in the outliers visible in Fig. 2.
 
 > Blanks are mentioned but it is not shown how these were used for the data analysis.
 We have added a note about how we used the methodological blanks to visually assess 

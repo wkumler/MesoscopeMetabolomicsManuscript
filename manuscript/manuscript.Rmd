@@ -463,6 +463,98 @@ ggsave("fig_2_nmds_and_med_metab.png", plot = nmds_and_med_metab, device = "png"
 
 *Figure 2: Distribution of metabolites in multivariate space across adjacent eddies of opposite polarity during the MESO-SCOPE transect, broken down by depth. Top panels depict non-metric multidimensional scaling (NMDS) plots with individual samples colored based on their corrected sea level anomaly. NMDS stress values (s) have been reported in the bottom left corner, while PERMANOVA R$^2$ and p-values are reported in the top left. SLA trends are visible in the DCM and 175 meter samples, with dark blue circles consistently discriminating from the dark red circles along the first multidimensional axis. Bottom panels depict the direction and magnitude of this effect by plotting the mean value of all z-scored metabolites across three biological triplicates in color with the raw values in black behind.*
 
+```{r confirm that analytical order does not affect conclusions, eval=FALSE}
+read_csv("../untargeted/IS_integrations/all_is.csv") %>%
+  select(filename=Replicate.Name, compound_name=Precursor.Ion.Name, area=Area) %>%
+  filter(str_detect(filename, "_Smp_")) %>%
+  mutate(filename=paste0(filename, ".mzML")) %>%
+  pivot_wider(names_from=compound_name, values_from = "area") %>%
+  mutate("Inj_vol"=ifelse(str_detect(filename, "Poo.*Half"), 0.5, 1)) %>%
+  pivot_longer(-filename, names_to = "IS_name", values_to = "IS_area") %>%
+  filter(IS_name!="Guanosine monophosphate, 15N5") %>%
+  left_join(filled_file_metadata %>% select(filename, timestamp, sla_corr, ms_run)) %>%
+  filter(ms_run=="MT") %>%
+  arrange(timestamp) %>%
+  drop_na() %>%
+  mutate(filename=fct_inorder(filename)) %>%
+  ggplot(aes(x=timestamp, y=IS_area, color=sla_corr)) +
+  geom_hline(yintercept = 0) +
+  geom_point() +
+  facet_wrap(~IS_name, scales="free_y") +
+  scale_fill_gradient2(
+    low = scales::muted("blue"), high = scales::muted("red"),  mid = "grey90",
+    aesthetics = c("color", "fill"),
+  ) +
+  theme_bw()
+
+
+
+read_csv("../untargeted/MS_pos_output/deaddiso_peaks.csv") %>%
+  filter(str_detect(filename, "_Smp_")) %>%
+  left_join(filled_file_metadata %>% distinct(filename, ms_run, station, depth, sla_corr),
+            by="filename") %>%
+  filter(ms_run=="MT") %>%
+  group_by(depth, feature) %>%
+  filter(sum(into==0)<n()*0.9) %>%
+  mutate(into=scale(into)[,1]) %>%
+  ungroup() %>%
+  group_by(filename, depth, station, sla_corr) %>%
+  summarize(avg_amt=mean(into)) %>%
+  ungroup() %>%
+  left_join(filled_file_metadata %>% select(filename, timestamp)) %>%
+  arrange(timestamp) %>%
+  mutate(filename=fct_inorder(filename)) %>%
+  ggplot(aes(x=timestamp, y=avg_amt, color=sla_corr)) +
+  geom_hline(yintercept = 0) +
+  geom_point() +
+  geom_smooth(method="loess", formula=y~x, color="black") +
+  scale_fill_gradient2(
+    low = scales::muted("blue"), high = scales::muted("red"),  mid = "grey90",
+    aesthetics = c("color", "fill"),
+  ) +
+  theme_bw()
+
+
+med_metab_by_timestamp <- read_csv("../untargeted/all_peaks.csv") %>%
+  filter(str_detect(filename, "_Smp_")) %>%
+  left_join(filled_file_metadata %>% distinct(filename, ms_run, station, depth, sla_corr),
+            by="filename") %>%
+  filter(ms_run=="MT") %>%
+  group_by(depth, feature) %>%
+  filter(sum(norm_area==0)<n()*0.9) %>%
+  mutate(norm_area=scale(norm_area)[,1]) %>%
+  ungroup() %>%
+  group_by(filename, depth, station, sla_corr) %>%
+  summarize(avg_amt=mean(norm_area)) %>%
+  ungroup() %>%
+  left_join(filled_file_metadata %>% select(filename, timestamp)) %>%
+  arrange(timestamp) %>%
+  mutate(filename=fct_inorder(filename))
+
+med_metab_by_timestamp %>%
+  ggplot(aes(x=timestamp, y=avg_amt, color=sla_corr)) +
+  geom_hline(yintercept = 0) +
+  geom_point() +
+  geom_smooth(method="loess", formula=y~x, color="black") +
+  scale_fill_gradient2(
+    low = scales::muted("blue"), high = scales::muted("red"),  mid = "grey90",
+    aesthetics = c("color", "fill"),
+  ) +
+  theme_bw()
+
+med_metab_by_timestamp %>%
+  mutate(station=factor(station, levels=as.character(4:14))) %>%
+  mutate(depth=factor(depth, levels=c("Surface", "DCM", "Deep"))) %>%
+  ggplot() +
+  geom_hline(yintercept = 0) +
+  geom_point(aes(x=station, y=avg_amt, color=timestamp), size=2) +
+  facet_wrap(~depth, nrow=1) +
+  theme_bw() +
+  theme(strip.background = element_blank(), strip.text = element_blank()) +
+  labs(x="Station", y="Median metabolite z-score")
+```
+
+
 To characterize the difference between eddies in a lower-dimensional space, we plotted an average metabolite peak area per station at each depth. We performed z-score normalization on each mass feature to give them all equal weight while preserving the variance between samples then calculated the median z-score for each sample, resulting in large positive values when metabolites are more abundant in a given sample than in the median sample (Figure 2). The average metabolite collected at the exact center of the cyclonic eddy (Station 12) had higher values than other samples at this same depth, indicating that most metabolites were more abundant at the cyclone's DCM than elsewhere in the transect. The 175 meter samples, on the other hand, showed the largest metabolite abundances in the anticyclone while the cyclone had consistently lower median z-scores. This method highlighted the negative correlation between the average metabolite and SLA at the DCM ($r_{DCM}= -0.716$) while the 15 meter and 175 meter samples showed the opposite trend ($r_{15m} = 0.211$, $r_{175m} = 0.830$).
 
 ```{r perc increase at cyclone DCM center, eval=FALSE}
