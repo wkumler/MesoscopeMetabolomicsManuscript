@@ -1070,7 +1070,7 @@ MC_nmds_gp <- multivar_analysis_MC$nmds_output %>%
   theme_bw() +
   theme(legend.position = "top", legend.text = element_text(margin = margin(r = 15, l=2, unit = "pt"))) +
   annotate("label", x=-Inf, y=Inf, hjust=0, vjust=1, label.r = unit(0, "in"),
-           label=expression(atop(paste("R"[SLA]^2, "=.238"), paste("R"[depth]^2, "=.253")))) +
+           label=expression(atop(paste("R"[SLA]^2, "=0.238"), paste("R"[depth]^2, "=0.253")))) +
   annotate("label", x=-Inf, y=-Inf, label=multivar_analysis_MC$nmds_stress, 
            hjust=0, vjust=-2, label.r = unit(0, "in"))
 
@@ -1408,8 +1408,8 @@ fk_nmdsplot <- nmds_fk$points%*%rot_mat %>%
   annotate("label", x=-Inf, y=-Inf, hjust=0, vjust=0, label.r = unit(0, "in"),
            label=paste("Stress =", round(nmds_fk$stress, digits = 3))) +
   annotate("label", x=-Inf, y=Inf, hjust=0, vjust=1, label.r = unit(0, "in"),
-           label=expression(atop(paste("R"[SLA]^2, "=.090, p=0.017"),
-                                 paste("R"[depth]^2, "=.251, p<0.001")))) +
+           label=expression(atop(paste("R"[SLA]^2, "=0.090, p=0.017"),
+                                 paste("R"[depth]^2, "=0.251, p<0.001")))) +
   guides(fill=guide_legend(title = NULL, override.aes = list(
     fill=c("#8989c1", "#b57c7c", "#343489", "#762020"), color="white",
     shape=c(25, 24, 25, 24)
