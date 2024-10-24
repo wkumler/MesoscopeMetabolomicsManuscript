@@ -120,6 +120,7 @@ if(!dir.exists("supplement"))dir.create("supplement")
 
 filled_file_metadata <- read_csv("../metadata/filled_file_metadata.csv") %>%
   filter(polarity=="pos") %>%
+  mutate(local_time=as.POSIXct(time, tz="HST")) %>%
   select(-polarity)
 clean_stans <- read_csv("../metadata/clean_stans.csv") %>%
   mutate(n_C=as.numeric(str_extract(formula, "(?<=C)\\d+"))) %>%
@@ -309,7 +310,7 @@ Samples were also processed via the untargeted workflow detailed in @Kumler2023.
 
 ## Statistics
 
-All statistics were run in R version 4.4.0. We used multivariate statistics provided by the vegan package (version 2.6-6.1, @R-vegan) to assess the overall impact of various metrics across the metabolome followed by univariate statistics to investigate individually significant responses. Non-parametric tests were used when data were unlikely to obey parametric assumptions and permutational statistics were preferred wherever possible. Multiple comparison problems were controlled where necessary using a false-discovery rate correction [@Benjamini1995]. For the analyses involving the eddy transect samples, sea level anomaly was treated as a continuous variable with the exception of the PERMANOVA, for which SLA was categorized as cyclonic if less than -5 cm and anticyclonic if greater than 5 cm, with a third category for stations in between [@Anderson2001]. Both the MESO-SCOPE eddy center and HEE analyses treated SLA as a categorical variable. Where time of day was included as an explanatory factor in the PERMANOVA, it was binned into 6-hour increments starting from 3AM (e.g. Midday contains casts collected between 9AM and 3PM).
+All statistics were run in R version 4.4.0. We used multivariate statistics provided by the vegan package (version 2.6-6.1, @R-vegan) to assess the overall impact of various metrics across the metabolome followed by univariate statistics to investigate individually significant responses. Non-parametric tests were used when data were unlikely to obey parametric assumptions and permutational statistics were preferred wherever possible. Multiple comparison problems were controlled where necessary using a false-discovery rate correction [@Benjamini1995]. For the analyses involving the eddy transect samples, sea level anomaly was treated as a continuous variable with the exception of the PERMANOVA, for which SLA was categorized as cyclonic if less than -5 cm and anticyclonic if greater than 5 cm, with a third category for stations in between [@Anderson2001]. Both the MESO-SCOPE eddy center and HEE analyses treated SLA as a categorical variable. Where time of day was included as an explanatory factor in the PERMANOVA, it was binned into 6-hour increments starting from 3AM (e.g. Midday contains casts collected between 9AM and 3PM). Marginal effects are reported for the PERMANOVA analyses to avoid influencing the results with the order of the terms in the model formula.
 
 # Results
 
@@ -319,13 +320,7 @@ We explored the impacts of isopycnal uplift and depression on the composition of
 
 The metabolome clearly differed between cyclonic and anticyclonic samples, though the magnitude of this difference varied by depth. The largest differences in particulate matter composition were detected in the DCM and 175 meter samples, as shown by the NMDS in Figure 2. 
 
-At the DCM, approximately 14% of the variation in the metabolome could be explained by sea level anomaly (SLA) alone (PERMANOVA, p = 0.002). Additionally, SLA was strongly correlated with the first principal component (PC) of the metabolome  with a Pearson's *r* of 0.615 and 27% of the variance explained by PC1 (Supplemental Figure 1A), indicating that this was one of the largest sources of variation in the dataset. Notably, the samples taken from the exact center of the cyclonic eddy at Station 12 were highly distinct and likely drove much of the explained variance. 
-
-In the 175 meter samples, 13% of the variance was explained by SLA (PERMANOVA, p = 0.004) and SLA was highly correlated with the second PC of the dataset (*r* = 0.697, % variance explained by PC2 = 15.4, Supplemental Figure 1A), though the first PC did not seem to have any visible pattern with metadata and appeared to largely capture variation between biological triplicates (Supplemental Figure 1B). 
-
-At 15 meters, SLA trends are slightly less evident with a larger p-value (PERMANOVA, p=0.010) and a lower R$^2$ (0.12) (Figure 2). Time of day was also a significant factor in the PERMANOVA at the surface and DCM (p-values of 0.004 and 0.032, respectively) while the diel effects in the 175 meter samples were unsurprisingly much lower (p = 0.118). 
-
-The significance of SLA as an explanatory factor was similar even when excluding time of day, with the surface seeing the largest change to an R$^2_{SLA}$ of 0.09 and a p-value of 0.087, though the fraction of the variance explained by SLA increased to 16% without time of day as a factor.
+At the DCM, approximately 14% of the variation in the metabolome could be explained by sea level anomaly (SLA) alone (PERMANOVA, p = 0.002). Additionally, SLA was strongly correlated with the first principal component (PC) of the metabolome  with a Pearson's *r* of 0.615 and 27% of the variance explained by PC1 (Supplemental Figure 1A), indicating that this was one of the largest sources of variation in the dataset. Notably, the samples taken from the exact center of the cyclonic eddy at Station 12 were highly distinct and likely drove much of the explained variance. In the 175 meter samples, 13% of the variance was explained by SLA (PERMANOVA, p = 0.004) and SLA was highly correlated with the second PC of the dataset (*r* = 0.697, % variance explained by PC2 = 15.4, Supplemental Figure 1A), though the first PC did not seem to have any visible pattern with metadata and appeared to largely capture variation between biological triplicates (Supplemental Figure 1B). At 15 meters, SLA trends are slightly less evident with a larger p-value (PERMANOVA, p=0.029) and a lower R$^2$ (0.10) (Figure 2). Time of day was also a significant factor in the PERMANOVA at the surface and DCM (p-values of 0.018 and 0.033, respectively) while the diel effects in the 175 meter samples were unsurprisingly much lower (p = 0.140). The significance of SLA as an explanatory factor was similar even when excluding time of day from the model expression (R$^2_{SLA}$ and p-values within permutation error).
 
 ```{r multivar_analysis object creation - nmds/pca/permanova}
 set.seed(123)
@@ -359,8 +354,8 @@ multivar_analysis <- untarg_peaks %>%
       left_join(filled_file_metadata %>% select(filename, sla_class, time_class),
                 by="filename")
     vegan::adonis2(
-      metab_mat~sla_class, 
-      # metab_mat~sla_class+time_class, 
+      # metab_mat~sla_class,
+      metab_mat~sla_class+time_class,
       data = adon_expl, by = "margin", 
       permutations = 999, method = "manhattan")
   })) %>%
@@ -1386,7 +1381,7 @@ nmds_fk <- metab_mat_fk %>%
                  noshare = FALSE, wascores = FALSE) %>%
   vegan::MDSrotate(env_vec)
 adon_expl <- data.frame(filename=rownames(metab_mat_fk)) %>%
-  left_join(filled_file_metadata %>% select(filename, sla_class, depth), by="filename")
+  left_join(filled_file_metadata %>% select(filename, sla_class, time_class, depth), by="filename")
 adon_fk <- vegan::adonis2(
   metab_mat_fk~sla_class+depth, data = adon_expl, by = "margin", 
   permutations = 999, method = "manhattan")
@@ -1440,7 +1435,7 @@ ggsave("fig_6_fk_nmdsplot.png", plot = fk_nmdsplot, device = "png",
        bg="white")
 ```
 
-The HEE data was characterized by high inter-replicate variability relative to the samples from the MESO-SCOPE cruise, with 25 meter samples in particular highly variable in multivariate space (Figure 6). Despite this, we still saw the importance of sea level anomaly as a significant explanatory factor in the dataset (R$^2_{SLA} = 0.090$, p-value = 0.017) as well as the larger depth differences between the surface (25 meters) and DCM (110 - 120 meters) (R$^2_{depth} = 0.251$, p-value << 0.001). We saw no difference between the 6AM and 6PM samples (R$^2_{time} = 0.031$, p-value = 0.373) despite a few known compounds (trehalose and sucrose) showing large differences, likely due to a majority of the mass features demonstrating no diel effect (Supplemental Figure 4).
+The HEE data was characterized by high inter-replicate variability relative to the samples from the MESO-SCOPE cruise, with 25 meter samples in particular highly variable in multivariate space (Figure 6). Despite this, we still saw the importance of sea level anomaly as a significant explanatory factor in the dataset (R$^2_{SLA} = 0.090$, p-value = 0.017) as well as the larger depth differences between the surface (25 meters) and DCM (110 - 120 meters) (R$^2_{depth} = 0.251$, p-value << 0.001). We saw no difference between the 6AM and 6PM samples (R$^2_{time} = 0.031$, p-value = 0.367) despite a few known compounds (trehalose and sucrose) showing large differences, likely due to a majority of the mass features demonstrating no diel effect (Supplemental Figure 4).
 
 ![](figures/fig_6_fk_nmdsplot.tif)
 
