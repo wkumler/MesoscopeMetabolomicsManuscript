@@ -188,7 +188,7 @@ toDecDeg <- function(deg, min, dir){
 parseCTD <- function(file_path){
   file_path %>%
     read_table(skip = 3, col_names = col_names, col_types=col_types) %>%
-    mutate(time=strptime(paste(month, day, year, time), format = "%b %d %Y %X")) %>%
+    mutate(time=strptime(paste(month, day, year, time), format = "%b %d %Y %X", tz="UTC")) %>%
     select(-month, -day, -year) %>%
     mutate(lat=mapply(toDecDeg, lat_deg, lat_min, lat_dir)) %>%
     mutate(lon=mapply(toDecDeg, lon_deg, lon_min, lon_dir)) %>%
@@ -604,9 +604,10 @@ interp_df <- interp_df %>%
     sla_corr > 5 ~ "Anticyclone",
     TRUE ~ "Neither"
   )) %>%
-  mutate(time=as.POSIXct(time, origin="1970-01-01")) %>%
+  mutate(time=as.POSIXct(time, origin="1970-01-01", tz="UTC")) %>%
+  mutate(local_time=as.POSIXct(time, tz="HST")) %>%
   mutate(time_class=c("Night", "Morning", "Midday", "Evening")[
-    floor((as.numeric(format(time, "%H"))+3)/6)%%4+1
+    floor((as.numeric(format(local_time, "%H"))+3)/6)%%4+1
   ]) %>%
   bind_rows(extra_filedata) %>%
   mutate(ms_run=cruise) %>%
