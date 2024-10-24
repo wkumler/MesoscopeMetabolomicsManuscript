@@ -57,8 +57,7 @@ While we agree that the data presented in Figures 4 and 6 can be placed side-by-
 for ease of comparison, we believe that keeping these figures in their separate
 locations within the manuscript allows for better narrative flow (since the HEE
 results are not discussed until several sections later) and graphical design (as
-proper visualization of NMDS requires that the x- and y- axes share units). We are
-happy to combine the two plots if the editor deems it necessary or helpful.
+proper visualization of NMDS requires that the x- and y- axes share units).
 
 
 
@@ -80,7 +79,15 @@ This is an accurate assessment of the manuscript.
 > also to photosynthetic state of the phytoplankton. Discussing the results sampling 
 > times during the transect and during sampling of the HEE should be specified and 
 > statistical analysis on the impact (or lack of impact) on the data should be provided.
-
+We have added the time of day as an explanatory factor to our analysis and reported the
+new values from the PERMANOVA in the text and figures, as well as adding a supplemental
+figure to visually represent some of the variance due to time of day. We do see 
+diel differences at the surface and DCM during the eddy transect and these have been
+reported, with the 175 meter differences more likely to be due to chance and very little
+diel difference in the HEE samples at all. We have additionally added a supplemental
+figure identifying a few select compounds for which diel effects are clearly visible
+(trehalose and sucrose) alongside other highly abundant compounds which show no diel
+effects.
 
 > Analytics:
 > The high-quality analytics is appreciated. It should be verified if the variations 
