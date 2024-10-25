@@ -1681,7 +1681,7 @@ targ_hom %>%
 
 ```
 
-Isethionate is a known osmolyte thus far found exclusively in eukaryotes [@Durham2022] and strongly associated with a few diatoms in particular [@Heal2021]. This compound was enriched in the cyclone of the DCM in both the MESO-SCOPE and HEE cruises along with its precursor taurine, validating earlier results from @Barone2022 that showed strong enrichment of eukaryotic phytoplankton at the DCM and *Pseudo-nitzschia* in particular.
+Isethionate is a known osmolyte thus far found exclusively in eukaryotes [@Durham2022] and strongly associated with a few diatoms in particular [@Heal2021]. This compound was enriched in the cyclone of the DCM in both the MESO-SCOPE and HEE cruises along with its precursor taurine, validating earlier results from @Barone2022 that showed strong enrichment of eukaryotic phytoplankton at the DCM and *Pseudo-nitzschia* in particular. Additionally, the abundance other sulfur-containing compounds (e.g. dimethylsulfonioacetate and dimethylsulfoniopropionate) in the cyclone may indicate links between the formation of eukaryote-rich cyclonic features and the production of dimethylsulfide, a climate-active volatile gas [@Moran2019].
 
 ```{r isethionate and taurine, eval=FALSE}
 targ_peaks %>%
