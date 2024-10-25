@@ -135,7 +135,11 @@ to compounds for which no authentic standard was available based on the differen
 in their response factor between a full-strength and half-strength pooled sample.
 The only data presented quantitatively (i.e. as concentrations instead of relative
 or absolute peak area) are those for which an authentic standard was available,
-ensuring that each quantified compound's response factor was known.
+ensuring that each quantified compound's response factor was known. For untargeted
+molecular features for which no authentic standard was available, data is only
+discussed explicitly in peak area space or as a relative deviation between stations/
+depths. We have also added links to the Github where the R code used to perform
+these matching and normalization steps is available.
 
 > Chapter 4.1.1 It is strange to read an entire chapter on an outlier. It is really 
 > one measurement that could be easily contaminated (e.g. one single zooplankton 
@@ -163,7 +167,8 @@ added to the manuscript.
 > for comparisons would be mentioned in the respective sections of results.
 We have tried to add statistical methods used for comparisons in each section of the
 results where applicable in this revision, largely annotating the places in which 
-R-squared and p-values were obtained from PERMANOVAs.
+R-squared and p-values were obtained from PERMANOVAs. We have also added the sample
+size to the Statistics section of the Results.
 
 > Line 239 Typo r = 0.697
 We have switched to using a 0 in front of Pearson's correlation coefficient throughout
