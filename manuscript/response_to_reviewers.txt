@@ -161,7 +161,9 @@ added to the manuscript.
 
 > Statistics: It would facilitate better interpretation if the statistical method used 
 > for comparisons would be mentioned in the respective sections of results.
-
+We have tried to add statistical methods used for comparisons in each section of the
+results where applicable in this revision, largely annotating the places in which 
+R-squared and p-values were obtained from PERMANOVAs.
 
 > Line 239 Typo r = 0.697
 We have switched to using a 0 in front of Pearson's correlation coefficient throughout
