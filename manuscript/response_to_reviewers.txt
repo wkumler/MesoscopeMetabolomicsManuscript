@@ -177,4 +177,7 @@ the manuscript to follow modern conventions.
 > Line 266: From the figures in the supporting material, it does not become evident that 
 > Particulate caron and metabolite concentrations are connected. There could be nested 
 > effects due to the selection of data points.
-
+It is unclear what the reviewer means by the selection of data points. We are aware that
+the strong trend between particulate carbon and metabolite concentration is largely due
+to the effect of depth and that was our inspiration for performing both the overall
+regression and independent regressions at each depth.
