@@ -307,7 +307,7 @@ saveWorkbook(wb, file = "supplement/Supplemental Tables.xlsx", overwrite = TRUE)
 
 ## Untargeted metabolomic methods
 
-Samples were also processed via the untargeted workflow detailed in @Kumler2023. In short, XCMS (version 3.10.0, @R-xcms) was used for feature detection with CentWave peakpicking, Obiwarp alignment, and peak density correspondence/grouping. This was followed by manual inspection of the extracted ion chromatogram for each mass feature by an expert for quality with only those peaks classified as "Good" used in the analysis here. Features were then matched with and normalized to an internal standard (Supplemental Table 1) as described above. Scripts used for this analysis are available at https://github.com/wkumler/MesoscopeMetabolomicsManuscript/tree/master/untargeted.
+Samples were also processed via the untargeted workflow detailed in @Kumler2023. In short, XCMS (version 3.10.0, @R-xcms) was used for feature detection with CentWave peakpicking, Obiwarp alignment, and peak density correspondence/grouping. This was followed by manual inspection of the extracted ion chromatogram for each mass feature by an expert for quality with only those peaks classified as "Good" used in the analysis here. Features were then matched with and normalized to an internal standard (Supplemental Table 4) as described above. Scripts used for this analysis are available at https://github.com/wkumler/MesoscopeMetabolomicsManuscript/tree/master/untargeted.
 
 ## Statistics
 
