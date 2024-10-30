@@ -27,8 +27,6 @@ This is an accurate assessment of the manuscript.
 > scale eddies and the ecosystem evolution driven by them using traditional methods. 
 > If that's the case, the structure and writing style of the paper may need to be 
 > adjusted.
-
-
 > This article focuses on the differences in chemical composition to understand this 
 > process, but I always want to connect it with specific biological processes, such 
 > as structural changes in biological communities, primary production rates, 
@@ -37,8 +35,6 @@ This is an accurate assessment of the manuscript.
 > evidence or discussion to allow readers to connect with these specific biological 
 > groups and/or processes. I know it's difficult to integrate these data together, 
 > but relevant discussions are possible.
-
-
 > We already know that mesoscale eddies are complex and dynamic multidimensional 
 > processes. The three-dimensional space combined with the temporal evolution of 
 > ecosystem structure and function. The changes in the density surface driven by 
@@ -46,6 +42,11 @@ This is an accurate assessment of the manuscript.
 > biology, which is the main thread. In fact, many other physical biological coupling 
 > processes are similar, such as upwelling, internal waves/tides. Using the author's 
 > method, I think similar situations can also be seen in such processes.
+We have expanded the Discussion to touch on the concerns raised by this reviewer.
+Specifically, we have mentioned possible links between the increased sulfonium
+compounds in the eddy and DMS production, a hypothesis about the reason why
+increased cyclonic biomass was not matched by increased export, and extensive
+references to additional manuscripts with relevant data.
 
 
 > Specific suggestions,
