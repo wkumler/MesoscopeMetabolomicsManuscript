@@ -2057,6 +2057,7 @@ comb_gpc_patch <- gpc_chrom_gp / gpc_area_gp / gpc_ratio_reg_gp + plot_annotatio
 ggsave("supplement/comb_gpc_patch.png", comb_gpc_patch, device = "png", width = 9, height = 6.5, units = "in", dpi = 300, bg="white")
 ```
 
+![](supplement/comb_gpc_patch.png)
 
 ## Supp fig 5: Boxplots of selected compounds by depth, time, and SLA
 
