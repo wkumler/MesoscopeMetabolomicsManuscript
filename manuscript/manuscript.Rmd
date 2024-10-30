@@ -2057,6 +2057,9 @@ comb_gpc_patch <- gpc_chrom_gp / gpc_area_gp / gpc_ratio_reg_gp + plot_annotatio
 ggsave("supplement/comb_gpc_patch.png", comb_gpc_patch, device = "png", width = 9, height = 6.5, units = "in", dpi = 300, bg="white")
 ```
 
+![](supplement/comb_gpc_patch.png)
+
+*Supplemental Figure 4: Evidence against phosphorus limitation across the MESO-SCOPE eddy transect. Top row of plots (A) correspond to extracted ion chromatograms for 5 metabolites useful for estimating the phosphorus stress of an environment, colored by the depth from which the sample was taken. Middle row of plots shows the integrated peak area for each metabolite across the 11 stations of the transect with sub-panels for each depth independently, with each point colored by the corrected sea level anomaly (SLA). Bottom row of plots shows the ratio of choline to phosphocholine (left) and choline to glycerophosphocholine (right) as a function of corrected SLA with no statistically significant trend visible at any of the three depths.*
 
 ## Supp fig 5: Boxplots of selected compounds by depth, time, and SLA
 
