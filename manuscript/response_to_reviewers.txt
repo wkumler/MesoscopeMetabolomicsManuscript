@@ -46,7 +46,8 @@ We have expanded the Discussion to touch on the concerns raised by this reviewer
 Specifically, we have mentioned possible links between the increased sulfonium
 compounds in the eddy and DMS production, a hypothesis about the reason why
 increased cyclonic biomass was not matched by increased export, and extensive
-references to additional manuscripts with relevant data.
+references to additional manuscripts with relevant data in lines 651-655 and 
+689-718.
 
 
 > Specific suggestions,
@@ -81,7 +82,8 @@ This is an accurate assessment of the manuscript.
 > times during the transect and during sampling of the HEE should be specified and 
 > statistical analysis on the impact (or lack of impact) on the data should be provided.
 We have added the time of day as an explanatory factor to our analysis and reported the
-new values from the PERMANOVA in the text and figures, as well as adding a supplemental
+new values from the PERMANOVA in the text (Lines 220-226, 262-266 and 505-509) and figures, 
+as well as adding a supplemental
 figure to visually represent some of the variance due to time of day. We do see 
 diel differences at the surface and DCM during the eddy transect and these have been
 reported, with the 175 meter differences more likely to be due to chance and very little
@@ -99,11 +101,11 @@ effects.
 We have double-checked that our normalization to internal standards removed any
 analytical drift and can confirm that while significant drift occurred over
 the course of the eddy transect sample run, the normalization removed this
-effect and is not a major factor in the outliers visible in Fig. 2.
+effect and is not a major factor in the outliers visible in Fig. 2. (Lines 190-192)
 
 > Blanks are mentioned but it is not shown how these were used for the data analysis.
 We have added a note about how we used the methodological blanks to visually assess 
-whether sample peak areas were above the background signal.
+whether sample peak areas were above the background signal. (Lines 184-186)
 
 > In line 142 the method for the evaluation of the matrix effect is mentioned, but no 
 > results are given.
@@ -118,7 +120,8 @@ this method are cited immediately after its mention here.
 > organic layer collected or was the aqueous layer collected (as suggested by the rest 
 > of the sentence?). Was phase separation occurring spontaneously or was a 
 > centrifugation required? Was separation done by pipetting?
-We have added additional text to this line to clarify the requested points of confusion.
+We have added additional text to this line to clarify the requested points of 
+confusion. (Lines 133-138)
 
 > Line 177: I would rather state “targeted analytical methods”. Metabolomics is by 
 > definition rather untargeted.
@@ -140,7 +143,7 @@ ensuring that each quantified compound's response factor was known. For untarget
 molecular features for which no authentic standard was available, data is only
 discussed explicitly in peak area space or as a relative deviation between stations/
 depths. We have also added links to the Github where the R code used to perform
-these matching and normalization steps is available.
+these matching and normalization steps is available. (Lines 196-198 and 205-208)
 
 > Chapter 4.1.1 It is strange to read an entire chapter on an outlier. It is really 
 > one measurement that could be easily contaminated (e.g. one single zooplankton 
@@ -162,14 +165,14 @@ from which metabolite samples were collected.
 > Software: Give the version number of the software used (e.g. Proteowizard, msConvert, 
 > XCMS...)
 Done. Software versions for Proteowizard, Skyline, MSDIAL, R, XCMS, and vegan have been
-added to the manuscript.
+added to the manuscript. (Sections 3.6 and 3.7)
 
 > Statistics: It would facilitate better interpretation if the statistical method used 
 > for comparisons would be mentioned in the respective sections of results.
 We have tried to add statistical methods used for comparisons in each section of the
 results where applicable in this revision, largely annotating the places in which 
 R-squared and p-values were obtained from PERMANOVAs. We have also added the sample
-size to the Statistics section of the Results.
+size to the Statistics section of the Results. (Lines 220-226)
 
 > Line 239 Typo r = 0.697
 We have switched to using a 0 in front of Pearson's correlation coefficient throughout
