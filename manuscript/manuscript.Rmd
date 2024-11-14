@@ -831,7 +831,7 @@ avg_targ_concs %>%
   count(depth_class)
 ```
 
-The most abundant intracellular metabolite quantified in the eddy transect samples was trimethylamine N-oxide, with an average concentration of 1.38 nM and a distinct DCM maximum (Figure 3), though a few samples had concentrations an order of magnitude higher for unknown reasons (Supplemental Figure 3). A majority of the known molecules (37/53) had a similar pattern with a subsurface maximum at the DCM, including glycine betaine, glutamate, and guanine. Thirteen molecules obeyed a different pattern and decreased monotonically with depth, including the molecules hydroxyisoleucine, gonyol, and dimethylsulfoniopropionate. Two known molecules (arsenobetaine and O-acetylcarnitine) increased with depth, potentially representing particle degradation during export.
+The most abundant intracellular metabolite quantified in the eddy transect samples was trimethylamine N-oxide, with an average concentration of 1.38 nM and a distinct DCM maximum (Figure 3), though a few samples had concentrations an order of magnitude higher for unknown reasons (Supplemental Figure 3). A majority of the known molecules (37/53) had a similar pattern with a subsurface maximum at the DCM, including glycine betaine, glutamate, and guanine. Thirteen molecules obeyed a different pattern and decreased monotonically with depth, including the molecules hydroxyisoleucine, gonyol, and dimethylsulfoniopropionate (DMSP). Two known molecules (arsenobetaine and O-acetylcarnitine) increased with depth, potentially representing particle degradation during export.
 
 ```{r PC vs total_nM ANOVA by depth, eval=FALSE}
 # More carbon in metabolites at DCM when outliers removed?
@@ -1686,7 +1686,7 @@ targ_hom %>%
 
 ```
 
-Isethionate is a known osmolyte thus far found exclusively in eukaryotes [@Durham2022] and strongly associated with a few diatoms in particular [@Heal2021]. This compound was enriched in the cyclone of the DCM in both the MESO-SCOPE and HEE cruises along with its precursor taurine, validating earlier results from @Barone2022 that showed strong enrichment of eukaryotic phytoplankton at the DCM and *Pseudo-nitzschia* in particular. Additionally, the abundance other sulfur-containing compounds (e.g. dimethylsulfonioacetate and dimethylsulfoniopropionate) in the cyclone may indicate links between the formation of eukaryote-rich cyclonic features and the production of dimethylsulfide, a climate-active volatile gas [@Moran2019].
+Isethionate is a known osmolyte thus far found exclusively in eukaryotes [@Durham2022] and strongly associated with a few diatoms in particular [@Heal2021]. This compound was enriched in the cyclone of the DCM in both the MESO-SCOPE and HEE cruises along with its precursor taurine, validating earlier results from @Barone2022 that showed strong enrichment of eukaryotic phytoplankton at the DCM and *Pseudo-nitzschia* in particular. Additionally, the abundance other sulfur-containing compounds (e.g. dimethylsulfonioacetate, DMS-Ac and dimethylsulfoniopropionate, DMSP) in the cyclone may indicate links between the formation of eukaryote-rich cyclonic features and the production of dimethylsulfide, a climate-active volatile gas [@Moran2019].
 
 ```{r isethionate and taurine, eval=FALSE}
 targ_peaks %>%
