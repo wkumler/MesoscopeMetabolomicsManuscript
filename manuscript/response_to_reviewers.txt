@@ -42,7 +42,8 @@ This is an accurate assessment of the manuscript.
 > biology, which is the main thread. In fact, many other physical biological coupling 
 > processes are similar, such as upwelling, internal waves/tides. Using the author's 
 > method, I think similar situations can also be seen in such processes.
-We have expanded the Discussion to touch on the concerns raised by this reviewer.
+We have expanded the Discussion to touch on the concerns raised by this reviewer,
+adding section 5.3 to respond to this directly.
 Specifically, we have mentioned possible links between the increased sulfonium
 compounds in the eddy and DMS production, a hypothesis about the reason why
 increased cyclonic biomass was not matched by increased export, and extensive
