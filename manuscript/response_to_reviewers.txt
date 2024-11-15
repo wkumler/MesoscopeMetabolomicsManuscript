@@ -43,12 +43,11 @@ This is an accurate assessment of the manuscript.
 > processes are similar, such as upwelling, internal waves/tides. Using the author's 
 > method, I think similar situations can also be seen in such processes.
 We have expanded the Discussion to touch on the concerns raised by this reviewer,
-adding section 5.3 to respond to this directly.
+adding section 5.3 (starting at line 624) to respond to this directly.
 Specifically, we have mentioned possible links between the increased sulfonium
-compounds in the eddy and DMS production, a hypothesis about the reason why
-increased cyclonic biomass was not matched by increased export, and extensive
-references to additional manuscripts with relevant data in lines 651-655 and 
-689-718.
+compounds in the eddy and DMS production (lines 605-609), a hypothesis about the reason why
+increased cyclonic biomass was not matched by increased export (lines 642-651), and extensive
+references to additional manuscripts with relevant data throughout the section.
 
 
 > Specific suggestions,
@@ -60,7 +59,8 @@ While we agree that the data presented in Figures 4 and 6 can be placed side-by-
 for ease of comparison, we believe that keeping these figures in their separate
 locations within the manuscript allows for better narrative flow (since the HEE
 results are not discussed until several sections later) and graphical design (as
-proper visualization of NMDS requires that the x- and y- axes share units).
+proper visualization of NMDS requires that the x- and y- axes share units, making 
+it awkward to place them side-by-side).
 
 
 
@@ -83,11 +83,9 @@ This is an accurate assessment of the manuscript.
 > times during the transect and during sampling of the HEE should be specified and 
 > statistical analysis on the impact (or lack of impact) on the data should be provided.
 We have added the time of day as an explanatory factor to our analysis and reported the
-new values from the PERMANOVA in the text (Lines 220-226, 262-266 and 505-509) and figures, 
-as well as adding a supplemental
-figure to visually represent some of the variance due to time of day. We do see 
-diel differences at the surface and DCM during the eddy transect and these have been
-reported, with the 175 meter differences more likely to be due to chance and very little
+new values from the PERMANOVA in the text (Lines 221-224, 263-267 and 522-525) and figures. 
+We do see diel differences at the surface and DCM during the eddy transect and these have 
+been reported, with the 175 meter differences more likely to be due to chance and very little
 diel difference in the HEE samples at all. We have additionally added a supplemental
 figure identifying a few select compounds for which diel effects are clearly visible
 (trehalose and sucrose) alongside other highly abundant compounds which show no diel
@@ -102,11 +100,11 @@ effects.
 We have double-checked that our normalization to internal standards removed any
 analytical drift and can confirm that while significant drift occurred over
 the course of the eddy transect sample run, the normalization removed this
-effect and is not a major factor in the outliers visible in Fig. 2. (Lines 190-192)
+effect and is not a major factor in the outliers visible in Fig. 2. (Lines 193-195)
 
 > Blanks are mentioned but it is not shown how these were used for the data analysis.
 We have added a note about how we used the methodological blanks to visually assess 
-whether sample peak areas were above the background signal. (Lines 184-186)
+whether sample peak areas were above the background signal. (Lines 187-189)
 
 > In line 142 the method for the evaluation of the matrix effect is mentioned, but no 
 > results are given.
@@ -122,7 +120,7 @@ this method are cited immediately after its mention here.
 > of the sentence?). Was phase separation occurring spontaneously or was a 
 > centrifugation required? Was separation done by pipetting?
 We have added additional text to this line to clarify the requested points of 
-confusion. (Lines 133-138)
+confusion. (Lines 135-140)
 
 > Line 177: I would rather state “targeted analytical methods”. Metabolomics is by 
 > definition rather untargeted.
@@ -141,7 +139,7 @@ ensuring that each quantified compound's response factor was known. For untarget
 molecular features for which no authentic standard was available, data is only
 discussed explicitly in peak area space or as a relative deviation between stations/
 depths. We have also added links to the Github where the R code used to perform
-these matching and normalization steps is available. (Lines 196-198 and 205-208)
+these matching and normalization steps is available. (Lines 195-200 and 206-209)
 
 > Chapter 4.1.1 It is strange to read an entire chapter on an outlier. It is really 
 > one measurement that could be easily contaminated (e.g. one single zooplankton 
@@ -170,11 +168,11 @@ added to the manuscript. (Sections 3.6 and 3.7)
 We have tried to add statistical methods used for comparisons in each section of the
 results where applicable in this revision, largely annotating the places in which 
 R-squared and p-values were obtained from PERMANOVAs. We have also added the sample
-size to the Statistics section of the Results. (Lines 220-226)
+size to the Statistics section of the Results. (Lines 224-227)
 
 > Line 239 Typo r = 0.697
 We have switched to using a 0 in front of Pearson's correlation coefficient throughout
-the manuscript to follow modern conventions.
+the manuscript.
 
 > Line 266: From the figures in the supporting material, it does not become evident that 
 > Particulate caron and metabolite concentrations are connected. There could be nested 
@@ -183,3 +181,4 @@ It is unclear what the reviewer means by the selection of data points. We are aw
 the strong trend between particulate carbon and metabolite concentration is largely due
 to the effect of depth and that was our inspiration for performing both the overall
 regression and independent regressions at each depth.
+
