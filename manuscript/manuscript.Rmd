@@ -21,9 +21,9 @@ $^+$Present Address: School of Biological Sciences, Institute for Environmental 
 
 Word counts:
 
-  - Main text (excludes the abstract, section titles, figure and table captions, funding statement, acknowledgments, and references): [X,XXX]
-  - Number of figures: [X]
-  - Number of tables: [X]
+  - Main text (excludes the abstract, section titles, figure and table captions, funding statement, acknowledgments, and references): 8,200
+  - Number of figures: 6
+  - Number of tables: 0
 
 Running head: Metabolites reflect variability introduced by eddies
 
