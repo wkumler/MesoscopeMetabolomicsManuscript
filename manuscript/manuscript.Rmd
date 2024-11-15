@@ -258,7 +258,9 @@ Compounds for which we had an authentic standard (Supplemental Table 5) were man
 ```{r supp table 1 standards list}
 clean_stans_supp <- read_csv("../metadata/clean_stans.csv")
 raafay_notes <- read_csv("../targeted/raw_data/Raafay_HILIC_notes.csv") %>%
-  select(compound_name, in_samps)
+  select(compound_name, in_samps, polarity)
+bmis_info <- read_csv("../targeted/made_data/BMIS_areas.csv") %>%
+  distinct(compound_name, cruise, BMIS, polarity)
 
 IS_table <- clean_stans_supp %>%
   filter(compound_type=="Internal Standard") %>%
@@ -290,12 +292,14 @@ Auth_table <- clean_stans_supp %>%
   )) %>%
   filter(ms_run!="None") %>%
   left_join(raafay_notes) %>%
+  left_join(bmis_info) %>%
   mutate(polarity=ifelse(polarity=="pos", "Positive", "Negative")) %>%
   arrange(stan_mz) %>%
   select(`Compound name`=compound_name, `Molecular formula`=formula,
          `m/z ratio`=stan_mz, `Retention time (min)`=stan_rt,
          `Concentration (uM)`=conc_um, `Polarity integrated`=polarity,
-         `Standard mix`=mix, `Which runs`=ms_run, `Good quality`=in_samps)
+         `Standard mix`=mix, `Which runs`=ms_run, `Good quality`=in_samps,
+         `MS run`=cruise, `Best-matched IS`=BMIS)
 
 wb <- loadWorkbook("supplement/Supplemental Tables.xlsx")
 addWorksheet(wb, sheetName = "Table 4 Internal Standards")
