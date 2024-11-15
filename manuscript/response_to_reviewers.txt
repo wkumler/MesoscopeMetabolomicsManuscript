@@ -44,10 +44,13 @@ This is an accurate assessment of the manuscript.
 > method, I think similar situations can also be seen in such processes.
 We have expanded the Discussion to touch on the concerns raised by this reviewer,
 adding section 5.3 (starting at line 624) to respond to this directly.
-Specifically, we have mentioned possible links between the increased sulfonium
-compounds in the eddy and DMS production (lines 605-609), a hypothesis about the reason why
-increased cyclonic biomass was not matched by increased export (lines 642-651), and extensive
-references to additional manuscripts with relevant data throughout the section.
+Specifically, we performed some additional analysis of phosphorus-containing lipid
+headgroups to assess metrics of phosphorus stress based on new research published
+since initial submission (Bent et al., 2024: lines 338-351 and Supplemental figure 4), 
+have mentioned possible links between the increased sulfonium compounds in the eddy 
+and DMS production (lines 605-609), a hypothesis about the reason why increased 
+cyclonic biomass was not matched by increased export (lines 642-651), and 
+extensive references to additional manuscripts with relevant data throughout the section.
 
 
 > Specific suggestions,
