@@ -9,11 +9,13 @@
 !manuscript/Exported Items.bib
 !manuscript/r-packages.bib
 !manuscript/figures/*
+!manuscript/figures/lowres/*
 !manuscript/limnology-and-oceanography.csl
 !manuscript/frontiers-in-marine-science.csl
 !manuscript/template.docx
 !manuscript/Kumler mSystems Cover Letter .docx
 !manuscript/fmars scope statement.docx
+!manuscript/response_to_reviewers.txt
 
 !metadata/*
 metadata/secret_keys.txt
