@@ -126,11 +126,8 @@ confusion. (Lines 133-138)
 
 > Line 177: I would rather state “targeted analytical methods”. Metabolomics is by 
 > definition rather untargeted.
-While the exact definition of "targeted" vs "untargeted" metabolomics remains an 
-active topic of debate, we believe that the methods used here are sufficiently
-targeted (use of authentic standards and manual integration via Skyline/MSDIAL) to 
-warrant the use of the term, especially in direct contrast to the automated/untargeted 
-pipeline described immediately afterward and thus we have not made this change.
+We have restructured the headings for this section of the methods and added
+additional detail to respond to this concern.
 
 > Line 185: The data are discussed quantitatively but for some compounds no standard 
 > was available. The claim that results were normalized “to the best match standard”. 

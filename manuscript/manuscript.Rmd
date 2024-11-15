@@ -249,7 +249,9 @@ For each run, a Waters Acquity I-Class UPLC with a SeQuant ZIC-pHILIC column (5 
 
 The Waters Acquity UPLC was coupled to a Thermo Q Exactive HF hybrid Orbitrap high resolution mass spectrometer equipped with a heated electrospray ionization source (H-ESI). The H-ESI voltage was set to 3.3 kV and sheath gas, auxiliary gas, and sweep gas flow rates were set at 16, 3, and 1, respectively. The capillary and auxiliary gas heater temperatures were maintained at 320°C and 100°C, respectively. Full scan analyses were performed with polarity switching and a scan range of 60 to 900 *m/z* at a resolution of 60,000. The instrument was mass calibrated at 200 *m/z* before each run began and once again during the eddy transect sample set to ensure calibrations were always performed within 3-4 days. All data files were then converted to an open-source mzML format and vendor centroided via Proteowizard’s msConvert tool (version 3.0.19297, @Chambers2012). All mzML files have been uploaded to Metabolomics Workbench under Project ID PR001738.
 
-## Targeted metabolomic methods
+## Metabolomic data analysis
+
+### Full scan feature extraction for known molecules
 
 Compounds for which we had an authentic standard (Supplemental Table 5) were manually integrated using Skyline (versions 4.1 and 21.2.0.470, @Adams2020) and MSDIAL (version 4.36, @Tsugawa2015) with the standard mixes used to ensure the correct peak was integrated by matching retention time. Compounds were removed from the analysis if they were visually assessed to have poor peak quality in the samples or peak areas in the methodological blanks similar to those in the samples. Skyline was used for both the eddy center samples and the HEE cruise data while MSDIAL was used for the eddy transect data due to the larger number of files in that dataset. Raw peak areas were then normalized to their best-matched internal standard (Supplemental Table 4) per @Boysen2018 except that all compounds were normalized to their best match no matter how minimal the improvement. While significant analytical drift was detected during the longer eddy transect sample run, the use of internal standards was able to negate the instrument's general increase in sensitivity. Normalized peaks were then calibrated via a single-point standard curve as determined uniquely for each compound from the authentic standard mixes and used to convert normalized peak area into moles per µL injected and scaled to the amount of seawater filtered to provide a final estimate of environmental concentration for each compound in moles per liter of seawater filtered. Scripts used for this analysis are available at https://github.com/wkumler/MesoscopeMetabolomicsManuscript/tree/master/targeted.
 
@@ -305,7 +307,7 @@ writeData(x=Auth_table, wb = wb, sheet = "Table 5 Authentic Standards")
 saveWorkbook(wb, file = "supplement/Supplemental Tables.xlsx", overwrite = TRUE)
 ```
 
-## Untargeted metabolomic methods
+### Automated processing for detection of unknown features
 
 Samples were also processed via the untargeted workflow detailed in @Kumler2023. In short, XCMS (version 3.10.0, @R-xcms) was used for feature detection with CentWave peakpicking, Obiwarp alignment, and peak density correspondence/grouping. This was followed by manual inspection of the extracted ion chromatogram for each mass feature by an expert for quality with only those peaks classified as "Good" used in the analysis here. Features were then matched with and normalized to an internal standard (Supplemental Table 4) as described above. Scripts used for this analysis are available at https://github.com/wkumler/MesoscopeMetabolomicsManuscript/tree/master/untargeted.
 
